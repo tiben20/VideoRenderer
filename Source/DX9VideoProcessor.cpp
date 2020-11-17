@@ -1619,7 +1619,7 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 				}
 				plane.data = std::make_unique<BYTE[]>(plane.size);
 				memcpy(plane.data.get(), lr.pBits, plane.size);
-				m_TexSrcVideo.Plane2.pSurface->UnlockRect();
+				m_TexSrcVideo.Plane3.pSurface->UnlockRect();
 			}
 		}
 
