@@ -93,6 +93,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Tests\SwscaleProc.cpp" />
+    <ClCompile Include="Tests\ZimgProc.cpp" />
     <ClCompile Include="Times.cpp" />
     <ClCompile Include="Utils\CPUInfo.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
@@ -144,6 +145,8 @@
     <ClInclude Include="Tests\libswscale\version.h" />
     <ClInclude Include="Tests\SwscaleProc.h" />
     <ClInclude Include="Tests\test.h" />
+    <ClInclude Include="Tests\ZimgProc.h" />
+    <ClInclude Include="Tests\zimg\zimg.h" />
     <ClInclude Include="Times.h" />
     <ClInclude Include="Utils\CPUInfo.h" />
     <ClInclude Include="Utils\StringUtil.h" />

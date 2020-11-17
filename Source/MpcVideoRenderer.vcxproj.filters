@@ -28,6 +28,9 @@
     <Filter Include="Tests\libswscale\libavutil">
       <UniqueIdentifier>{cc8a3f73-b298-40ac-9ed1-8b89116c7ecb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tests\zimg">
+      <UniqueIdentifier>{54f33d67-97a9-4520-be28-1550c7d998a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -115,6 +118,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\SwscaleProc.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\ZimgProc.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
@@ -264,6 +270,12 @@
       <Filter>Tests\libswscale\libavutil</Filter>
     </ClInclude>
     <ClInclude Include="Tests\test.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\zimg\zimg.h">
+      <Filter>Tests\zimg</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\ZimgProc.h">
       <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>

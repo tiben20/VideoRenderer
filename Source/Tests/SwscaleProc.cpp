@@ -19,8 +19,8 @@
 */
 
 #include "stdafx.h"
-#include "..\Utils\Util.h"
-#include "..\Utils\StringUtil.h"
+#include "Utils\Util.h"
+#include "Utils\StringUtil.h"
 #include "swscaleProc.h"
 
 CSwscaleProc::CSwscaleProc(HRESULT& hr)

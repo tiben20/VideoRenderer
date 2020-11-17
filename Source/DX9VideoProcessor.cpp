@@ -32,6 +32,7 @@
 
 #include "../external/minhook/include/MinHook.h"
 #include "Tests/SwscaleProc.h"
+#include "Tests/ZimgProc.h"
 
 static const ScalingShaderResId s_Upscaling9ResIDs[UPSCALE_COUNT] = {
 	{0,                             0,                             L"Nearest-neighbor"  },
@@ -1625,61 +1626,102 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 		const void * const src_p[3] = { planes[0].data.get(), planes[1].data.get(), planes[2].data.get() };
 		const unsigned src_stride[3] = { planes[0].stride, planes[1].stride, planes[2].stride };
 
+		ImageArgs_t src_arg = {
+			m_srcParams.cformat,
+			m_srcWidth,
+			m_srcHeight,
+			m_srcExFmt
+		};
+		ImageArgs_t dst_arg = {
+			CF_XRGB32,
+			m_srcWidth,
+			m_srcHeight,
+			0
+		};
+
 		if (SUCCEEDED(hr_test)) {
 			HRESULT hr_swscale = S_OK;
 			CSwscaleProc swscaleproc(hr_swscale);
 
 			if (SUCCEEDED(hr_swscale)) {
-				ImageArgs_t src_arg = {
-					m_srcParams.cformat,
-					m_srcWidth,
-					m_srcHeight,
-					m_srcExFmt
-				};
-				ImageArgs_t dst_arg = {
-					CF_XRGB32,
-					m_srcWidth,
-					m_srcHeight,
-					0
-				};
-
 				hr_swscale = swscaleproc.Configure(src_arg, dst_arg);
+			}
 
-				if (SUCCEEDED(hr_swscale)) {
-					unsigned stride = dst_arg.width * 4;
-					unsigned len = stride * dst_arg.height;
-					std::unique_ptr<BYTE[]> dib(new(std::nothrow) BYTE[sizeof(BITMAPINFOHEADER) + len]);
-					if (dib) {
-						BITMAPINFOHEADER* bih = (BITMAPINFOHEADER*)dib.get();
-						ZeroMemory(bih, sizeof(BITMAPINFOHEADER));
-						bih->biSize = sizeof(BITMAPINFOHEADER);
-						bih->biWidth = dst_arg.width;
-						bih->biHeight = -(LONG)dst_arg.height;
-						bih->biBitCount = 32;
-						bih->biPlanes = 1;
-						bih->biSizeImage = DIBSIZE(*bih);
+			if (SUCCEEDED(hr_swscale)) {
+				unsigned stride = dst_arg.width * 4;
+				unsigned len = stride * dst_arg.height;
+				std::unique_ptr<BYTE[]> dib(new(std::nothrow) BYTE[sizeof(BITMAPINFOHEADER) + len]);
+				if (dib) {
+					BITMAPINFOHEADER* bih = (BITMAPINFOHEADER*)dib.get();
+					ZeroMemory(bih, sizeof(BITMAPINFOHEADER));
+					bih->biSize = sizeof(BITMAPINFOHEADER);
+					bih->biWidth = dst_arg.width;
+					bih->biHeight = -(LONG)dst_arg.height;
+					bih->biBitCount = 32;
+					bih->biPlanes = 1;
+					bih->biSizeImage = DIBSIZE(*bih);
 
-						hr_swscale = swscaleproc.Process(src_p, src_stride, (BYTE*)(bih + 1), stride);
+					hr_swscale = swscaleproc.Process(src_p, src_stride, (BYTE*)(bih + 1), stride);
 
-						if (SUCCEEDED(hr_swscale)) {
-							BITMAPFILEHEADER bfh;
-							bfh.bfType = 0x4d42;
-							bfh.bfOffBits = sizeof(bfh) + sizeof(BITMAPINFOHEADER);
-							bfh.bfSize = bfh.bfOffBits + len;
-							bfh.bfReserved1 = bfh.bfReserved2 = 0;
+					if (SUCCEEDED(hr_swscale)) {
+						BITMAPFILEHEADER bfh;
+						bfh.bfType = 0x4d42;
+						bfh.bfOffBits = sizeof(bfh) + sizeof(BITMAPINFOHEADER);
+						bfh.bfSize = bfh.bfOffBits + len;
+						bfh.bfReserved1 = bfh.bfReserved2 = 0;
 
-							FILE* fp;
-							if (_wfopen_s(&fp, L"C:\\Temp\\dump_swscale.bmp", L"wb") == 0) {
-								fwrite(&bfh, sizeof(bfh), 1, fp);
-								fwrite(dib.get(), sizeof(BITMAPINFOHEADER) + len, 1, fp);
-								fclose(fp);
-							}
+						FILE* fp;
+						if (_wfopen_s(&fp, L"C:\\Temp\\dump_swscale.bmp", L"wb") == 0) {
+							fwrite(&bfh, sizeof(bfh), 1, fp);
+							fwrite(dib.get(), sizeof(BITMAPINFOHEADER) + len, 1, fp);
+							fclose(fp);
 						}
 					}
 				}
-
-				int dd = 0;
 			}
+		}
+
+		if (SUCCEEDED(hr_test)) {
+			HRESULT hr_zimg = S_OK;
+			CZimgProc zimgproc(hr_zimg);
+
+			if (SUCCEEDED(hr_zimg)) {
+				hr_zimg = zimgproc.Configure(src_arg, dst_arg);
+			}
+
+			if (SUCCEEDED(hr_zimg)) {
+				unsigned stride = dst_arg.width * 4;
+				unsigned len = stride * dst_arg.height;
+				std::unique_ptr<BYTE[]> dib(new(std::nothrow) BYTE[sizeof(BITMAPINFOHEADER) + len]);
+				if (dib) {
+					BITMAPINFOHEADER* bih = (BITMAPINFOHEADER*)dib.get();
+					ZeroMemory(bih, sizeof(BITMAPINFOHEADER));
+					bih->biSize = sizeof(BITMAPINFOHEADER);
+					bih->biWidth = dst_arg.width;
+					bih->biHeight = -(LONG)dst_arg.height;
+					bih->biBitCount = 32;
+					bih->biPlanes = 1;
+					bih->biSizeImage = DIBSIZE(*bih);
+
+					hr_zimg = zimgproc.Process(src_p, src_stride, (BYTE*)(bih + 1), stride);
+
+					if (SUCCEEDED(hr_zimg)) {
+						BITMAPFILEHEADER bfh;
+						bfh.bfType = 0x4d42;
+						bfh.bfOffBits = sizeof(bfh) + sizeof(BITMAPINFOHEADER);
+						bfh.bfSize = bfh.bfOffBits + len;
+						bfh.bfReserved1 = bfh.bfReserved2 = 0;
+
+						FILE* fp;
+						if (_wfopen_s(&fp, L"C:\\Temp\\dump_zimg.bmp", L"wb") == 0) {
+							fwrite(&bfh, sizeof(bfh), 1, fp);
+							fwrite(dib.get(), sizeof(BITMAPINFOHEADER) + len, 1, fp);
+							fclose(fp);
+						}
+					}
+				}
+			}
+
 		}
 	} // end test code
 #endif
