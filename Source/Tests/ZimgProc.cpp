@@ -91,10 +91,12 @@ CZimgProc::~CZimgProc()
 
 void CZimgProc::ZimgFree()
 {
-	pfn_zimg_filter_graph_free(m_filter_graph);
-	m_filter_graph = nullptr;
+	if (pfn_zimg_filter_graph_free) {
+		pfn_zimg_filter_graph_free(m_filter_graph);
+		m_filter_graph = nullptr;
+	}
 	_aligned_free(m_tmp);
-	m_filter_graph = nullptr;
+	m_tmp = nullptr;
 }
 
 void CZimgProc::ZimgLogError()
@@ -206,7 +208,7 @@ HRESULT CZimgProc::Configure(const ImageArgs_t& src_args, const ImageArgs_t& dst
 {
 	ZimgFree();
 
-	if (src_args.cformat != CF_YV12 || dst_args.cformat != CF_XRGB32) {
+	if ((src_args.cformat != CF_YV12 && src_args.cformat != CF_YV16 && src_args.cformat != CF_YV24) || dst_args.cformat != CF_XRGB32) {
 		return E_ABORT;
 	}
 
