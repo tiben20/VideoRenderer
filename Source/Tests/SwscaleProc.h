@@ -20,15 +20,8 @@
 
 #pragma once
 
-#include "Helper.h"
+#include "test.h"
 #include "libswscale/swscale.h"
-
-struct ImageArgs2_t {
-	ColorFormat_t cformat;
-	unsigned width;
-	unsigned height;
-	DXVA2_ExtendedFormat exfmt;
-};
 
 class CSwscaleProc
 {
@@ -84,7 +77,7 @@ private:
 	void SwscaleFree();
 
 public:
-	HRESULT Configure(const ImageArgs2_t& src_args, const ImageArgs2_t& dst_args);
+	HRESULT Configure(const ImageArgs_t& src_args, const ImageArgs_t& dst_args);
 
 	HRESULT Process(const void * const src_p[3], const unsigned src_stride[3], void* dst_p, const unsigned dst_stride);
 };

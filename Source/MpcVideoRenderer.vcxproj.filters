@@ -263,6 +263,9 @@
     <ClInclude Include="Tests\libswscale\libavutil\version.h">
       <Filter>Tests\libswscale\libavutil</Filter>
     </ClInclude>
+    <ClInclude Include="Tests\test.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MpcVideoRenderer.rc">

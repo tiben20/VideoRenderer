@@ -1630,13 +1630,13 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 			CSwscaleProc swscaleproc(hr_swscale);
 
 			if (SUCCEEDED(hr_swscale)) {
-				ImageArgs2_t src_arg = {
+				ImageArgs_t src_arg = {
 					m_srcParams.cformat,
 					m_srcWidth,
 					m_srcHeight,
 					m_srcExFmt
 				};
-				ImageArgs2_t dst_arg = {
+				ImageArgs_t dst_arg = {
 					CF_XRGB32,
 					m_srcWidth,
 					m_srcHeight,

@@ -134,7 +134,7 @@ AVPixelFormat ColorFormatToAvPixFormat(ColorFormat_t cformat)
 	return pixFmt;
 }
 
-HRESULT CSwscaleProc::Configure(const ImageArgs2_t& src_args, const ImageArgs2_t& dst_args)
+HRESULT CSwscaleProc::Configure(const ImageArgs_t& src_args, const ImageArgs_t& dst_args)
 {
 	SwscaleFree();
 

@@ -143,6 +143,7 @@
     <ClInclude Include="Tests\libswscale\swscale.h" />
     <ClInclude Include="Tests\libswscale\version.h" />
     <ClInclude Include="Tests\SwscaleProc.h" />
+    <ClInclude Include="Tests\test.h" />
     <ClInclude Include="Times.h" />
     <ClInclude Include="Utils\CPUInfo.h" />
     <ClInclude Include="Utils\StringUtil.h" />
