@@ -19,6 +19,15 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{ba2bad6e-f01e-4ea9-9209-8005fcd5bc5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{b22d641d-b81b-4c7f-8691-7f87a305665f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests\libswscale">
+      <UniqueIdentifier>{980f6d8a-d627-4412-9752-5bc7d9d1f56f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests\libswscale\libavutil">
+      <UniqueIdentifier>{cc8a3f73-b298-40ac-9ed1-8b89116c7ecb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -104,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="MediaSampleSideData.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\SwscaleProc.cpp">
+      <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +214,54 @@
     </ClInclude>
     <ClInclude Include="MediaSampleSideData.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\SwscaleProc.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\swscale.h">
+      <Filter>Tests\libswscale</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\version.h">
+      <Filter>Tests\libswscale</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\attributes.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\avconfig.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\avutil.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\common.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\error.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\intfloat.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\log.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\macros.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\mathematics.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\mem.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\pixfmt.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\rational.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\libswscale\libavutil\version.h">
+      <Filter>Tests\libswscale\libavutil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

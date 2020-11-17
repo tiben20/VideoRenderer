@@ -92,6 +92,7 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Tests\SwscaleProc.cpp" />
     <ClCompile Include="Times.cpp" />
     <ClCompile Include="Utils\CPUInfo.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
@@ -126,6 +127,22 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\attributes.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\avconfig.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\avutil.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\common.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\error.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\intfloat.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\log.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\macros.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\mathematics.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\mem.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\pixfmt.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\rational.h" />
+    <ClInclude Include="Tests\libswscale\libavutil\version.h" />
+    <ClInclude Include="Tests\libswscale\swscale.h" />
+    <ClInclude Include="Tests\libswscale\version.h" />
+    <ClInclude Include="Tests\SwscaleProc.h" />
     <ClInclude Include="Times.h" />
     <ClInclude Include="Utils\CPUInfo.h" />
     <ClInclude Include="Utils\StringUtil.h" />

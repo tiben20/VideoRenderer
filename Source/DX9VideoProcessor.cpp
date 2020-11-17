@@ -31,6 +31,7 @@
 #include "Shaders.h"
 
 #include "../external/minhook/include/MinHook.h"
+#include "Tests/SwscaleProc.h"
 
 static const ScalingShaderResId s_Upscaling9ResIDs[UPSCALE_COUNT] = {
 	{0,                             0,                             L"Nearest-neighbor"  },
@@ -1550,6 +1551,138 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 		CopyFrameAsIs(h, (BYTE*)(pBIH + 1), dst_pitch, (BYTE*)lr.pBits + lr.Pitch * (h - 1), -lr.Pitch);
 		hr = pRGB32Surface->UnlockRect();
 	}
+
+#if 1 && _WIN64
+	// start test code
+	if (m_TexSrcVideo.pSurface) {
+
+		if (S_OK == hr) {
+			// save shader result
+			BITMAPFILEHEADER bfh;
+			bfh.bfType = 0x4d42;
+			bfh.bfOffBits = sizeof(bfh) + sizeof(BITMAPINFOHEADER);
+			bfh.bfSize = bfh.bfOffBits + pBIH->biSizeImage;
+			bfh.bfReserved1 = bfh.bfReserved2 = 0;
+
+			FILE* fp;
+			if (_wfopen_s(&fp, L"C:\\Temp\\dump_shader.bmp", L"wb") == 0) {
+				fwrite(&bfh, sizeof(bfh), 1, fp);
+				fwrite(pBIH, sizeof(BITMAPINFOHEADER) + pBIH->biSizeImage, 1, fp);
+				fclose(fp);
+			}
+		}
+
+		// get planes
+		struct {
+			std::unique_ptr<BYTE[]> data;
+			unsigned size;
+			unsigned stride;
+		} planes[3];
+		D3DLOCKED_RECT lr;
+
+		HRESULT hr_test = S_OK;
+
+		hr_test = m_TexSrcVideo.pSurface->LockRect(&lr, nullptr, D3DLOCK_READONLY);
+		if (S_OK == hr_test) {
+			auto& plane = planes[0];
+			plane.stride = lr.Pitch;
+			plane.size = lr.Pitch * m_srcHeight;
+			plane.data = std::make_unique<BYTE[]>(plane.size);
+			memcpy(plane.data.get(), lr.pBits, plane.size);
+			m_TexSrcVideo.pSurface->UnlockRect();
+		}
+
+		if (SUCCEEDED(hr_test) && m_TexSrcVideo.Plane2.pSurface) {
+			hr_test = m_TexSrcVideo.Plane2.pSurface->LockRect(&lr, nullptr, D3DLOCK_READONLY);
+			if (S_OK == hr_test) {
+				auto& plane = planes[1];
+				plane.stride = lr.Pitch;
+				plane.size = lr.Pitch * m_srcHeight;
+				if (m_srcParams.pDX9Planes) {
+					plane.size /= m_srcParams.pDX9Planes->div_chroma_h;
+				}
+				plane.data = std::make_unique<BYTE[]>(plane.size);
+				memcpy(plane.data.get(), lr.pBits, plane.size);
+				m_TexSrcVideo.Plane2.pSurface->UnlockRect();
+			}
+		}
+
+		if (SUCCEEDED(hr_test) && m_TexSrcVideo.Plane3.pSurface) {
+			hr_test = m_TexSrcVideo.Plane3.pSurface->LockRect(&lr, nullptr, D3DLOCK_READONLY);
+			if (S_OK == hr_test) {
+				auto& plane = planes[2];
+				plane.stride = lr.Pitch;
+				plane.size = lr.Pitch * m_srcHeight;
+				if (m_srcParams.pDX9Planes) {
+					plane.size /= m_srcParams.pDX9Planes->div_chroma_h;
+				}
+				plane.data = std::make_unique<BYTE[]>(plane.size);
+				memcpy(plane.data.get(), lr.pBits, plane.size);
+				m_TexSrcVideo.Plane2.pSurface->UnlockRect();
+			}
+		}
+
+		const void * const src_p[3] = { planes[0].data.get(), planes[1].data.get(), planes[2].data.get() };
+		const unsigned src_stride[3] = { planes[0].stride, planes[1].stride, planes[2].stride };
+
+		if (SUCCEEDED(hr_test)) {
+			HRESULT hr_swscale = S_OK;
+			CSwscaleProc swscaleproc(hr_swscale);
+
+			if (SUCCEEDED(hr_swscale)) {
+				ImageArgs2_t src_arg = {
+					m_srcParams.cformat,
+					m_srcWidth,
+					m_srcHeight,
+					m_srcExFmt
+				};
+				ImageArgs2_t dst_arg = {
+					CF_XRGB32,
+					m_srcWidth,
+					m_srcHeight,
+					0
+				};
+
+				hr_swscale = swscaleproc.Configure(src_arg, dst_arg);
+
+				if (SUCCEEDED(hr_swscale)) {
+					unsigned stride = dst_arg.width * 4;
+					unsigned len = stride * dst_arg.height;
+					std::unique_ptr<BYTE[]> dib(new(std::nothrow) BYTE[sizeof(BITMAPINFOHEADER) + len]);
+					if (dib) {
+						BITMAPINFOHEADER* bih = (BITMAPINFOHEADER*)dib.get();
+						ZeroMemory(bih, sizeof(BITMAPINFOHEADER));
+						bih->biSize = sizeof(BITMAPINFOHEADER);
+						bih->biWidth = dst_arg.width;
+						bih->biHeight = -(LONG)dst_arg.height;
+						bih->biBitCount = 32;
+						bih->biPlanes = 1;
+						bih->biSizeImage = DIBSIZE(*bih);
+
+						hr_swscale = swscaleproc.Process(src_p, src_stride, (BYTE*)(bih + 1), stride);
+
+						if (SUCCEEDED(hr_swscale)) {
+							BITMAPFILEHEADER bfh;
+							bfh.bfType = 0x4d42;
+							bfh.bfOffBits = sizeof(bfh) + sizeof(BITMAPINFOHEADER);
+							bfh.bfSize = bfh.bfOffBits + len;
+							bfh.bfReserved1 = bfh.bfReserved2 = 0;
+
+							FILE* fp;
+							if (_wfopen_s(&fp, L"C:\\Temp\\dump_swscale.bmp", L"wb") == 0) {
+								fwrite(&bfh, sizeof(bfh), 1, fp);
+								fwrite(dib.get(), sizeof(BITMAPINFOHEADER) + len, 1, fp);
+								fclose(fp);
+							}
+						}
+					}
+				}
+
+				int dd = 0;
+			}
+		}
+	} // end test code
+#endif
 
 	return hr;
 }
