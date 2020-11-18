@@ -192,8 +192,10 @@ void CZimgProc::ZimgSetImageFormat(const ImageArgs_t& args, zimg_image_format& f
 
 		switch (args.exfmt.VideoTransferFunction) {
 		case DXVA2_VideoTransFunc_10:   format.transfer_characteristics = ZIMG_TRANSFER_LINEAR;    break;
+		case DXVA2_VideoTransFunc_22:   format.transfer_characteristics = ZIMG_TRANSFER_BT470_M;   break;
 		case DXVA2_VideoTransFunc_709:  format.transfer_characteristics = ZIMG_TRANSFER_BT709;     break;
 		case DXVA2_VideoTransFunc_240M: format.transfer_characteristics = ZIMG_TRANSFER_BT601;     break;
+		case DXVA2_VideoTransFunc_28:   format.transfer_characteristics = ZIMG_TRANSFER_BT470_BG;  break;
 		case VIDEOTRANSFUNC_Log_100:    format.transfer_characteristics = ZIMG_TRANSFER_LOG_100;   break;
 		case VIDEOTRANSFUNC_Log_316:    format.transfer_characteristics = ZIMG_TRANSFER_LOG_316;   break;
 		case VIDEOTRANSFUNC_2020_const: format.transfer_characteristics = ZIMG_TRANSFER_BT2020_10; break;
