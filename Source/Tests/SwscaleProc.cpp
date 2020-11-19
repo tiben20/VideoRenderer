@@ -36,14 +36,22 @@ CSwscaleProc::CSwscaleProc(HRESULT& hr)
 	path.resize(len);
 	path.erase(path.find_last_of(L"\\") + 1);
 
+#ifdef _WIN64
 	m_hAvutilLib = LoadLibraryW((path + L"x64\\avutil-56.dll").c_str());
+#else
+	m_hAvutilLib = LoadLibraryW((path + L"x86\\avutil-56.dll").c_str());
+#endif
 	if (!m_hAvutilLib) {
 		hr = HRESULT_FROM_WIN32(GetLastError());
 		DLog(L"CSwscaleProc::CSwscaleProc() : failed to load avutil-56.dll with error {}", HR2Str(hr));
 		return;
 	}
 
+#ifdef _WIN64
 	m_hSwscaleLib = LoadLibraryW((path + L"x64\\swscale-5.dll").c_str());
+#else
+	m_hSwscaleLib = LoadLibraryW((path + L"x86\\swscale-5.dll").c_str());
+#endif
 	if (!m_hSwscaleLib) {
 		hr = HRESULT_FROM_WIN32(GetLastError());
 		DLog(L"CSwscaleProc::CSwscaleProc() : failed to load swscale-5.dll with error {}", HR2Str(hr));

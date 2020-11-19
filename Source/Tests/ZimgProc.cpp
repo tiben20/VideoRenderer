@@ -38,7 +38,11 @@ CZimgProc::CZimgProc(HRESULT& hr)
 	path.resize(len);
 	path.erase(path.find_last_of(L"\\") + 1);
 
+#ifdef _WIN64
 	m_hZimgLib = LoadLibraryW((path + L"x64\\zimg.dll").c_str());
+#else
+	m_hZimgLib = LoadLibraryW((path + L"x86\\zimg.dll").c_str());
+#endif
 	if (!m_hZimgLib) {
 		hr = HRESULT_FROM_WIN32(GetLastError());
 		DLog(L"CZimgProc::CZimgProc() : failed to load Zimg.dll with error {}", HR2Str(hr));
