@@ -26,7 +26,8 @@
 
 enum : int {
 	VP_DX9 = 9,
-	VP_DX11 = 11
+	VP_DX11 = 11,
+	VP_DX12 = 12
 };
 
 class CMpcVideoRenderer;

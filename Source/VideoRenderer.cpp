@@ -248,6 +248,18 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
 	}
 
+	if (m_Sets.bUseD3D12 && IsWindows7SP1OrGreater()) {
+		m_VideoProcessor = new CDX12VideoProcessor(this, m_Sets, hr);
+		if (SUCCEEDED(hr)) {
+			hr = m_VideoProcessor->Init(m_hWnd);
+		}
+
+		if (FAILED(hr)) {
+			SAFE_DELETE(m_VideoProcessor);
+		}
+		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
+	}
+
 	if (!m_VideoProcessor) {
 		m_VideoProcessor = new CDX9VideoProcessor(this, m_Sets, hr);
 		if (SUCCEEDED(hr)) {

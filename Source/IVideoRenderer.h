@@ -102,9 +102,11 @@ struct Settings_t {
 
 	void SetDefault() {
 		if (IsWindows8OrGreater()) {
-			bUseD3D11                   = true;
+			bUseD3D11                     = true;
+			bUseD3D12                     = false;
 		} else {
-			bUseD3D11                   = false;
+			bUseD3D11                     = false;
+			bUseD3D12                     = false;
 		}
 		bShowStats                      = false;
 		iResizeStats                    = 0;
