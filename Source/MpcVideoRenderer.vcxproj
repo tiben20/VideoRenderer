@@ -62,6 +62,7 @@
     <ClCompile Include="csputils.cpp" />
     <ClCompile Include="CustomAllocator.cpp" />
     <ClCompile Include="D3D11VP.cpp" />
+    <ClCompile Include="D3D12VP.cpp" />
     <ClCompile Include="D3DUtil\D3D11Font.cpp" />
     <ClCompile Include="D3DUtil\D3D11Geometry.cpp" />
     <ClCompile Include="D3DUtil\D3D9Font.cpp" />
@@ -70,6 +71,8 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="DX11Helper.cpp" />
     <ClCompile Include="DX11VideoProcessor.cpp" />
+    <ClCompile Include="DX12Helper.cpp" />
+    <ClCompile Include="DX12VideoProcessor .cpp" />
     <ClCompile Include="DX9Device.cpp" />
     <ClCompile Include="DX9Helper.cpp" />
     <ClCompile Include="DX9VideoProcessor.cpp" />
@@ -94,14 +97,18 @@
     <ClInclude Include="csputils.h" />
     <ClInclude Include="CustomAllocator.h" />
     <ClInclude Include="D3D11VP.h" />
+    <ClInclude Include="D3D12VP.h" />
     <ClInclude Include="D3DUtil\D3D11Font.h" />
     <ClInclude Include="D3DUtil\D3D11Geometry.h" />
     <ClInclude Include="D3DUtil\D3D9Font.h" />
     <ClInclude Include="D3DUtil\D3D9Geometry.h" />
     <ClInclude Include="D3DUtil\D3DCommon.h" />
+    <ClInclude Include="D3DUtil\d3dx12.h" />
     <ClInclude Include="DisplayConfig.h" />
     <ClInclude Include="DX11Helper.h" />
     <ClInclude Include="DX11VideoProcessor.h" />
+    <ClInclude Include="DX12Helper.h" />
+    <ClInclude Include="DX12VideoProcessor .h" />
     <ClInclude Include="DX9Device.h" />
     <ClInclude Include="DX9Helper.h" />
     <ClInclude Include="DX9VideoProcessor.h" />

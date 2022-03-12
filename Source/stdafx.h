@@ -49,3 +49,6 @@
 
 #include "../external/BaseClasses/streams.h"
 #include "../external/fmt/include/fmt/xchar.h"
+
+
+#include "d3d12.h"
