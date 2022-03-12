@@ -84,6 +84,7 @@ CVRMainPPage::~CVRMainPPage()
 void CVRMainPPage::SetControls()
 {
 	CheckDlgButton(IDC_CHECK1, m_SetsPP.bUseD3D11                        ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK13, m_SetsPP.bUseD3D12                        ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_CHECK2, m_SetsPP.bShowStats                       ? BST_CHECKED : BST_UNCHECKED);
 
 	ComboBox_SelectByItemData(m_hWnd, IDC_COMBO1, m_SetsPP.iTexFormat);
@@ -119,6 +120,7 @@ void CVRMainPPage::EnableControls()
 {
 	if (!IsWindows8OrGreater()) { // Windows 7
 		const BOOL bEnable = !m_SetsPP.bUseD3D11;
+
 		GetDlgItem(IDC_STATIC1).EnableWindow(bEnable); // not working for GROUPBOX
 		GetDlgItem(IDC_STATIC2).EnableWindow(bEnable);
 		GetDlgItem(IDC_CHECK7).EnableWindow(bEnable);
@@ -171,6 +173,7 @@ HRESULT CVRMainPPage::OnActivate()
 		GetDlgItem(IDC_STATIC4).EnableWindow(FALSE);
 		GetDlgItem(IDC_STATIC5).EnableWindow(FALSE);
 		GetDlgItem(IDC_COMBO7).EnableWindow(FALSE);
+		
 	}
 
 	EnableControls();
@@ -227,6 +230,25 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 		if (HIWORD(wParam) == BN_CLICKED) {
 			if (nID == IDC_CHECK1) {
 				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
+				if (IsDlgButtonChecked(IDC_CHECK13))
+				{
+					m_SetsPP.bUseD3D12 = 0;
+					CheckDlgButton(IDC_CHECK13, BST_UNCHECKED);
+					
+				}
+				EnableControls();
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK13) {
+				m_SetsPP.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
+				if (IsDlgButtonChecked(IDC_CHECK1))
+				{
+					m_SetsPP.bUseD3D11 = 0;
+					CheckDlgButton(IDC_CHECK1, BST_UNCHECKED);
+				}
+				
+			
 				EnableControls();
 				SetDirty();
 				return (LRESULT)1;

@@ -36,7 +36,7 @@
 
 #include "../external/minhook/include/MinHook.h"
 
-#include "DX12VideoProcessor .h"
+#include "DX12VideoProcessor.h"
 
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)

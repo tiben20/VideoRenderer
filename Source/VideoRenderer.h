@@ -27,6 +27,8 @@
 #include "IVideoRenderer.h"
 #include "DX9VideoProcessor.h"
 #include "DX11VideoProcessor.h"
+#include "DX12VideoProcessor.h"
+
 #include "../Include/ISubRender.h"
 #include "../Include/ID3DFullscreenControl.h"
 #include "../Include/FilterInterfacesImpl.h"
@@ -83,6 +85,7 @@ private:
 	friend class CVideoProcessor;
 	friend class CDX9VideoProcessor;
 	friend class CDX11VideoProcessor;
+	friend class CDX12VideoProcessor;
 
 	// Options
 	Settings_t m_Sets;

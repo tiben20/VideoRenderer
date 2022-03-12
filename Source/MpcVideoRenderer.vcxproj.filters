@@ -117,7 +117,7 @@
     <ClCompile Include="D3D12VP.cpp">
       <Filter>Source Files\d3d12</Filter>
     </ClCompile>
-    <ClCompile Include="DX12VideoProcessor .cpp">
+    <ClCompile Include="DX12VideoProcessor.cpp">
       <Filter>Source Files\d3d12</Filter>
     </ClCompile>
   </ItemGroup>
@@ -221,9 +221,6 @@
     <ClInclude Include="Utils\gpu_memcpy_sse4.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="DX12VideoProcessor .h">
-      <Filter>Header Files\d3d12</Filter>
-    </ClInclude>
     <ClInclude Include="D3DUtil\d3dx12.h">
       <Filter>Header Files\d3d12</Filter>
     </ClInclude>
@@ -231,6 +228,9 @@
       <Filter>Header Files\d3d12</Filter>
     </ClInclude>
     <ClInclude Include="DX12Helper.h">
+      <Filter>Header Files\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12VideoProcessor.h">
       <Filter>Header Files\d3d12</Filter>
     </ClInclude>
   </ItemGroup>
