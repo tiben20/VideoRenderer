@@ -390,8 +390,8 @@ HRESULT CDX11VideoProcessor::TextureResizeShader(
 
 	return hr;
 }
-
 // CDX11VideoProcessor
+
 
 CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
 	: CVideoProcessor(pFilter)

@@ -73,31 +73,31 @@ CALL :SubColorText "0A" "=== Compiling D3D9 shaders ===" & ECHO.
 
 CALL :SubColorText "0A" "=== Compiling D3D11 shaders ===" & ECHO.
 
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_mitchell4_x.cso"     "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=0 /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_mitchell4_y.cso"     "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=0 /DAXIS=1
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_catmull4_x.cso"      "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=1 /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_catmull4_y.cso"      "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=1 /DAXIS=1
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_lanczos2_x.cso"      "d3d11\ps_interpolation_lanczos2.hlsl" /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_lanczos2_y.cso"      "d3d11\ps_interpolation_lanczos2.hlsl" /DAXIS=1
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_lanczos3_x.cso"      "d3d11\ps_interpolation_lanczos3.hlsl" /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_resizer_lanczos3_y.cso"      "d3d11\ps_interpolation_lanczos3.hlsl" /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_mitchell4_x.cso"     "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=0 /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_mitchell4_y.cso"     "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=0 /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_catmull4_x.cso"      "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=1 /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_catmull4_y.cso"      "d3d11\ps_interpolation_spline4.hlsl" /DMETHOD=1 /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_lanczos2_x.cso"      "d3d11\ps_interpolation_lanczos2.hlsl" /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_lanczos2_y.cso"      "d3d11\ps_interpolation_lanczos2.hlsl" /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_lanczos3_x.cso"      "d3d11\ps_interpolation_lanczos3.hlsl" /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_resizer_lanczos3_y.cso"      "d3d11\ps_interpolation_lanczos3.hlsl" /DAXIS=1
 
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_box_x.cso"        "d3d11\ps_convolution.hlsl" /DFILTER=0 /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_box_y.cso"        "d3d11\ps_convolution.hlsl" /DFILTER=0 /DAXIS=1
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_bilinear_x.cso"   "d3d11\ps_convolution.hlsl" /DFILTER=1 /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_bilinear_y.cso"   "d3d11\ps_convolution.hlsl" /DFILTER=1 /DAXIS=1
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_hamming_x.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=2 /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_hamming_y.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=2 /DAXIS=1
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_bicubic05_x.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=0 /DA=-0.5
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_bicubic05_y.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=1 /DA=-0.5
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_bicubic15_x.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=0 /DA=-1.5
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_bicubic15_y.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=1 /DA=-1.5
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_lanczos_x.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=4 /DAXIS=0
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_downscaler_lanczos_y.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=4 /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_box_x.cso"        "d3d11\ps_convolution.hlsl" /DFILTER=0 /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_box_y.cso"        "d3d11\ps_convolution.hlsl" /DFILTER=0 /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_bilinear_x.cso"   "d3d11\ps_convolution.hlsl" /DFILTER=1 /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_bilinear_y.cso"   "d3d11\ps_convolution.hlsl" /DFILTER=1 /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_hamming_x.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=2 /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_hamming_y.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=2 /DAXIS=1
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_bicubic05_x.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=0 /DA=-0.5
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_bicubic05_y.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=1 /DA=-0.5
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_bicubic15_x.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=0 /DA=-1.5
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_bicubic15_y.cso"  "d3d11\ps_convolution.hlsl" /DFILTER=3 /DAXIS=1 /DA=-1.5
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_lanczos_x.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=4 /DAXIS=0
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_downscaler_lanczos_y.cso"    "d3d11\ps_convolution.hlsl" /DFILTER=4 /DAXIS=1
 
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_convert_yuy2.cso"            "d3d11\ps_convert_color.hlsl" /DC_YUY2=3
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_convert_yuy2.cso"            "d3d11\ps_convert_color.hlsl" /DC_YUY2=3
 
-%fxcexe% /nologo /T ps_4_0 /Fo "%workdir%\ps_final_pass_10.cso"           "d3d11\ps_final_pass.hlsl" /DQUANTIZATION=1023
+%fxcexe% /nologo /T ps_5_0 /Fo "%workdir%\ps_final_pass_10.cso"           "d3d11\ps_final_pass.hlsl" /DQUANTIZATION=1023
 
 EXIT /B
 

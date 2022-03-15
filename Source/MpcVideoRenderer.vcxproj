@@ -45,6 +45,9 @@
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <TargetName>$(ProjectName)64</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <ModuleDefinitionFile>MpcVideoRenderer.def</ModuleDefinitionFile>
@@ -64,6 +67,34 @@
     <ClCompile Include="csputils.cpp" />
     <ClCompile Include="CustomAllocator.cpp" />
     <ClCompile Include="D3D11VP.cpp" />
+    <ClCompile Include="d3d12util\BufferManager.cpp" />
+    <ClCompile Include="d3d12util\Color.cpp" />
+    <ClCompile Include="d3d12util\ColorBuffer.cpp" />
+    <ClCompile Include="d3d12util\CommandAllocatorPool.cpp" />
+    <ClCompile Include="d3d12util\CommandContext.cpp" />
+    <ClCompile Include="d3d12util\CommandListManager.cpp" />
+    <ClCompile Include="d3d12util\CommandSignature.cpp" />
+    <ClCompile Include="d3d12util\DepthBuffer.cpp" />
+    <ClCompile Include="d3d12util\DescriptorHeap.cpp" />
+    <ClCompile Include="d3d12util\Display.cpp" />
+    <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp" />
+    <ClCompile Include="d3d12util\EngineTuning.cpp" />
+    <ClCompile Include="d3d12util\FileUtility.cpp" />
+    <ClCompile Include="d3d12util\GpuBuffer.cpp" />
+    <ClCompile Include="d3d12util\GraphicsCommon.cpp" />
+    <ClCompile Include="d3d12util\ImageScaling.cpp" />
+    <ClCompile Include="d3d12util\LinearAllocator.cpp" />
+    <ClCompile Include="d3d12util\math\Random.cpp" />
+    <ClCompile Include="d3d12util\PipelineState.cpp" />
+    <ClCompile Include="d3d12util\PixelBuffer.cpp" />
+    <ClCompile Include="d3d12util\ReadbackBuffer.cpp" />
+    <ClCompile Include="d3d12util\RootSignature.cpp" />
+    <ClCompile Include="d3d12util\SamplerManager.cpp" />
+    <ClCompile Include="d3d12util\SystemTime.cpp" />
+    <ClCompile Include="d3d12util\TextRenderer.cpp" />
+    <ClCompile Include="d3d12util\Texture.cpp" />
+    <ClCompile Include="d3d12util\UploadBuffer.cpp" />
+    <ClCompile Include="d3d12util\Utility.cpp" />
     <ClCompile Include="D3D12VP.cpp" />
     <ClCompile Include="D3DUtil\D3D11Font.cpp" />
     <ClCompile Include="D3DUtil\D3D11Geometry.cpp" />
@@ -99,13 +130,55 @@
     <ClInclude Include="csputils.h" />
     <ClInclude Include="CustomAllocator.h" />
     <ClInclude Include="D3D11VP.h" />
+    <ClInclude Include="d3d12util\BufferManager.h" />
+    <ClInclude Include="d3d12util\Color.h" />
+    <ClInclude Include="d3d12util\ColorBuffer.h" />
+    <ClInclude Include="d3d12util\CommandAllocatorPool.h" />
+    <ClInclude Include="d3d12util\CommandContext.h" />
+    <ClInclude Include="d3d12util\CommandListManager.h" />
+    <ClInclude Include="d3d12util\CommandSignature.h" />
+    <ClInclude Include="d3d12util\Commond3d12.h" />
+    <ClInclude Include="d3d12util\d3dx12.h" />
+    <ClInclude Include="d3d12util\DepthBuffer.h" />
+    <ClInclude Include="d3d12util\DescriptorHeap.h" />
+    <ClInclude Include="d3d12util\Display.h" />
+    <ClInclude Include="d3d12util\DynamicDescriptorHeap.h" />
+    <ClInclude Include="d3d12util\EngineTuning.h" />
+    <ClInclude Include="d3d12util\EsramAllocator.h" />
+    <ClInclude Include="d3d12util\FileUtility.h" />
+    <ClInclude Include="d3d12util\GpuBuffer.h" />
+    <ClInclude Include="d3d12util\GpuResource.h" />
+    <ClInclude Include="d3d12util\GraphicsCommon.h" />
+    <ClInclude Include="d3d12util\Hash.h" />
+    <ClInclude Include="d3d12util\ImageScaling.h" />
+    <ClInclude Include="d3d12util\LinearAllocator.h" />
+    <ClInclude Include="d3d12util\math\BoundingBox.h" />
+    <ClInclude Include="d3d12util\math\BoundingPlane.h" />
+    <ClInclude Include="d3d12util\math\Common.h" />
+    <ClInclude Include="d3d12util\math\Matrix3.h" />
+    <ClInclude Include="d3d12util\math\Matrix4.h" />
+    <ClInclude Include="d3d12util\math\Quaternion.h" />
+    <ClInclude Include="d3d12util\math\Random.h" />
+    <ClInclude Include="d3d12util\math\Scalar.h" />
+    <ClInclude Include="d3d12util\math\Transform.h" />
+    <ClInclude Include="d3d12util\math\Vector.h" />
+    <ClInclude Include="d3d12util\PipelineState.h" />
+    <ClInclude Include="d3d12util\PixelBuffer.h" />
+    <ClInclude Include="d3d12util\ReadbackBuffer.h" />
+    <ClInclude Include="d3d12util\RootSignature.h" />
+    <ClInclude Include="d3d12util\SamplerManager.h" />
+    <ClInclude Include="d3d12util\SystemTime.h" />
+    <ClInclude Include="d3d12util\TextRenderer.h" />
+    <ClInclude Include="d3d12util\Texture.h" />
+    <ClInclude Include="d3d12util\UploadBuffer.h" />
+    <ClInclude Include="d3d12util\Utility.h" />
+    <ClInclude Include="d3d12util\VectorMath.h" />
     <ClInclude Include="D3D12VP.h" />
     <ClInclude Include="D3DUtil\D3D11Font.h" />
     <ClInclude Include="D3DUtil\D3D11Geometry.h" />
     <ClInclude Include="D3DUtil\D3D9Font.h" />
     <ClInclude Include="D3DUtil\D3D9Geometry.h" />
     <ClInclude Include="D3DUtil\D3DCommon.h" />
-    <ClInclude Include="D3DUtil\d3dx12.h" />
     <ClInclude Include="DisplayConfig.h" />
     <ClInclude Include="DX11Helper.h" />
     <ClInclude Include="DX11VideoProcessor.h" />
@@ -149,8 +222,1281 @@
     <ResourceCompile Include="MpcVideoRenderer.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="d3d12util\math\Functions.inl" />
+    <None Include="d3d12util\shaders\AoBlurAndUpsampleCS.hlsli" />
+    <None Include="d3d12util\shaders\AoRenderCS.hlsli" />
+    <None Include="d3d12util\shaders\BicubicFilterFunctions.hlsli" />
+    <None Include="d3d12util\shaders\BitonicSortCommon.hlsli" />
+    <None Include="d3d12util\shaders\ColorSpaceUtility.hlsli" />
+    <None Include="d3d12util\shaders\CommonRS.hlsli" />
+    <None Include="d3d12util\shaders\DoFCommon.hlsli" />
+    <None Include="d3d12util\shaders\DoFRS.hlsli" />
+    <None Include="d3d12util\shaders\FXAAPass1CS.hlsli" />
+    <None Include="d3d12util\shaders\FXAAPass2CS.hlsli" />
+    <None Include="d3d12util\shaders\FXAARootSignature.hlsli" />
+    <None Include="d3d12util\shaders\GenerateMipsCS.hlsli" />
+    <None Include="d3d12util\shaders\LanczosFunctions.hlsli" />
+    <None Include="d3d12util\shaders\MotionBlurRS.hlsli" />
+    <None Include="d3d12util\shaders\PerfGraphRS.hlsli" />
+    <None Include="d3d12util\shaders\PixelPacking.hlsli" />
+    <None Include="d3d12util\shaders\PixelPacking_R11G11B10.hlsli" />
+    <None Include="d3d12util\shaders\PixelPacking_RGBE.hlsli" />
+    <None Include="d3d12util\shaders\PixelPacking_RGBM.hlsli" />
+    <None Include="d3d12util\shaders\PixelPacking_Velocity.hlsli" />
+    <None Include="d3d12util\shaders\PostEffectsRS.hlsli" />
+    <None Include="d3d12util\shaders\PresentRS.hlsli" />
+    <None Include="d3d12util\shaders\ShaderUtility.hlsli" />
+    <None Include="d3d12util\shaders\SSAORS.hlsli" />
+    <None Include="d3d12util\shaders\TextRS.hlsli" />
+    <None Include="d3d12util\shaders\ToneMappingUtility.hlsli" />
     <None Include="res\dither32x32float16.bin" />
     <None Include="res\MpcVideoRenderer.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="d3d12util\shaders\AdaptExposureCS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoBlurUpsampleBlendOutCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoBlurUpsampleCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoBlurUpsamplePreMinBlendOutCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoBlurUpsamplePreMinCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoPrepareDepthBuffers1CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoPrepareDepthBuffers2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoRender1CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AoRender2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ApplyBloom2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ApplyBloomCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\AverageLumaCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicHorizontalUpsamplePS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicUpsampleCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicUpsampleFast16CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicUpsampleFast24CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicUpsampleFast32CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicUpsampleGammaPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicUpsamplePS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BicubicVerticalUpsamplePS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\Bitonic32InnerSortCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\Bitonic32OuterSortCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\Bitonic32PreSortCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\Bitonic64InnerSortCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\Bitonic64OuterSortCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\Bitonic64PreSortCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BitonicIndirectArgsCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BlendUIHDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BloomExtractAndDownsampleHdrCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BloomExtractAndDownsampleLdrCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BlurCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BoundNeighborhoodCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BufferCopyPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\CameraMotionBlurPrePassCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\CameraMotionBlurPrePassLinearZCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\CameraVelocityCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\CompositeHDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\CompositeSDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\CopyBackPostBufferCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DebugDrawHistogramCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DebugLuminanceHdr2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DebugLuminanceHdrCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DebugLuminanceLdr2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DebugLuminanceLdrCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DebugSSAOCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFCombine2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFCombineCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFCombineFast2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFCombineFastCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFDebugBlueCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFDebugGreenCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFDebugRedCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFMedianFilterCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFMedianFilterFixupCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFMedianFilterSepAlphaCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPass1CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPass2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPass2DebugCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPass2FastCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPass2FixupCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPreFilterCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPreFilterFastCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFPreFilterFixupCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFTilePassCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DoFTilePassFixupCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DownsampleBloomAllCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DownsampleBloomCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DownsampleDepthPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ExtractLumaCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass1_Luma2_CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass1_Luma_CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass1_RGB2_CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass1_RGB_CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2H2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2HCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2HDebug2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2HDebugCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2V2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2VCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2VDebug2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAPass2VDebugCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\FXAAResolveWorkQueueCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateHistogramCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaCS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaOddCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaOddXCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaOddYCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearOddCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearOddXCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearOddYCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosFast16CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosFast24CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosFast32CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosHorizontalPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LinearizeDepthCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\MagnifyPixelsPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\MotionBlurFinalPassCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\MotionBlurFinalPassPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\MotionBlurPrePassCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PerfGraphBackgroundVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PerfGraphPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PerfGraphVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PresentSDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ResolveTAACS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ScaleAndCompositeHDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ScaleAndCompositeSDRPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ScreenQuadCommonVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ScreenQuadPresentVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\SharpeningUpsampleGammaPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\SharpeningUpsamplePS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\SharpenTAACS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\TemporalBlendCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\TextAntialiasPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\TextShadowPS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ToneMap2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ToneMapCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ToneMapHDR2CS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ToneMapHDRCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\UpsampleAndBlurCS.hlsl">
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Build\$(Platform)\$(Configuration)\Output\$(ProjectName)\CompiledShaders\%(Filename).h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

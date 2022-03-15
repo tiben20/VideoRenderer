@@ -30,16 +30,11 @@
 #include "D3D12VP.h"
 #include "DX9Device.h"
 #include "VideoProcessor.h"
-
+#include "d3d12util/PipelineState.h"
+#include "d3d12util/display.h"
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
-
-typedef struct {
-	ID3D12Resource* resource = nullptr;
-	ID3D12DescriptorHeap* heap = nullptr;
-	UINT                  descriptorSize = 0;
-} DescriptorAllocator;
 
 class CDX12VideoProcessor
 	: public CVideoProcessor
@@ -50,9 +45,9 @@ private:
 	//CComPtr
 // Direct3D 12
 	CComPtr<ID3D12Device1>        m_pDevice;
-	DescriptorAllocator m_pSamplerPoint = {0};
-	DescriptorAllocator m_pSamplerLinear = { 0 };
-	DescriptorAllocator m_pSamplerDither = { 0 };
+	//DescriptorAllocator m_pSamplerPoint;
+	//DescriptorAllocator m_pSamplerLinear;
+	//DescriptorAllocator m_pSamplerDither;
 	CComPtr<ID3D12PipelineState>     m_pAlphaBlendState;
 	CComPtr<ID3D12PipelineState>     m_pAlphaBlendStateInv;
 
@@ -73,9 +68,50 @@ private:
 
 	CComPtr<ID3D12Debug>       m_pD3DDebug;
 	CComPtr<ID3D12Debug1> m_pD3DDebug1;
-	
-	
-	DescriptorAllocator m_pPostScaleConstants;
+
+	/*from d3d12 hello*/
+	static const UINT FrameCount = 2;
+	struct Vertex
+	{
+		XMFLOAT3 position;
+		XMFLOAT4 color;
+	};
+	// Pipeline objects.
+	CComPtr<IDXGISwapChain3> m_swapChain;
+	CComPtr<ID3D12Device> m_device;
+	CComPtr<ID3D12Resource> m_renderTargets[FrameCount];
+	CComPtr<ID3D12CommandAllocator> m_commandAllocator;
+	CComPtr<ID3D12CommandQueue> m_commandQueue;
+	CComPtr<ID3D12DescriptorHeap> m_rtvHeap;
+	CComPtr<ID3D12PipelineState> m_pipelineState;
+	CComPtr<ID3D12GraphicsCommandList> m_commandList;
+	CComPtr<ID3D12RootSignature> m_rootSignature;
+	CD3DX12_VIEWPORT m_viewport;
+	CD3DX12_RECT m_scissorRect;
+
+	void GetHardwareAdapter(
+		IDXGIFactory1* pFactory,
+		IDXGIAdapter1** ppAdapter,
+		bool requestHighPerformanceAdapter = false);
+
+	float m_aspectRatio;
+
+	// Adapter info.
+	bool m_useWarpDevice;
+
+	UINT m_rtvDescriptorSize;
+
+	// App resources.
+	CComPtr<ID3D12Resource> m_vertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+
+	// Synchronization objects.
+	UINT m_frameIndex;
+	HANDLE m_fenceEvent;
+	CComPtr<ID3D12Fence> m_fence;
+	UINT64 m_fenceValue;
+	/*d3d hello*/
+	//DescriptorAllocator m_pPostScaleConstants;
 
 //Dxgi device and swapchain
 	CComPtr<IDXGIAdapter> m_pDXGIAdapter;
@@ -93,9 +129,17 @@ private:
 	DXGI_SWAP_EFFECT              m_UsedSwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	// D3D12 Video Processor
 	CD3D12VP m_D3D12VP;
+	const wchar_t* m_strCorrection = nullptr;
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX12VideoProcessor() override;
+
+	HRESULT CreateBlobFromResource(ID3DBlob** ppPixelShader, UINT resid);
+	void LoadPipeline();
+	HRESULT AddPipeLineState(UINT resource);
+	void LoadAssets();
+	void PopulateCommandList();
+	void WaitForPreviousFrame();
 //CVideoProcessor
 	int Type() override { return VP_DX12; }
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;

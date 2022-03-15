@@ -22,7 +22,7 @@
 
 #include <d3d12.h>
 #include <d3d12video.h>
-#include "D3Dutil/d3dx12.h"
+#include "d3d12util/d3dx12.h"
 
 // D3D11 Video Processor
 class CD3D12VP

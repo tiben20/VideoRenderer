@@ -25,4 +25,62 @@
 #include <dxgi1_6.h>
 #include "Helper.h"
 #include "DX12Helper.h"
+#include <string>
+#include "d3d12util/CommandListManager.h"
+namespace D3D12Public
+{
+	ID3D12Device* g_Device = nullptr;
+	CommandListManager g_CommandManager;
+	ContextManager g_ContextManager;
+	//RootSignature s_PresentRS;
 
+	
+
+	HWND g_hWnd = nullptr;
+	DescriptorAllocator g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
+	{
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+			D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+			D3D12_DESCRIPTOR_HEAP_TYPE_DSV
+	};
+
+}
+
+
+HRESULT CD3DInclude::Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes)
+{
+	HRESULT hr = D3D11_ERROR_FILE_NOT_FOUND;
+
+
+	std::string fullpath;
+	std::string filecontent;
+	//if (IncludeType == D3D10_INCLUDE_SYSTEM) we dont use this one
+
+	fullpath.append(m_assetDir);
+	fullpath.append(pFileName);
+
+	replace_all(fullpath, "/", "\\");
+
+	//fullpath.push_back(filecontent.c_str());
+	std::ifstream file(fullpath.c_str());
+	std::string str;
+	filecontent.clear();
+	while (std::getline(file, str))
+	{
+		filecontent += str;
+		filecontent.push_back('\n');
+		// Process str
+	}
+	char* result = new char[filecontent.length()];
+	std::memcpy(result, filecontent.data(), filecontent.size());
+
+	*ppData = result;
+	*pBytes = filecontent.length();
+	hr = S_OK;
+	file.close();
+	if (FAILED(hr))
+	DLog(L"Failed to include shader header.");
+	return hr;
+
+	}

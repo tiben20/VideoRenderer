@@ -34,12 +34,17 @@
 #include "../Include/ID3DVideoMemoryConfiguration.h"
 #include "Shaders.h"
 #include "Utils/CPUInfo.h"
+#include "d3dcompiler.h"
+#include <iostream>
+#include <fstream>
+#include "dxgi1_6.h"
 
 #include "../external/minhook/include/MinHook.h"
 
 #include "DX12VideoProcessor.h"
 #pragma comment( lib, "d3d12.lib" )
 #pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 bool g_bPresent12 = false;
 bool bCreateSwapChain12 = false;
 
@@ -115,6 +120,23 @@ struct PS_EXTSHADER_CONSTANTS12 {
 };
 
 static_assert(sizeof(PS_EXTSHADER_CONSTANTS12) % 16 == 0);
+
+static const ScalingShaderResId s_Upscaling11ResIDs12[UPSCALE_COUNT] = {
+	{0,                            0,                            L"Nearest-neighbor"  },
+	{IDF_PSH11_INTERP_MITCHELL4_X, IDF_PSH11_INTERP_MITCHELL4_Y, L"Mitchell-Netravali"},
+	{IDF_PSH11_INTERP_CATMULL4_X,  IDF_PSH11_INTERP_CATMULL4_Y , L"Catmull-Rom"       },
+	{IDF_PSH11_INTERP_LANCZOS2_X,  IDF_PSH11_INTERP_LANCZOS2_Y , L"Lanczos2"          },
+	{IDF_PSH11_INTERP_LANCZOS3_X,  IDF_PSH11_INTERP_LANCZOS3_Y , L"Lanczos3"          },
+};
+
+static const ScalingShaderResId s_Downscaling11ResIDs12[DOWNSCALE_COUNT] = {
+	{IDF_PSH11_CONVOL_BOX_X,       IDF_PSH11_CONVOL_BOX_Y,       L"Box"          },
+	{IDF_PSH11_CONVOL_BILINEAR_X,  IDF_PSH11_CONVOL_BILINEAR_Y,  L"Bilinear"     },
+	{IDF_PSH11_CONVOL_HAMMING_X,   IDF_PSH11_CONVOL_HAMMING_Y,   L"Hamming"      },
+	{IDF_PSH11_CONVOL_BICUBIC05_X, IDF_PSH11_CONVOL_BICUBIC05_Y, L"Bicubic"      },
+	{IDF_PSH11_CONVOL_BICUBIC15_X, IDF_PSH11_CONVOL_BICUBIC15_Y, L"Bicubic sharp"},
+	{IDF_PSH11_CONVOL_LANCZOS_X,   IDF_PSH11_CONVOL_LANCZOS_Y,   L"Lanczos"      }
+};
 
 HRESULT CreateVertexBuffer12(ID3D12Device* pDevice, ID3D12Resource** ppVertexBuffer,
 	const UINT srcW, const UINT srcH, const RECT& srcRect,
@@ -201,6 +223,42 @@ HRESULT CreateVertexBuffer12(ID3D12Device* pDevice, ID3D12Resource** ppVertexBuf
 	return hr;
 }
 
+static const char globVertexShader[] = "\n\
+#if HAS_PROJECTION\n\
+cbuffer VS_PROJECTION_CONST : register(b0)\n\
+{\n\
+    float4x4 View;\n\
+    float4x4 Zoom;\n\
+    float4x4 Projection;\n\
+};\n\
+#endif\n\
+struct d3d_vertex_t\n\
+{\n\
+    float3 Position   : POSITION;\n\
+    float2 uv         : TEXCOORD;\n\
+};\n\
+\n\
+struct PS_INPUT\n\
+{\n\
+    float4 Position   : SV_POSITION;\n\
+    float2 uv         : TEXCOORD;\n\
+};\n\
+\n\
+PS_INPUT main( d3d_vertex_t In )\n\
+{\n\
+    PS_INPUT Output;\n\
+    float4 pos = float4(In.Position, 1);\n\
+#if HAS_PROJECTION\n\
+    pos = mul(View, pos);\n\
+    pos = mul(Zoom, pos);\n\
+    pos = mul(Projection, pos);\n\
+#endif\n\
+    Output.Position = pos;\n\
+    Output.uv = In.uv;\n\
+    return Output;\n\
+}\n\
+";
+
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
@@ -267,8 +325,439 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 {
 }
 
+
+
+void CDX12VideoProcessor::GetHardwareAdapter(
+	IDXGIFactory1* pFactory,
+	IDXGIAdapter1** ppAdapter,
+	bool requestHighPerformanceAdapter)
+{
+	*ppAdapter = nullptr;
+
+	CComPtr<IDXGIAdapter1> adapter;
+
+	CComPtr<IDXGIFactory6> factory6;
+	if (SUCCEEDED(pFactory->QueryInterface(IID_PPV_ARGS(&factory6))))
+	{
+		for (
+			UINT adapterIndex = 0;
+			SUCCEEDED(factory6->EnumAdapterByGpuPreference(
+				adapterIndex,
+				requestHighPerformanceAdapter == true ? DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE : DXGI_GPU_PREFERENCE_UNSPECIFIED,
+				IID_PPV_ARGS(&adapter)));
+			++adapterIndex)
+		{
+			DXGI_ADAPTER_DESC1 desc;
+			adapter->GetDesc1(&desc);
+
+			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			{
+				// Don't select the Basic Render Driver adapter.
+				// If you want a software adapter, pass in "/warp" on the command line.
+				continue;
+			}
+
+			// Check to see whether the adapter supports Direct3D 12, but don't create the
+			// actual device yet.
+			if (SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+			{
+				break;
+			}
+		}
+	}
+
+	if (adapter == nullptr)
+	{
+		for (UINT adapterIndex = 0; SUCCEEDED(pFactory->EnumAdapters1(adapterIndex, &adapter)); ++adapterIndex)
+		{
+			DXGI_ADAPTER_DESC1 desc;
+			adapter->GetDesc1(&desc);
+
+			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			{
+				// Don't select the Basic Render Driver adapter.
+				// If you want a software adapter, pass in "/warp" on the command line.
+				continue;
+			}
+
+			// Check to see whether the adapter supports Direct3D 12, but don't create the
+			// actual device yet.
+			if (SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+			{
+				break;
+			}
+		}
+	}
+
+	*ppAdapter = adapter.Detach();
+}
+
+void CDX12VideoProcessor::LoadPipeline()
+{
+	UINT dxgiFactoryFlags = 0;
+
+#if defined(_DEBUG)
+	// Enable the debug layer (requires the Graphics Tools "optional feature").
+	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
+	{
+		CComPtr<ID3D12Debug> debugController;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+		{
+			debugController->EnableDebugLayer();
+
+			// Enable additional debug layers.
+			dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+		}
+	}
+#endif
+
+	CComPtr<IDXGIFactory4> factory;
+	EXECUTE_ASSERT(S_OK == CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
+	m_useWarpDevice = false;
+	if (m_useWarpDevice)
+	{
+		CComPtr<IDXGIAdapter> warpAdapter;
+		EXECUTE_ASSERT(S_OK == factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+
+		EXECUTE_ASSERT(S_OK == D3D12CreateDevice(
+			warpAdapter,
+			D3D_FEATURE_LEVEL_12_1,
+			IID_PPV_ARGS(&D3D12Public::g_Device)
+		));
+	}
+	else
+	{
+		CComPtr<IDXGIAdapter1> hardwareAdapter;
+		GetHardwareAdapter(factory, &hardwareAdapter,true);
+
+		EXECUTE_ASSERT(S_OK == D3D12CreateDevice(
+			hardwareAdapter,
+			D3D_FEATURE_LEVEL_12_1,
+			IID_PPV_ARGS(&D3D12Public::g_Device)
+		));
+	}
+	return;
+	// Describe and create the command queue.
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+	EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
+	
+	MONITORINFOEXW mi = { sizeof(mi) };
+	GetMonitorInfoW(MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), (MONITORINFO*)&mi);
+	RECT winrect;
+	GetWindowRect(m_hWnd,&winrect);
+	// Describe and create the swap chain.
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+	swapChainDesc.BufferCount = FrameCount;
+	swapChainDesc.Width = winrect.right - winrect.left;
+	swapChainDesc.Height = winrect.bottom - winrect.top;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.SampleDesc.Count = 1;
+
+	CComPtr<IDXGISwapChain1> swapChain;
+	HRESULT hr = factory->CreateSwapChainForHwnd(
+		m_commandQueue,        // Swap chain needs the queue so that it can force a flush on it.
+		m_hWnd,
+		&swapChainDesc,
+		nullptr,
+		nullptr,
+		&swapChain
+	);
+
+	// This sample does not support fullscreen transitions.
+	hr = factory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
+
+	hr = swapChain->QueryInterface(IID_PPV_ARGS(&m_swapChain));
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	// Create descriptor heaps.
+	{
+		// Describe and create a render target view (RTV) descriptor heap.
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+		rtvHeapDesc.NumDescriptors = FrameCount;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
+
+		m_rtvDescriptorSize = D3D12Public::g_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
+
+	// Create frame resources.
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+		// Create a RTV for each frame.
+		for (UINT n = 0; n < FrameCount; n++)
+		{
+			EXECUTE_ASSERT(S_OK == m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
+			D3D12Public::g_Device->CreateRenderTargetView(m_renderTargets[n], nullptr, rtvHandle);
+			rtvHandle.Offset(1, m_rtvDescriptorSize);
+		}
+	}
+
+	EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)));
+}
+
+HRESULT CDX12VideoProcessor::CreateBlobFromResource(ID3DBlob** ppPixelShader, UINT resid)
+{
+	if (!m_device) {
+		return E_POINTER;
+	}
+
+	LPVOID data;
+	DWORD size;
+	HRESULT hr = GetDataFromResource(data, size, resid);
+	if (FAILED(hr)) {
+		return hr;
+	}
+	ID3DBlob* blob;
+	//hr = D3DDisassemble(data, size, 0, nullptr, ppPixelShader);
+	ID3DBlob* errorblob;
+	
+	hr = D3DPreprocess(data, size, NULL, NULL, NULL, ppPixelShader, &errorblob);
+	
+
+	if (FAILED(hr))
+		return hr;
+	return hr;
+}
+
+HRESULT CDX12VideoProcessor::AddPipeLineState(UINT resource)
+{
+	HRESULT hr = E_FAIL;
+	// Create the pipeline state, which includes compiling and loading shaders.
+	{
+		ID3DBlob* vertexShader = nullptr;
+		ID3DBlob* pixelShader = nullptr;
+		ID3DBlob* errorMessage = nullptr;
+#if defined(_DEBUG)
+		// Enable better shader debugging with the graphics debugging tools.
+		UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+		UINT compileFlags = 0;
+#endif
+		bool flat = true;
+		D3D_SHADER_MACRO defines[] = {
+				 { "HAS_PROJECTION", flat ? "0" : "1" },
+				 { NULL, NULL },
+		};
+		
+		hr = D3DCompile(globVertexShader, strlen(globVertexShader), NULL, defines, NULL, "main", "vs_5_0", compileFlags, 0, &vertexShader, &errorMessage);
+		
+		
+		std::wstring thefile = L"D:\\MPCVideoRenderer\\Shaders\\d3d11\\ps_convolution5.hlsl";
+
+		int y = 0;
+		if (resource == 846)
+			y = 1;
+		D3D_SHADER_MACRO defines2[] = {
+				 { "AXIS", y ? "0" : "1" },
+				 { NULL, NULL },
+		};
+		CD3DInclude* inc;
+		inc = new CD3DInclude("D:\\MPCVideoRenderer\\Shaders\\d3d11\\");
+		hr = D3DCompileFromFile(thefile.c_str(), defines2,inc, "main", "ps_5_0", compileFlags,0, &pixelShader, &errorMessage);
+		std::string err;
+		if (FAILED(hr))
+		{
+			err = (char*)errorMessage->GetBufferPointer();
+			printf(err.c_str());
+			//DLog(err.c_str());
+		}
+		//CreateBlobFromResource(&pixelShader, resource);
+		
+		// Define the vertex input layout.
+		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+		{
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		};
+
+		// Describe and create the graphics pipeline state object (PSO).
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+		psoDesc.pRootSignature = m_rootSignature;
+		//
+		psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
+
+		psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
+
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.DepthStencilState.DepthEnable = FALSE;
+		psoDesc.DepthStencilState.StencilEnable = FALSE;
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = 1;
+		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		psoDesc.SampleDesc.Count = 1;
+		hr = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+		
+	}
+	return S_OK;
+}
+
+void CDX12VideoProcessor::LoadAssets()
+{
+
+	// Create an empty root signature.
+	{
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+		CComPtr<ID3DBlob> signature;
+		CComPtr<ID3DBlob> error;
+		EXECUTE_ASSERT(S_OK == D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+		EXECUTE_ASSERT(S_OK == m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+	}
+
+	HRESULT hr = S_OK;
+	hr = AddPipeLineState(s_Upscaling11ResIDs12[m_iUpscaling].shaderX);
+	hr = AddPipeLineState(s_Upscaling11ResIDs12[m_iUpscaling].shaderY);
+
+	hr = AddPipeLineState(s_Downscaling11ResIDs12[m_iDownscaling].shaderX);
+	hr = AddPipeLineState(s_Downscaling11ResIDs12[m_iDownscaling].shaderY);
+
+	// Create the command list.
+	EXECUTE_ASSERT(S_OK == m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator, m_pipelineState, IID_PPV_ARGS(&m_commandList)));
+
+	// Command lists are created in the recording state, but there is nothing
+	// to record yet. The main loop expects it to be closed, so close it now.
+	EXECUTE_ASSERT(S_OK == m_commandList->Close());
+
+	// Create the vertex buffer.
+	{
+		// Define the geometry for a triangle.
+		Vertex triangleVertices[] =
+		{
+				{ { 0.0f, 0.25f * m_aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+				{ { 0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+				{ { -0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+		};
+
+		const UINT vertexBufferSize = sizeof(triangleVertices);
+
+		// Note: using upload heaps to transfer static data like vert buffers is not 
+		// recommended. Every time the GPU needs it, the upload heap will be marshalled 
+		// over. Please read up on Default Heap usage. An upload heap is used here for 
+		// code simplicity and because there are very few verts to actually transfer.
+		EXECUTE_ASSERT(S_OK == m_device->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			D3D12_HEAP_FLAG_NONE,
+			&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&m_vertexBuffer)));
+
+		// Copy the triangle data to the vertex buffer.
+		UINT8* pVertexDataBegin;
+		CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+		EXECUTE_ASSERT(S_OK == m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
+		m_vertexBuffer->Unmap(0, nullptr);
+
+		// Initialize the vertex buffer view.
+		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+		m_vertexBufferView.StrideInBytes = sizeof(Vertex);
+		m_vertexBufferView.SizeInBytes = vertexBufferSize;
+	}
+
+	// Create synchronization objects and wait until assets have been uploaded to the GPU.
+	{
+		EXECUTE_ASSERT(S_OK == m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
+		m_fenceValue = 1;
+
+		// Create an event handle to use for frame synchronization.
+		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (m_fenceEvent == nullptr)
+		{
+			EXECUTE_ASSERT(S_OK == HRESULT_FROM_WIN32(GetLastError()));
+		}
+
+		// Wait for the command list to execute; we are reusing the same command 
+		// list in our main loop but for now, we just want to wait for setup to 
+		// complete before continuing.
+		WaitForPreviousFrame();
+	}
+}
+
+void CDX12VideoProcessor::PopulateCommandList()
+{
+	// Command list allocators can only be reset when the associated 
+// command lists have finished execution on the GPU; apps should use 
+// fences to determine GPU execution progress.
+	EXECUTE_ASSERT(S_OK == m_commandAllocator->Reset());
+
+	// However, when ExecuteCommandList() is called on a particular command 
+	// list, that command list can then be reset at any time and must be before 
+	// re-recording.
+	EXECUTE_ASSERT(S_OK == m_commandList->Reset(m_commandAllocator, m_pipelineState));
+
+	// Set necessary state.
+	m_commandList->SetGraphicsRootSignature(m_rootSignature);
+	m_commandList->RSSetViewports(1, &m_viewport);
+	m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
+	// Indicate that the back buffer will be used as a render target.
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+	// Record commands.
+	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	m_commandList->DrawInstanced(3, 1, 0, 0);
+
+	// Indicate that the back buffer will now be used to present.
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+	EXECUTE_ASSERT(S_OK == m_commandList->Close());
+}
+
+void CDX12VideoProcessor::WaitForPreviousFrame()
+{
+// WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
+// This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
+// sample illustrates how to use fences for efficient resource usage and to
+// maximize GPU utilization.
+
+// Signal and increment the fence value.
+	const UINT64 fence = m_fenceValue;
+	EXECUTE_ASSERT(S_OK == m_commandQueue->Signal(m_fence, fence));
+	m_fenceValue++;
+
+	// Wait until the previous frame is finished.
+	if (m_fence->GetCompletedValue() < fence)
+	{
+		EXECUTE_ASSERT(S_OK == m_fence->SetEventOnCompletion(fence, m_fenceEvent));
+		WaitForSingleObject(m_fenceEvent, INFINITE);
+	}
+
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+}
+
 HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 {
+	if (!hwnd)
+		return S_OK;
+	m_hWnd = hwnd;
+	D3D12Public::g_hWnd = hwnd;
+	LoadPipeline();
+
+	D3D12Public::g_CommandManager.Create(D3D12Public::g_Device);
+	D3D12Public::InitializeCommonState();
+	Display::Initialize();
+
+
+	return S_OK;
+	LoadAssets();
 	DLog(L"CDX12VideoProcessor::Init()");
 
 #if _DEBUG
@@ -281,7 +770,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 		m_pD3DDebug1->SetEnableSynchronizedCommandQueueValidation(1);
 	}
 #endif
-	m_hWnd = hwnd;
+	
 	m_bHdrPassthroughSupport = false;
 	m_bHdrDisplayModeEnabled = false;
 	m_bitsPerChannelSupport = 8;
@@ -376,9 +865,8 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice)
 {
-#if 1
+#if 0
 	
-
 	DLog(L"CDX12VideoProcessor::SetDevice()");
 
 	ReleaseSwapChain();
@@ -403,7 +891,7 @@ HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecode
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	heapDesc.NodeMask = 1;
-	EXECUTE_ASSERT(S_OK == pDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_pPostScaleConstants.heap)));
+	EXECUTE_ASSERT(S_OK == pDevice->CreateDescriptorHeap( &heapDesc, IID_PPV_ARGS(&m_pPostScaleConstants.heap)));
 	D3D12_SAMPLER_DESC SampDesc = {};
 	SampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 	SampDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -553,12 +1041,14 @@ HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecode
 
 	//just to remember its the start
 	m_pPostScaleConstants.descriptorSize += 0;// its the start of the handle
+#ifdef TODO
 	hr = m_pDevice->CreateGraphicsPipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO));
 	if (FAILED(hr))
 	{
 		//the pipelinestate need to be done at the end
 		assert(0);
 	}
+#endif
 	//
 		//D3D11_BUFFER_DESC BufferDesc = {};
 		//BufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -626,7 +1116,9 @@ HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecode
 		m_strAdapterDescription = fmt::format(L"{} ({:04X}:{:04X})", dxgiAdapterDesc.Description, dxgiAdapterDesc.VendorId, dxgiAdapterDesc.DeviceId);
 		DLog(L"Graphics DXGI adapter: {}", m_strAdapterDescription);
 	}
+	return S_OK;
 #else
+#if 0
 	HRESULT hr2 = m_Font3D.InitDeviceObjects(m_pDevice, m_pDeviceContext);
 	DLogIf(FAILED(hr2), L"m_Font3D.InitDeviceObjects() failed with error {}", HR2Str(hr2));
 	if (SUCCEEDED(hr2)) {
@@ -677,7 +1169,8 @@ HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecode
 	m_pDevice->CreateGraphicsPipelineState(&m_PSODesc, IID_PPV_ARGS(&m_pAlphaBlendState));
 	return hr;
 #endif
-	
+#endif
+	return S_OK;
 }
 
 HRESULT CDX12VideoProcessor::InitSwapChain()
@@ -825,16 +1318,402 @@ HRESULT CDX12VideoProcessor::InitSwapChain()
 
 BOOL CDX12VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 {
-	return 0;
+	const auto& FmtParams = GetFmtConvParams(pmt);
+	if (FmtParams.VP11Format == DXGI_FORMAT_UNKNOWN && FmtParams.DX11Format == DXGI_FORMAT_UNKNOWN) {
+		return FALSE;
+	}
+
+	const BITMAPINFOHEADER* pBIH = GetBIHfromVIHs(pmt);
+	if (!pBIH) {
+		return FALSE;
+	}
+
+	if (pBIH->biWidth <= 0 || !pBIH->biHeight || (!pBIH->biSizeImage && pBIH->biCompression != BI_RGB)) {
+		return FALSE;
+	}
+
+	if (FmtParams.Subsampling == 420 && ((pBIH->biWidth & 1) || (pBIH->biHeight & 1))) {
+		return FALSE;
+	}
+	if (FmtParams.Subsampling == 422 && (pBIH->biWidth & 1)) {
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 {
-	return 0;
+	DLog(L"CDX11VideoProcessor::InitMediaType()");
+
+	if (!VerifyMediaType(pmt)) {
+		return FALSE;
+	}
+
+	ReleaseVP();
+
+	auto FmtParams = GetFmtConvParams(pmt);
+	bool disableD3D11VP = false;
+	switch (FmtParams.cformat) {
+	case CF_NV12: disableD3D11VP = !m_VPFormats.bNV12; break;
+	case CF_P010:
+	case CF_P016: disableD3D11VP = !m_VPFormats.bP01x;  break;
+	case CF_YUY2: disableD3D11VP = !m_VPFormats.bYUY2;  break;
+	default:      disableD3D11VP = !m_VPFormats.bOther; break;
+	}
+	if (disableD3D11VP) {
+		FmtParams.VP11Format = DXGI_FORMAT_UNKNOWN;
+	}
+
+	const BITMAPINFOHEADER* pBIH = nullptr;
+	m_decExFmt.value = 0;
+
+	if (pmt->formattype == FORMAT_VideoInfo2) {
+		const VIDEOINFOHEADER2* vih2 = (VIDEOINFOHEADER2*)pmt->pbFormat;
+		pBIH = &vih2->bmiHeader;
+		m_srcRect = vih2->rcSource;
+		m_srcAspectRatioX = vih2->dwPictAspectRatioX;
+		m_srcAspectRatioY = vih2->dwPictAspectRatioY;
+		if (FmtParams.CSType == CS_YUV && (vih2->dwControlFlags & (AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT))) {
+			m_decExFmt.value = vih2->dwControlFlags;
+			m_decExFmt.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT; // ignore other flags
+		}
+		m_bInterlaced = (vih2->dwInterlaceFlags & AMINTERLACE_IsInterlaced);
+		m_rtAvgTimePerFrame = vih2->AvgTimePerFrame;
+	}
+	else if (pmt->formattype == FORMAT_VideoInfo) {
+		const VIDEOINFOHEADER* vih = (VIDEOINFOHEADER*)pmt->pbFormat;
+		pBIH = &vih->bmiHeader;
+		m_srcRect = vih->rcSource;
+		m_srcAspectRatioX = 0;
+		m_srcAspectRatioY = 0;
+		m_bInterlaced = 0;
+		m_rtAvgTimePerFrame = vih->AvgTimePerFrame;
+	}
+	else {
+		return FALSE;
+	}
+
+	m_pFilter->m_FrameStats.SetStartFrameDuration(m_rtAvgTimePerFrame);
+
+	UINT biWidth = pBIH->biWidth;
+	UINT biHeight = labs(pBIH->biHeight);
+	UINT biSizeImage = pBIH->biSizeImage;
+	if (pBIH->biSizeImage == 0 && pBIH->biCompression == BI_RGB) { // biSizeImage may be zero for BI_RGB bitmaps
+		biSizeImage = biWidth * biHeight * pBIH->biBitCount / 8;
+	}
+
+	m_srcLines = biHeight * FmtParams.PitchCoeff / 2;
+	m_srcPitch = biWidth * FmtParams.Packsize;
+	switch (FmtParams.cformat) {
+	case CF_Y8:
+	case CF_NV12:
+	case CF_RGB24:
+	case CF_BGR48:
+		m_srcPitch = ALIGN(m_srcPitch, 4);
+		break;
+	}
+	if (pBIH->biCompression == BI_RGB && pBIH->biHeight > 0) {
+		m_srcPitch = -m_srcPitch;
+	}
+
+	UINT origW = biWidth;
+	UINT origH = biHeight;
+	if (pmt->FormatLength() == 112 + sizeof(VR_Extradata)) {
+		const VR_Extradata* vrextra = reinterpret_cast<VR_Extradata*>(pmt->pbFormat + 112);
+		if (vrextra->QueryWidth == pBIH->biWidth && vrextra->QueryHeight == pBIH->biHeight && vrextra->Compression == pBIH->biCompression) {
+			origW = vrextra->FrameWidth;
+			origH = abs(vrextra->FrameHeight);
+		}
+	}
+
+	if (m_srcRect.IsRectNull()) {
+		m_srcRect.SetRect(0, 0, origW, origH);
+	}
+	m_srcRectWidth = m_srcRect.Width();
+	m_srcRectHeight = m_srcRect.Height();
+
+	m_srcExFmt = SpecifyExtendedFormat(m_decExFmt, FmtParams, m_srcRectWidth, m_srcRectHeight);
+
+	const auto frm_gcd = std::gcd(m_srcRectWidth, m_srcRectHeight);
+	const auto srcFrameARX = m_srcRectWidth / frm_gcd;
+	const auto srcFrameARY = m_srcRectHeight / frm_gcd;
+
+	if (!m_srcAspectRatioX || !m_srcAspectRatioY) {
+		m_srcAspectRatioX = srcFrameARX;
+		m_srcAspectRatioY = srcFrameARY;
+		m_srcAnamorphic = false;
+	}
+	else {
+		const auto ar_gcd = std::gcd(m_srcAspectRatioX, m_srcAspectRatioY);
+		m_srcAspectRatioX /= ar_gcd;
+		m_srcAspectRatioY /= ar_gcd;
+		m_srcAnamorphic = (srcFrameARX != m_srcAspectRatioX || srcFrameARY != m_srcAspectRatioY);
+	}
+#if 0 
+	UpdateUpscalingShaders();
+	UpdateDownscalingShaders();
+
+	m_pPSCorrection.Release();
+	m_pPSConvertColor.Release();
+	m_PSConvColorData.bEnable = false;
+
+	UpdateTexParams(FmtParams.CDepth);
+#endif
+	if (m_bHdrAllowSwitchDisplay && m_srcVideoTransferFunction != m_srcExFmt.VideoTransferFunction) {
+		auto ret = HandleHDRToggle();
+		if (!ret && (m_bHdrPassthrough && m_bHdrPassthroughSupport && SourceIsHDR() && !m_pDXGISwapChain4)) {
+			ret = true;
+		}
+		if (ret) {
+			ReleaseSwapChain();
+			Init(m_hWnd);
+		}
+	}
+
+	if (Preferred10BitOutput() && m_SwapChainFmt == DXGI_FORMAT_B8G8R8A8_UNORM) {
+		ReleaseSwapChain();
+		Init(m_hWnd);
+	}
+
+
+	m_srcVideoTransferFunction = m_srcExFmt.VideoTransferFunction;
+	
+#ifdef TODO
+	// D3D11 Video Processor
+	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN && !(m_VendorId == PCIV_NVIDIA && FmtParams.CSType == CS_RGB)) {
+		// D3D11 VP does not work correctly if RGB32 with odd frame width (source or target) on Nvidia adapters
+
+		if (S_OK == InitializeD3D11VP(FmtParams, origW, origH)) {
+			bool bTransFunc22 = m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_22
+				|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_709
+				|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_240M;
+
+			if (m_srcExFmt.VideoTransferFunction == VIDEOTRANSFUNC_2084 && !(m_bHdrPassthroughSupport && m_bHdrPassthrough) && m_bConvertToSdr) {
+				EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_CONVERT_PQ_TO_SDR));
+				m_strCorrection = L"PQ to SDR";
+			}
+			else if (m_srcExFmt.VideoTransferFunction == VIDEOTRANSFUNC_HLG) {
+				if (m_bHdrPassthroughSupport && m_bHdrPassthrough) {
+					EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_CONVERT_HLG_TO_PQ));
+					m_strCorrection = L"HLG to PQ";
+				}
+				else if (m_bConvertToSdr) {
+					EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_CONVERT_HLG_TO_SDR));
+					m_strCorrection = L"HLG to SDR";
+				}
+				else if (m_srcExFmt.VideoPrimaries == VIDEOPRIMARIES_BT2020) {
+					// HLG compatible with SDR
+					EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_FIX_BT2020));
+					m_strCorrection = L"Fix BT.2020";
+				}
+			}
+			else if (m_srcExFmt.VideoTransferMatrix == VIDEOTRANSFERMATRIX_YCgCo) {
+				EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_FIX_YCGCO));
+				m_strCorrection = L"Fix YCoCg";
+			}
+			else if (bTransFunc22 && m_srcExFmt.VideoPrimaries == VIDEOPRIMARIES_BT2020) {
+				EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_FIX_BT2020));
+				m_strCorrection = L"Fix BT.2020";
+			}
+
+			DLogIf(m_pPSCorrection, L"CDX11VideoProcessor::InitMediaType() m_pPSCorrection created");
+
+			m_pFilter->m_inputMT = *pmt;
+			UpdateTexures();
+			UpdatePostScaleTexures();
+			UpdateStatsStatic();
+			SetCallbackDevice();
+
+			return TRUE;
+		}
+
+		ReleaseVP();
+	}
+
+	// Tex Video Processor
+	if (FmtParams.DX11Format != DXGI_FORMAT_UNKNOWN && S_OK == InitializeTexVP(FmtParams, origW, origH)) {
+		m_pFilter->m_inputMT = *pmt;
+		SetShaderConvertColorParams();
+		UpdateTexures();
+		UpdatePostScaleTexures();
+		UpdateStatsStatic();
+		SetCallbackDevice();
+
+		return TRUE;
+	}
+
+	return FALSE;
+#endif
+	return TRUE;
 }
 
 void CDX12VideoProcessor::Configure(const Settings_t& config)
 {
+	bool reloadPipeline = false;
+	bool changeWindow = false;
+	bool changeDevice = false;
+	bool changeVP = false;
+	bool changeHDR = false;
+	bool changeTextures = false;
+	bool changeConvertShader = false;
+	bool changeUpscalingShader = false;
+	bool changeDowndcalingShader = false;
+	bool changeNumTextures = false;
+	bool changeResizeStats = false;
+
+	// settings that do not require preparation
+	m_bShowStats = config.bShowStats;
+	m_bDeintDouble = config.bDeintDouble;
+	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
+	m_bVBlankBeforePresent = config.bVBlankBeforePresent;
+
+	// checking what needs to be changed
+
+	if (config.iResizeStats != m_iResizeStats) {
+		m_iResizeStats = config.iResizeStats;
+		changeResizeStats = true;
+	}
+
+	if (config.iTexFormat != m_iTexFormat) {
+		m_iTexFormat = config.iTexFormat;
+		changeTextures = true;
+	}
+
+	if (m_srcParams.cformat == CF_NV12) {
+		changeVP = config.VPFmts.bNV12 != m_VPFormats.bNV12;
+	}
+	else if (m_srcParams.cformat == CF_P010 || m_srcParams.cformat == CF_P016) {
+		changeVP = config.VPFmts.bP01x != m_VPFormats.bP01x;
+	}
+	else if (m_srcParams.cformat == CF_YUY2) {
+		changeVP = config.VPFmts.bYUY2 != m_VPFormats.bYUY2;
+	}
+	else {
+		changeVP = config.VPFmts.bOther != m_VPFormats.bOther;
+	}
+	m_VPFormats = config.VPFmts;
+
+	if (config.bVPScaling != m_bVPScaling) {
+		m_bVPScaling = config.bVPScaling;
+		changeTextures = true;
+		changeVP = true; // temporary solution
+	}
+#ifdef TODO
+	if (config.iChromaScaling != m_iChromaScaling) {
+		m_iChromaScaling = config.iChromaScaling;
+		changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
+	}
+#endif
+	if (config.iUpscaling != m_iUpscaling) {
+		m_iUpscaling = config.iUpscaling;
+		changeUpscalingShader = true;
+	}
+	if (config.iDownscaling != m_iDownscaling) {
+		m_iDownscaling = config.iDownscaling;
+		changeDowndcalingShader = true;
+	}
+
+	if (config.bUseDither != m_bUseDither) {
+		m_bUseDither = config.bUseDither;
+		changeNumTextures = m_InternalTexFmt != DXGI_FORMAT_B8G8R8A8_UNORM;
+	}
+
+	if (config.iSwapEffect != m_iSwapEffect) {
+		m_iSwapEffect = config.iSwapEffect;
+		changeWindow = !m_pFilter->m_bIsFullscreen;
+	}
+
+	if (config.bHdrPassthrough != m_bHdrPassthrough) {
+		m_bHdrPassthrough = config.bHdrPassthrough;
+		changeHDR = true;
+	}
+
+	if (config.iHdrToggleDisplay != m_iHdrToggleDisplay) {
+		if (config.iHdrToggleDisplay == HDRTD_Off || m_iHdrToggleDisplay == HDRTD_Off) {
+			changeHDR = true;
+		}
+		m_iHdrToggleDisplay = config.iHdrToggleDisplay;
+	}
+#ifdef TODO
+	if (config.bConvertToSdr != m_bConvertToSdr) {
+		m_bConvertToSdr = config.bConvertToSdr;
+		if (SourceIsHDR()) {
+			if (m_D3D11VP.IsReady()) {
+				changeNumTextures = true;
+				changeVP = true; // temporary solution
+			}
+			else {
+				changeConvertShader = true;
+			}
+		}
+	}
+#endif
+	// apply new settings
+
+	if (changeWindow) {
+		ReleaseSwapChain();
+		EXECUTE_ASSERT(S_OK == m_pFilter->Init(true));
+
+		if (changeHDR && (SourceIsHDR()) || m_iHdrToggleDisplay) {
+			m_srcVideoTransferFunction = 0;
+			InitMediaType(&m_pFilter->m_inputMT);
+		}
+		return;
+	}
+
+	if (changeHDR) {
+		if (SourceIsHDR() || m_iHdrToggleDisplay) {
+			if (m_iSwapEffect == SWAPEFFECT_Discard) {
+				ReleaseSwapChain();
+				m_pFilter->Init(true);
+			}
+
+			m_srcVideoTransferFunction = 0;
+			InitMediaType(&m_pFilter->m_inputMT);
+
+			return;
+		}
+	}
+
+	if (changeVP) {
+		InitMediaType(&m_pFilter->m_inputMT);
+		m_pFilter->m_bValidBuffer = false;
+		return; // need some test
+	}
+#ifdef TODO
+	if (changeTextures) {
+		UpdateTexParams(m_srcParams.CDepth);
+		if (m_D3D11VP.IsReady()) {
+			// update m_D3D11OutputFmt
+			EXECUTE_ASSERT(S_OK == InitializeD3D11VP(m_srcParams, m_srcWidth, m_srcHeight));
+		}
+		UpdateTexures();
+		UpdatePostScaleTexures();
+	}
+#endif
+	if (changeConvertShader) {
+		reloadPipeline = true;
+		//UpdateConvertColorShader();
+	}
+
+	if (changeUpscalingShader) {
+		reloadPipeline = true;//UpdateUpscalingShaders();
+	}
+	if (changeDowndcalingShader) {
+		reloadPipeline = true;//UpdateDownscalingShaders();
+	}
+
+	if (changeNumTextures) {
+		reloadPipeline = true;// UpdatePostScaleTexures();
+	}
+
+	if (changeResizeStats) {
+		SetGraphSize();
+	}
+
+	UpdateStatsStatic();
+	LoadAssets();
 }
 
 void CDX12VideoProcessor::SetRotation(int value)
@@ -843,6 +1722,7 @@ void CDX12VideoProcessor::SetRotation(int value)
 
 void CDX12VideoProcessor::Flush()
 {
+	return;
 }
 
 void CDX12VideoProcessor::ClearPreScaleShaders()
@@ -892,7 +1772,50 @@ void CDX12VideoProcessor::SetGraphSize()
 
 BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 {
-    return 0;
+	if (InitMediaType(&mt)) {
+		const auto& FmtParams = GetFmtConvParams(&mt);
+
+		if (FmtParams.cformat == CF_RGB24) {
+			Size.cx = ALIGN(Size.cx, 4);
+		}
+		else if (FmtParams.cformat == CF_RGB48 || FmtParams.cformat == CF_BGR48) {
+			Size.cx = ALIGN(Size.cx, 2);
+		}
+		else if (FmtParams.cformat == CF_BGRA64 || FmtParams.cformat == CF_B64A) {
+			// nothing
+		}
+		else 
+		{
+			//if (!m_TexSrcVideo.pTexture) {
+			//	return FALSE;
+			//}
+
+			UINT RowPitch = 0;
+			D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+			//if (SUCCEEDED(m_pDeviceContext->Map(m_TexSrcVideo.pTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))) {
+			//	RowPitch = mappedResource.RowPitch;
+			//	m_pDeviceContext->Unmap(m_TexSrcVideo.pTexture, 0);
+			//}
+
+			//if (!RowPitch) {
+			//	return FALSE;
+			//}
+
+			Size.cx = RowPitch / FmtParams.Packsize;
+		}
+
+		if (FmtParams.cformat == CF_RGB24 || FmtParams.cformat == CF_XRGB32 || FmtParams.cformat == CF_ARGB32) {
+			Size.cy = -abs(Size.cy); // only for biCompression == BI_RGB
+		}
+		else {
+			Size.cy = abs(Size.cy);
+		}
+
+		return TRUE;
+
+	}
+
+	return FALSE;
 }
 
 HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
@@ -912,6 +1835,7 @@ HRESULT CDX12VideoProcessor::FillBlack()
 
 void CDX12VideoProcessor::SetVideoRect(const CRect& videoRect)
 {
+	return;
 }
 
 HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
