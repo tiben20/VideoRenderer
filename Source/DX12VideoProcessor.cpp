@@ -68,7 +68,6 @@
 #include "d3d12util/math/Common.h"
 #define USE_PIX
 #include "pix3.h"
-#include <DXProgrammableCapture.h>
 
 
 #include "../external/minhook/include/MinHook.h"
@@ -130,166 +129,6 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 	return MH_CreateHook(*ppSystemFunction, pHookFunction, reinterpret_cast<LPVOID*>(ppSystemFunction)) == MH_OK;
 }
 
-struct VERTEX12 {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT2 TexCoord;
-};
-
-struct PS_COLOR_TRANSFORM12 {
-	DirectX::XMFLOAT4 cm_r;
-	DirectX::XMFLOAT4 cm_g;
-	DirectX::XMFLOAT4 cm_b;
-	DirectX::XMFLOAT4 cm_c;
-};
-
-struct PS_EXTSHADER_CONSTANTS12 {
-	DirectX::XMFLOAT2 pxy; // pixel size in normalized coordinates
-	DirectX::XMFLOAT2 wh;  // width and height of texture
-	uint32_t counter;      // rendered frame counter
-	float clock;           // some time in seconds
-	float reserved1;
-	float reserved2;
-};
-
-static_assert(sizeof(PS_EXTSHADER_CONSTANTS12) % 16 == 0);
-
-static const ScalingShaderResId s_Upscaling11ResIDs12[UPSCALE_COUNT] = {
-	{0,                            0,                            L"Nearest-neighbor"  },
-	{IDF_PSH11_INTERP_MITCHELL4_X, IDF_PSH11_INTERP_MITCHELL4_Y, L"Mitchell-Netravali"},
-	{IDF_PSH11_INTERP_CATMULL4_X,  IDF_PSH11_INTERP_CATMULL4_Y , L"Catmull-Rom"       },
-	{IDF_PSH11_INTERP_LANCZOS2_X,  IDF_PSH11_INTERP_LANCZOS2_Y , L"Lanczos2"          },
-	{IDF_PSH11_INTERP_LANCZOS3_X,  IDF_PSH11_INTERP_LANCZOS3_Y , L"Lanczos3"          },
-};
-
-static const ScalingShaderResId s_Downscaling11ResIDs12[DOWNSCALE_COUNT] = {
-	{IDF_PSH11_CONVOL_BOX_X,       IDF_PSH11_CONVOL_BOX_Y,       L"Box"          },
-	{IDF_PSH11_CONVOL_BILINEAR_X,  IDF_PSH11_CONVOL_BILINEAR_Y,  L"Bilinear"     },
-	{IDF_PSH11_CONVOL_HAMMING_X,   IDF_PSH11_CONVOL_HAMMING_Y,   L"Hamming"      },
-	{IDF_PSH11_CONVOL_BICUBIC05_X, IDF_PSH11_CONVOL_BICUBIC05_Y, L"Bicubic"      },
-	{IDF_PSH11_CONVOL_BICUBIC15_X, IDF_PSH11_CONVOL_BICUBIC15_Y, L"Bicubic sharp"},
-	{IDF_PSH11_CONVOL_LANCZOS_X,   IDF_PSH11_CONVOL_LANCZOS_Y,   L"Lanczos"      }
-};
-
-HRESULT CreateVertexBuffer12(ID3D12Device* pDevice, ID3D12Resource** ppVertexBuffer,
-	const UINT srcW, const UINT srcH, const RECT& srcRect,
-	const int iRotation, const bool bFlip)
-{
-	ASSERT(ppVertexBuffer);
-	ASSERT(*ppVertexBuffer == nullptr);
-
-	const float src_dx = 1.0f / srcW;
-	const float src_dy = 1.0f / srcH;
-	float src_l = src_dx * srcRect.left;
-	float src_r = src_dx * srcRect.right;
-	const float src_t = src_dy * srcRect.top;
-	const float src_b = src_dy * srcRect.bottom;
-
-	POINT points[4];
-	switch (iRotation) {
-	case 90:
-		points[0] = { -1, +1 };
-		points[1] = { +1, +1 };
-		points[2] = { -1, -1 };
-		points[3] = { +1, -1 };
-		break;
-	case 180:
-		points[0] = { +1, +1 };
-		points[1] = { +1, -1 };
-		points[2] = { -1, +1 };
-		points[3] = { -1, -1 };
-		break;
-	case 270:
-		points[0] = { +1, -1 };
-		points[1] = { -1, -1 };
-		points[2] = { +1, +1 };
-		points[3] = { -1, +1 };
-		break;
-	default:
-		points[0] = { -1, -1 };
-		points[1] = { -1, +1 };
-		points[2] = { +1, -1 };
-		points[3] = { +1, +1 };
-		break;
-	}
-
-	if (bFlip) {
-		std::swap(src_l, src_r);
-	}
-
-	VERTEX12 Vertices[4] = {
-		// Vertices for drawing whole texture
-		// 2 ___4
-		//  |\ |
-		// 1|_\|3
-		{ {(float)points[0].x, (float)points[0].y, 0}, {src_l, src_b} },
-		{ {(float)points[1].x, (float)points[1].y, 0}, {src_l, src_t} },
-		{ {(float)points[2].x, (float)points[2].y, 0}, {src_r, src_b} },
-		{ {(float)points[3].x, (float)points[3].y, 0}, {src_r, src_t} },
-	};
-	D3D12_HEAP_PROPERTIES constProp;
-	ZeroMemory(&constProp, sizeof(D3D12_HEAP_PROPERTIES));
-	constProp.Type = D3D12_HEAP_TYPE_UPLOAD;
-	constProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	constProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	constProp.CreationNodeMask = 1;
-	constProp.VisibleNodeMask = 1;
-
-	D3D12_RESOURCE_DESC constantDesc;
-	ZeroMemory(&constantDesc, sizeof(D3D12_RESOURCE_DESC));
-	constantDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	//quad->vertexStride = sizeof(d3d_vertex_t);
-	constantDesc.Width = 256;// sizeof(Vertices); dont work need to be multiple of 256
-	constantDesc.Height = 1;
-	constantDesc.DepthOrArraySize = 1;
-	constantDesc.MipLevels = 1;
-	constantDesc.Format = DXGI_FORMAT_UNKNOWN;
-	constantDesc.SampleDesc.Count = 1;
-	constantDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	constantDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	HRESULT hr = pDevice->CreateCommittedResource(&constProp, D3D12_HEAP_FLAG_NONE,
-		&constantDesc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL,
-		IID_ID3D12Resource, (void**)ppVertexBuffer);
-	DLogIf(FAILED(hr), L"CreateVertexBuffer() : CreateBuffer() failed with error {}", HR2Str(hr));
-
-	return hr;
-}
-
-static const char globVertexShader[] = "\n\
-#if HAS_PROJECTION\n\
-cbuffer VS_PROJECTION_CONST : register(b0)\n\
-{\n\
-    float4x4 View;\n\
-    float4x4 Zoom;\n\
-    float4x4 Projection;\n\
-};\n\
-#endif\n\
-struct d3d_vertex_t\n\
-{\n\
-    float3 Position   : POSITION;\n\
-    float2 uv         : TEXCOORD;\n\
-};\n\
-\n\
-struct PS_INPUT\n\
-{\n\
-    float4 Position   : SV_POSITION;\n\
-    float2 uv         : TEXCOORD;\n\
-};\n\
-\n\
-PS_INPUT main( d3d_vertex_t In )\n\
-{\n\
-    PS_INPUT Output;\n\
-    float4 pos = float4(In.Position, 1);\n\
-#if HAS_PROJECTION\n\
-    pos = mul(View, pos);\n\
-    pos = mul(Zoom, pos);\n\
-    pos = mul(Projection, pos);\n\
-#endif\n\
-    Output.Position = pos;\n\
-    Output.uv = In.uv;\n\
-    return Output;\n\
-}\n\
-";
 
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
@@ -357,13 +196,25 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	for (int xx = 0; xx < 3; xx++)
 	{
 		SwapChainBuffer[xx] = nullptr;
-		//SwapChainBufferColor[xx] = nullptr;
+
 	}
-	//m_pVideoBuffer.allocated_size = 0;
 }
 
 CDX12VideoProcessor::~CDX12VideoProcessor()
 {
+	D3D12Public::g_CommandManager.IdleGPU();
+	CommandContext::DestroyAllContexts();
+	D3D12Public::g_CommandManager.Shutdown();
+	
+	PSO::DestroyAll();
+	RootSignature::DestroyAll();
+	DescriptorAllocator::DestroyAll();
+
+	D3D12Public::DestroyCommonState();
+	D3D12Public::DestroyRenderingBuffers();
+	TextRenderer::Shutdown();
+	
+	
 }
 
 
@@ -1206,6 +1057,7 @@ void CDX12VideoProcessor::SetGraphSize()
 
 BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 {
+	//TODO
 	if (InitMediaType(&mt)) {
 		const auto& FmtParams = GetFmtConvParams(&mt);
 
@@ -1351,9 +1203,9 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	
 	pVideoContext.DrawIndexedInstanced(6, 1, 0, 0, 0);
 
-	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	//pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	Display(pVideoContext, 10, 10, 1280, 500);
+	Display(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
 	
 	
 	
@@ -1370,8 +1222,47 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, float w, float h)
 {
+	std::wstring str;
+	str.reserve(700);
+	str.assign(m_strStatsHeader);
+	str.append(m_strStatsDispInfo);
+	str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
+	wchar_t frametype = 'p';//(m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
+	str += fmt::format(
+		L"\nFrame rate    : {:7.3f}{},{:7.3f}",
+		m_pFilter->m_FrameStats.GetAverageFps(),
+		frametype,
+		m_pFilter->m_DrawStats.GetAverageFps()
+	);
+
+	str.append(m_strStatsInputFmt);
+	str.append(m_strStatsVProc);
+	const int dstW = m_videoRect.Width();
+	const int dstH = m_videoRect.Height();
+	str += fmt::format(L"\nScaling       : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
+	str.append(L" D3D12");
+	str.append(m_strStatsHDR);
+	str.append(m_strStatsPresent);
+	str += fmt::format(L"\nFrames: {:5}, skipped: {}/{}, failed: {}",
+		m_pFilter->m_FrameStats.GetFrames(), m_pFilter->m_DrawStats.m_dropped, m_RenderStats.dropped2, m_RenderStats.failed);
+	str += fmt::format(L"\nTimes(ms): Copy{:3}, Paint{:3} [DX9Subs{:3}], Present{:3}",
+		m_RenderStats.copyticks * 1000 / GetPreciseTicksPerSecondI(),
+		m_RenderStats.paintticks * 1000 / GetPreciseTicksPerSecondI(),
+		m_RenderStats.substicks * 1000 / GetPreciseTicksPerSecondI(),
+		m_RenderStats.presentticks * 1000 / GetPreciseTicksPerSecondI());
+	str += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
+	
 	TextContext Text(Context);
 	Text.Begin();
+	Text.EnableDropShadow(false);
+	Text.SetTextSize(20.0f);
+	Text.SetColor(Color(0.5f, 1.0f, 1.0f));
+	Text.DrawString(str.c_str());
+	
+	Text.End();
+	Context.SetScissor(0, 0, w, h);
+	return;
+
 	Text.DrawFormattedString("YO BITCH TES BELLE");
 	Text.ResetCursor(x, y);
 	float hScale = w / 1920.0f;

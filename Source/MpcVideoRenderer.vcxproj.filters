@@ -531,9 +531,6 @@
     <None Include="d3d12util\shaders\SSAORS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\TextRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\ToneMappingUtility.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
@@ -558,6 +555,9 @@
     <None Include="packages.config" />
     <None Include="d3d12util\shaders\PresentRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </None>
+    <None Include="d3d12util\shaders\TextRS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -589,9 +589,6 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\TextShadowPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\ToneMap2CS.hlsl">
@@ -937,6 +934,9 @@
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\VideoQuadPresentVS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
   </ItemGroup>

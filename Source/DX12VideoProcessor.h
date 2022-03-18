@@ -113,6 +113,7 @@ private:
 	CComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
 	CComPtr<IDXGIOutput>    m_pDXGIOutput;
 	CComPtr<IDXGIFactory1> m_pDXGIFactory1;
+	
 	/*d3d9 subpic*/
 	CComPtr<IDirect3DSurface9>        m_pSurface9SubPic;
 	CComPtr<ID3D12Resource>           m_pTextureSubPic;
