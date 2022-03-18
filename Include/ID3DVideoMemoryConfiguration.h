@@ -2,6 +2,8 @@
 // ID3DVideoMemoryConfiguration interface and data structure definitions
 // -----------------------------------------------------------------
 #pragma once
+#include <d3d11.h>
+#include <d3d12.h>
 
 // -----------------------------------------------------------------
 // Control D3D11 Hardware Decoding between decoder and renderer
@@ -21,10 +23,22 @@ interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D11Decoder
 {
   // Set the surface format the decoder is going to send.
   // If the renderer is not ready to accept this format, an error will be returned.
-  virtual HRESULT STDMETHODCALLTYPE ActivateD3D11Decoding(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, HANDLE hMutex, UINT nFlags) = 0;
+  virtual HRESULT STDMETHODCALLTYPE ActivateD3D11Decoding(ID3D11Device* pDevice, ID3D11DeviceContext* pContext,
+    HANDLE hMutex, UINT nFlags) = 0;
 
   // Get the currently preferred D3D11 adapter index (to be used with IDXGIFactory1::EnumAdapters1)
   virtual UINT STDMETHODCALLTYPE GetD3D11AdapterIndex() = 0;
+};
+
+interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D12DecoderConfiguration : public IUnknown
+{
+  // Set the surface format the decoder is going to send.
+  // If the renderer is not ready to accept this format, an error will be returned.
+  virtual HRESULT STDMETHODCALLTYPE ActivateD3D12Decoding(ID3D12Device* pDevice,
+    HANDLE hMutex, UINT nFlags) = 0;
+
+  // Get the currently preferred D3D11 adapter index (to be used with IDXGIFactory1::EnumAdapters1)
+  virtual UINT STDMETHODCALLTYPE GetD3D12AdapterIndex() = 0;
 };
 
 // -----------------------------------------------------------------
@@ -43,27 +57,19 @@ interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D11Decoder
 interface __declspec(uuid("BC8753F5-0AC8-4806-8E5F-A12B2AFE153E")) IMediaSampleD3D11 : public IUnknown
 {
   // Get the D3D11 texture for the specified view.
-  // 2D images with only one view always use view 0. For 3D, view 0 specifies the base view, view 1 the extension view.
-  virtual HRESULT STDMETHODCALLTYPE GetD3D11Texture(int nView, ID3D11Texture2D **ppTexture, UINT *pArraySlice) = 0;
-};
-
-
-interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D12DecoderConfiguration : public IUnknown
-{
-  // Set the surface format the decoder is going to send.
-  // If the renderer is not ready to accept this format, an error will be returned.
-  virtual HRESULT STDMETHODCALLTYPE ActivateD3D11Decoding(ID3D12Device* pDevice, HANDLE hMutex, UINT nFlags) = 0;
-
-  // Get the currently preferred D3D11 adapter index (to be used with IDXGIFactory1::EnumAdapters1)
-  virtual UINT STDMETHODCALLTYPE GetD3D11AdapterIndex() = 0;
+  // 2D images with only one view always use view 0. For 3D, view 0 specifies the base view, view 1 the extension
+  // view.
+  virtual HRESULT STDMETHODCALLTYPE GetD3D11Texture(int nView, ID3D11Texture2D** ppTexture, UINT* pArraySlice) = 0;
 };
 
 
 
-interface __declspec(uuid("7629C4DE-25CA-4728-B889-8462D7EBE079")) IMediaSampleD3D12 : public IUnknown
+
+
+interface __declspec(uuid("BC8753F5-0AC7-4806-8E5F-A12B2AFE153E")) IMediaSampleD3D12 : public IUnknown
 {
   // Get the D3D11 texture for the specified view.
   // 2D images with only one view always use view 0. For 3D, view 0 specifies the base view, view 1 the extension
   // view.
-  virtual HRESULT STDMETHODCALLTYPE GetD3D12Texture(int nView, ID3D12Resource** ppTexture, UINT* pArraySlice) = 0;
+  virtual HRESULT STDMETHODCALLTYPE GetD3D12Texture(ID3D12Resource** ppTexture) = 0;
 };

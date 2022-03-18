@@ -68,14 +68,14 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorAllocator::Allocate( uint32_t Count )
 // DescriptorHeap implementation
 //
 
-void DescriptorHeap::Create(ID3D12Device *pDevice, const std::wstring& Name, D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t MaxCount )
+void DescriptorHeap::Create(const std::wstring& Name, D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t MaxCount )
 {
     m_HeapDesc.Type = Type;
     m_HeapDesc.NumDescriptors = MaxCount;
     m_HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     m_HeapDesc.NodeMask = 1;
 
-    EXECUTE_ASSERT(S_OK == pDevice->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(&m_Heap)));
+    EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(&m_Heap)));
 
 #ifdef RELEASE
     (void)Name;
@@ -83,7 +83,7 @@ void DescriptorHeap::Create(ID3D12Device *pDevice, const std::wstring& Name, D3D
     m_Heap->SetName(Name.c_str());
 #endif
 
-    m_DescriptorSize = pDevice->GetDescriptorHandleIncrementSize(m_HeapDesc.Type);
+    m_DescriptorSize = D3D12Public::g_Device->GetDescriptorHandleIncrementSize(m_HeapDesc.Type);
     m_NumFreeDescriptors = m_HeapDesc.NumDescriptors;
     m_FirstHandle = DescriptorHandle(
         m_Heap->GetCPUDescriptorHandleForHeapStart(),

@@ -31,6 +31,7 @@
 class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;
+class ColorBuffer;
 namespace D3D12Public
 {
 	extern ID3D12Device* g_Device;
@@ -51,7 +52,7 @@ namespace D3D12Public
 	}
 	extern HWND g_hWnd;
 
-
+	extern ColorBuffer g_DisplayPlane[3];//3 swap chap buffer
 	//RootSignature s_PresentRS;
 }
 

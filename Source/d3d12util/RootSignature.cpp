@@ -18,7 +18,7 @@
 #include <thread>
 #include <mutex>
 #include "DX12Helper.h"
-
+#include "Utils/Util.h"
 using namespace std;
 
 
@@ -150,8 +150,18 @@ void RootSignature::Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAG
     if (firstCompile)
     {
         CComPtr<ID3DBlob> pOutBlob, pErrorBlob;
-        
-        EXECUTE_ASSERT(S_OK ==  D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1,&pOutBlob, &pErrorBlob));
+       
+        HRESULT hr = D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1,&pOutBlob, &pErrorBlob);
+
+        if (FAILED(hr))
+        {
+          if (pErrorBlob)
+          {
+            std::wstring error = Utility::UTF8ToWideString((char*)pErrorBlob->GetBufferPointer());
+            DLog(error.c_str());
+          }
+        }
+
         
         EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&m_Signature) ));
 

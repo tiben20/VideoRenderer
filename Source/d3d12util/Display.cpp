@@ -100,6 +100,8 @@ namespace D3D12Public
     uint32_t g_DisplayHeight = 1080;
     ColorBuffer g_PreDisplayBuffer;
 
+    ColorBuffer g_DisplayPlane[3];
+
     void ResolutionToUINT(eResolution res, uint32_t& width, uint32_t& height)
     {
         switch (res)
@@ -169,7 +171,7 @@ namespace D3D12Public
 #endif
     }
 
-    ColorBuffer g_DisplayPlane[SWAP_CHAIN_BUFFER_COUNT];
+    
     UINT g_CurrentBuffer = 0;
 
     IDXGISwapChain1* s_SwapChain1 = nullptr;
@@ -282,7 +284,7 @@ void Display::Initialize(void)
         EXECUTE_ASSERT(S_OK == s_SwapChain1->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane)));
         g_DisplayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
     }
-
+    
     s_PresentRS.Reset(4, 2);
     s_PresentRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
     s_PresentRS[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
@@ -488,7 +490,7 @@ void Display::Present(void)
 
     UINT PresentInterval = s_EnableVSync ? std::min(4, (int)Round(s_FrameTime * 60.0f)) : 0;
 
-    s_SwapChain1->Present(PresentInterval, 0);
+    HRESULT hr = s_SwapChain1->Present(PresentInterval, 0);
 
     g_CurrentBuffer = (g_CurrentBuffer + 1) % SWAP_CHAIN_BUFFER_COUNT;
 
@@ -525,7 +527,7 @@ void Display::Present(void)
 
     ++s_FrameIndex;
 
-    assert(0);// TemporalEffects::Update((uint32_t)s_FrameIndex);
+    //assert(0);// TemporalEffects::Update((uint32_t)s_FrameIndex);
 
     SetNativeResolution();
     SetDisplayResolution();

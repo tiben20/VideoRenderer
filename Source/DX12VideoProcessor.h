@@ -32,6 +32,10 @@
 #include "VideoProcessor.h"
 #include "d3d12util/PipelineState.h"
 #include "d3d12util/display.h"
+#include "d3d12util/ColorBuffer.h"
+#include "d3d12util/gpubuffer.h"
+#include "d3d12util/CommandContext.h"
+#include "d3d12util/uploadbuffer.h"
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
@@ -44,6 +48,8 @@ private:
 	friend class CVideoRendererInputPin;
 	//CComPtr
 // Direct3D 12
+	CopyFrameDataFn m_pConvertFn = nullptr;
+	CopyFrameDataFn m_pCopyGpuFn = CopyFrameAsIs;
 	CComPtr<ID3D12Device1>        m_pDevice;
 	//DescriptorAllocator m_pSamplerPoint;
 	//DescriptorAllocator m_pSamplerLinear;
@@ -76,16 +82,7 @@ private:
 		XMFLOAT3 position;
 		XMFLOAT4 color;
 	};
-	// Pipeline objects.
-	CComPtr<IDXGISwapChain3> m_swapChain;
-	CComPtr<ID3D12Device> m_device;
-	CComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-	CComPtr<ID3D12CommandAllocator> m_commandAllocator;
-	CComPtr<ID3D12CommandQueue> m_commandQueue;
-	CComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-	CComPtr<ID3D12PipelineState> m_pipelineState;
-	CComPtr<ID3D12GraphicsCommandList> m_commandList;
-	CComPtr<ID3D12RootSignature> m_rootSignature;
+
 	CD3DX12_VIEWPORT m_viewport;
 	CD3DX12_RECT m_scissorRect;
 
@@ -100,10 +97,6 @@ private:
 	bool m_useWarpDevice;
 
 	UINT m_rtvDescriptorSize;
-
-	// App resources.
-	CComPtr<ID3D12Resource> m_vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 
 	// Synchronization objects.
 	UINT m_frameIndex;
@@ -130,23 +123,85 @@ private:
 	// D3D12 Video Processor
 	CD3D12VP m_D3D12VP;
 	const wchar_t* m_strCorrection = nullptr;
+
+	/*d3d12engine*/
+	std::vector<GraphicsPSO> sm_PSOs;
+	RootSignature m_RootSig;
+
+	GraphicsPSO m_VideoPSO; //video pso
+	
+	typedef struct {
+		FLOAT Colorspace[4 * 3];
+		FLOAT Opacity;
+		FLOAT LuminanceScale;
+		FLOAT BoundaryX;
+		FLOAT BoundaryY;
+		FLOAT padding[48]; // 256 bytes alignment
+	} PS_CONSTANT_BUFFER;
+	PS_CONSTANT_BUFFER* m_sShaderConstants;
+
+	typedef struct {
+		FLOAT View[4 * 4];
+		FLOAT Zoom[4 * 4];
+		FLOAT Projection[4 * 4];
+		FLOAT padding[16]; // 256 bytes alignment
+	} VS_PROJECTION_CONST;
+	VS_PROJECTION_CONST* m_sVertexConstants;
+
+	//ByteAddressBuffer m_pVideoQuadVertex;
+	//ByteAddressBuffer m_pVideoIndexBuffer;
+	UploadBuffer m_pVertexBuffer;
+	UploadBuffer m_pIndexBuffer;
+	UploadBuffer m_pViewpointShaderConstant;
+	UploadBuffer m_pPixelShaderConstants;
+	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
+	D3D12_DESCRIPTOR_HEAP_DESC m_pVertexHeapDesc;//m_cbvSrvHeap
+	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
+	
+
+	DescriptorHeap m_pQuadHeap;
+	DescriptorHandle m_pQuadHeapHandle;
+	bool resetquad = false;
+	ID3D12Resource* SwapChainBuffer[3];
+	ColorBuffer SwapChainBufferColor[3];
+	ColorBuffer ResourceCopy;
+	int p_CurrentBuffer = 0;
+
+	typedef struct  {
+		struct {
+			FLOAT x;
+			FLOAT y;
+			FLOAT z;
+		} position;
+		struct {
+			FLOAT u;
+			FLOAT v;
+		} texture;
+	} VideoQuadVertex;
+
+	struct VideoVertexBuffer {
+		BYTE* data;
+		uint8_t size;
+		uint8_t allocated_size;
+		uint8_t depthsize;
+		uint8_t stride;
+	};
+	//VideoVertexBuffer m_pVideoBuffer;
+	//GraphicsContext m_context;
+	//ColorBuffer m_pVideoBuffer;
+	//GpuBuffer m_pGpuBuffer;
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX12VideoProcessor() override;
 
-	HRESULT CreateBlobFromResource(ID3DBlob** ppPixelShader, UINT resid);
-	void LoadPipeline();
-	HRESULT AddPipeLineState(UINT resource);
-	void LoadAssets();
-	void PopulateCommandList();
-	void WaitForPreviousFrame();
 //CVideoProcessor
 	int Type() override { return VP_DX12; }
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	BOOL VerifyMediaType(const CMediaType* pmt) override;
 	BOOL InitMediaType(const CMediaType* pmt) override;
 	void Configure(const Settings_t& config) override;
-
+	HRESULT Render(int field) override;
 	void SetRotation(int value) override;
 
 	void Flush() override;
@@ -162,8 +217,8 @@ private:
 	void ReleaseVP();
 	void ReleaseDevice();
 	void ReleaseSwapChain();
-
-
+	void SetupQuad();
+	void UpdateQuad();
 
 	bool HandleHDRToggle();
 
@@ -213,7 +268,9 @@ private:
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
 
 	HRESULT ProcessSample(IMediaSample* pSample) override;
-	HRESULT Render(int field) override;
+	
+	void Display(GraphicsContext& Context, float x, float y, float w, float h);
+
 	HRESULT FillBlack() override;
 
 	void SetVideoRect(const CRect& videoRect)      override;

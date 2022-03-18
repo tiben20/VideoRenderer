@@ -34,6 +34,9 @@
     <Filter Include="Header Files\d3d12\d3d12helper\shaders">
       <UniqueIdentifier>{429dd92c-a204-44e8-9898-46952279a0cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\test">
+      <UniqueIdentifier>{e8995242-517d-4edf-b204-3713fd95fc09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -211,6 +214,9 @@
       <Filter>Header Files\d3d12\d3d12helper</Filter>
     </ClCompile>
     <ClCompile Include="d3d12util\SystemTime.cpp">
+      <Filter>Header Files\d3d12\d3d12helper</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\DDSTextureLoader.cpp">
       <Filter>Header Files\d3d12\d3d12helper</Filter>
     </ClCompile>
   </ItemGroup>
@@ -452,6 +458,12 @@
     <ClInclude Include="d3d12util\SystemTime.h">
       <Filter>Header Files\d3d12\d3d12helper</Filter>
     </ClInclude>
+    <ClInclude Include="d3d12util\DDSTextureLoader.h">
+      <Filter>Header Files\d3d12\d3d12helper</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\dds.h">
+      <Filter>Header Files\d3d12\d3d12helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MpcVideoRenderer.rc">
@@ -513,9 +525,6 @@
     <None Include="d3d12util\shaders\PostEffectsRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\PresentRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\ShaderUtility.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
@@ -545,6 +554,10 @@
     </None>
     <None Include="d3d12util\shaders\CommonRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </None>
+    <None Include="packages.config" />
+    <None Include="d3d12util\shaders\PresentRS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -693,9 +706,6 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\BoundNeighborhoodCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BufferCopyPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\CameraMotionBlurPrePassCS.hlsl">
@@ -914,14 +924,20 @@
     <FxCompile Include="d3d12util\shaders\PerfGraphVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="d3d12util\shaders\PresentSDRPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\ResolveTAACS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BufferCopyPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\VideoQuadPresentVS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

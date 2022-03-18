@@ -114,6 +114,7 @@ namespace D3D12Public
 
 void D3D12Public::InitializeCommonState(void)
 {
+
     SamplerLinearWrapDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     SamplerLinearWrap = SamplerLinearWrapDesc.CreateDescriptor();
 

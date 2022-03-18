@@ -79,8 +79,8 @@ CommandContext& CommandContext::Begin( const std::wstring ID )
 {
     CommandContext* NewContext = D3D12Public::g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_DIRECT);
     NewContext->SetID(ID);
-    if (ID.length() > 0)
-      assert(0);//EngineProfiling::BeginBlock(ID, NewContext);
+    //if (ID.length() > 0)
+    //  assert(0);//EngineProfiling::BeginBlock(ID, NewContext);
     return *NewContext;
 }
 
@@ -135,8 +135,8 @@ uint64_t CommandContext::Finish( bool WaitForCompletion )
 
     FlushResourceBarriers();
 
-    if (m_ID.length() > 0)
-      assert(0);//EngineProfiling::EndBlock(this);
+    //if (m_ID.length() > 0)
+    //  assert(0);//EngineProfiling::EndBlock(this);
 
     ASSERT(m_CurrentAllocator != nullptr);
 

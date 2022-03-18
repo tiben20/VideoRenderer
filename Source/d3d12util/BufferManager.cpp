@@ -79,8 +79,8 @@ namespace D3D12Public
 
     // For testing GenerateMipMaps()
     ColorBuffer g_GenMipsBuffer;
-
-    DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R11G11B10_FLOAT;
+    DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+    //DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R11G11B10_FLOAT;
 }
 
 #define T2X_COLOR_FORMAT DXGI_FORMAT_R10G10B10A2_UNORM

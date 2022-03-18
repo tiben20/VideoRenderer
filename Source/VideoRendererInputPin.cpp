@@ -49,6 +49,9 @@ STDMETHODIMP CVideoRendererInputPin::NonDelegatingQueryInterface(REFIID riid, vo
 	else if (riid == __uuidof(ID3D11DecoderConfiguration) && m_pBaseRenderer->m_VideoProcessor->Type() == VP_DX11) {
 		return GetInterface((ID3D11DecoderConfiguration*)this, ppv);
 	}
+	else if (riid == __uuidof(ID3D12DecoderConfiguration) && m_pBaseRenderer->m_VideoProcessor->Type() == VP_DX12) {
+		return GetInterface((ID3D12DecoderConfiguration*)this, ppv);
+	}
 	else {
 		return __super::NonDelegatingQueryInterface(riid, ppv);
 	}
@@ -58,7 +61,7 @@ STDMETHODIMP CVideoRendererInputPin::GetAllocator(IMemAllocator **ppAllocator)
 {
 	DLog(L"CVideoRendererInputPin::GetAllocator()");
 
-	if (m_bDXVA || m_bD3D11) {
+	if (m_bDXVA || m_bD3D11 || m_bD3D12) {
 		// Renderer shouldn't manage allocator for DXVA/D3D11
 		return E_NOTIMPL;
 	}
@@ -204,6 +207,25 @@ STDMETHODIMP CVideoRendererInputPin::ActivateD3D11Decoding(ID3D11Device *pDevice
 }
 
 UINT STDMETHODCALLTYPE CVideoRendererInputPin::GetD3D11AdapterIndex()
+{
+	return m_pBaseRenderer->m_VideoProcessor->GetCurrentAdapter();
+}
+
+// ID3D11DecoderConfiguration
+STDMETHODIMP CVideoRendererInputPin::ActivateD3D12Decoding(ID3D12Device* pDevice, HANDLE hMutex, UINT nFlags)
+{
+	HRESULT hr = E_FAIL;
+	if (m_pBaseRenderer->m_VideoProcessor->Type() == VP_DX12) {
+		if (auto DX12VP = dynamic_cast<CDX12VideoProcessor*>(m_pBaseRenderer->m_VideoProcessor)) {
+			hr = DX12VP->SetDevice(pDevice, true);
+		}
+	}
+	m_bD3D12 = (hr == S_OK);
+	DLog(L"CVideoRendererInputPin::ActivateD3D12Decoding() : {}", m_bD3D12 ? L"completed successfully" : L"failed");
+	return hr;
+}
+
+UINT STDMETHODCALLTYPE CVideoRendererInputPin::GetD3D12AdapterIndex()
 {
 	return m_pBaseRenderer->m_VideoProcessor->GetCurrentAdapter();
 }

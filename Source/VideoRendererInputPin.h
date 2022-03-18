@@ -33,6 +33,7 @@ class CVideoRendererInputPin
 	, public IMFGetService
 	, public IDirectXVideoMemoryConfiguration
 	, public ID3D11DecoderConfiguration
+	, public ID3D12DecoderConfiguration
 {
 private:
 	friend class CCustomAllocator;
@@ -40,6 +41,7 @@ private:
 	CMpcVideoRenderer* m_pBaseRenderer;
 	bool m_bDXVA = false;
 	bool m_bD3D11 = false;
+	bool m_bD3D12 = false;
 
 	CCustomAllocator* m_pCustomAllocator = nullptr;
 	CMediaType* m_pNewMT = nullptr;
@@ -50,7 +52,7 @@ public:
 	CVideoRendererInputPin(CBaseRenderer *pRenderer, HRESULT *phr, LPCWSTR Name, CMpcVideoRenderer* pBaseRenderer);
 	~CVideoRendererInputPin();
 
-	bool FrameInVideoMem() { return m_bDXVA || m_bD3D11; }
+	bool FrameInVideoMem() { return m_bDXVA || m_bD3D11 || m_bD3D12; }
 
 	// CUnknown
 	DECLARE_IUNKNOWN
@@ -74,6 +76,10 @@ public:
 	// ID3D11DecoderConfiguration
 	STDMETHODIMP ActivateD3D11Decoding(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, HANDLE hMutex, UINT nFlags);
 	UINT STDMETHODCALLTYPE GetD3D11AdapterIndex();
+
+	// ID3D12DecoderConfiguration
+	STDMETHODIMP ActivateD3D12Decoding(ID3D12Device* pDevice, HANDLE hMutex, UINT nFlags);
+	UINT STDMETHODCALLTYPE GetD3D12AdapterIndex();
 
 	void SetNewMediaType(const CMediaType& mt);
 	void ClearNewMediaType();
