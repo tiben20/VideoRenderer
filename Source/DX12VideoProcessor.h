@@ -287,7 +287,7 @@ private:
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
 	
-	HRESULT DrawStats(ID3D12Resource* pRenderTarget);
+	
 
 public:
 	HRESULT SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice);

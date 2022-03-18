@@ -308,18 +308,22 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 	m_VideoPSO = GraphicsPSO(L"Renderer: Default PSO"); // Not finalized.  Used as a template.
 
-	SamplerDesc VideoSamplerDesc[2];
-	VideoSamplerDesc[0].Filter = D3D12_FILTER_ANISOTROPIC;
-	VideoSamplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	VideoSamplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	VideoSamplerDesc[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	VideoSamplerDesc[0].ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL; // NEVER
+	SamplerDesc VideoSamplerDesc[3];
+	VideoSamplerDesc[0] = {};
+	VideoSamplerDesc[0].Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	VideoSamplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	VideoSamplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	VideoSamplerDesc[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	VideoSamplerDesc[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // NEVER
 	VideoSamplerDesc[0].SetBorderColor({ 255.0f,255.0f ,1.0f ,1.0f });
 	VideoSamplerDesc[0].MinLOD = 0;
 	VideoSamplerDesc[0].MaxLOD = D3D12_FLOAT32_MAX;
 	VideoSamplerDesc[1] = VideoSamplerDesc[0];
-	VideoSamplerDesc[1].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-
+	VideoSamplerDesc[1].Filter = D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	VideoSamplerDesc[2] = VideoSamplerDesc[0];
+	VideoSamplerDesc[2].Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	VideoSamplerDesc[2].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	VideoSamplerDesc[2].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	//add lienear and dither only have point right now
 
 	//D3D12_DESCRIPTOR_RANGE_TYPE_SRV-> shader-resource views
@@ -327,89 +331,13 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	//D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER is speciefies range of samplers
 	//D3D12_DESCRIPTOR_RANGE_TYPE_CBV   Specifies a range of constant-buffer views (CBVs).
 
-		m_RootSig.Reset(2, 2);
+		m_RootSig.Reset(2, 3);
 		m_RootSig.InitStaticSampler(0, VideoSamplerDesc[0]);
 		m_RootSig.InitStaticSampler(1, VideoSamplerDesc[1]);
+		m_RootSig.InitStaticSampler(2, VideoSamplerDesc[2]);
 		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_VERTEX);
 		m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-
-
-		// PS_CONSTANT_BUFFER - b0
-		/*D3D12_DESCRIPTOR_RANGE1 range_PS_CONSTANT_BUFFER = {};
-		range_PS_CONSTANT_BUFFER.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-		range_PS_CONSTANT_BUFFER.NumDescriptors = 1;
-		range_PS_CONSTANT_BUFFER.BaseShaderRegister = 0;
-		range_PS_CONSTANT_BUFFER.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
-		range_PS_CONSTANT_BUFFER.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;*/
-		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_ALL);
-
-
-		// texture(s) - t0
-		/*D3D12_DESCRIPTOR_RANGE1 rangeTextureSRV;
-		ZeroMemory(&rangeTextureSRV, sizeof(D3D12_DESCRIPTOR_RANGE1));
-		rangeTextureSRV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		rangeTextureSRV.NumDescriptors = shader_views[i];//2
-		rangeTextureSRV.BaseShaderRegister = 0;
-		rangeTextureSRV.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
-		rangeTextureSRV.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;*/
-		m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2, D3D12_SHADER_VISIBILITY_PIXEL);
-
-		/*D3D12_ROOT_DESCRIPTOR_TABLE1 table_PS_CONSTANT_BUFFER;
-		ZeroMemory(&table_PS_CONSTANT_BUFFER, sizeof(D3D12_ROOT_DESCRIPTOR_TABLE1));
-		table_PS_CONSTANT_BUFFER.NumDescriptorRanges = 1;
-		table_PS_CONSTANT_BUFFER.pDescriptorRanges = &range_PS_CONSTANT_BUFFER;*/
-
-		/*D3D12_ROOT_PARAMETER1 root_PS_CONSTANT_BUFFER = {};
-		root_PS_CONSTANT_BUFFER.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		root_PS_CONSTANT_BUFFER.DescriptorTable = table_PS_CONSTANT_BUFFER;
-		root_PS_CONSTANT_BUFFER.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;*/ // TODO remap when changing ?
-		//ARRAY_APPEND(rootTables, root_PS_CONSTANT_BUFFER);
-
-		/*D3D12_ROOT_DESCRIPTOR_TABLE1 table_TextureArray = {};
-		table_TextureArray.NumDescriptorRanges = 1;
-		table_TextureArray.pDescriptorRanges = &rangeTextureSRV;
-
-		D3D12_ROOT_PARAMETER1 root_TextureArray = {};
-		root_TextureArray.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		root_TextureArray.DescriptorTable = table_TextureArray;
-		root_TextureArray.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;*/
-
-		//ARRAY_APPEND(rootTables, root_TextureArray);
-
-		/*D3D12_ROOT_SIGNATURE_DESC1 rootDesc;
-		ZeroMemory(&rootDesc, sizeof(D3D12_ROOT_SIGNATURE_DESC1));
-		rootDesc.NumParameters = rootTables.i_size;
-		rootDesc.pParameters = rootTables.p_elems;
-		rootDesc.NumStaticSamplers = ARRAY_SIZE(samplers);
-		rootDesc.pStaticSamplers = samplers;
-		rootDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-		D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignDesc = {
-				.Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
-				.Desc_1_1 = rootDesc,
-		};*/
-		//m_RootSig.Finalize(L"RootSig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-		//m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);//D3D12_DESCRIPTOR_RANGE_TYPE_CBV
-		//m_RootSig[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
-		//m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);//D3D12_DESCRIPTOR_RANGE_TYPE_SRV 
-		//m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-
-
-		//m_RootSig[2].InitAsDescriptorTable(0, D3D12_SHADER_VISIBILITY_PIXEL);
-		//m_RootSig[3].InitAsDescriptorTable(1, D3D12_SHADER_VISIBILITY_PIXEL);
-
-
-		/*m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-		m_RootSig[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
-		m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-		m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);*/
-
 		m_RootSig.Finalize(L"RootSig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-
-
-
-
 
 		DXGI_FORMAT ColorFormat = D3D12Public::g_SceneColorBuffer.GetFormat();
 		DXGI_FORMAT DepthFormat = D3D12Public::g_SceneDepthBuffer.GetFormat();
@@ -1212,8 +1140,8 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	pVideoContext.Finish();
-
-	m_pDXGISwapChain1->Present(0, DXGI_SWAP_EFFECT_DISCARD);
+	DXGI_PRESENT_PARAMETERS presentParams = { 0 };
+	m_pDXGISwapChain4->Present1(0,0, &presentParams);
 	p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
 	
 	return S_OK;
@@ -1385,6 +1313,7 @@ HRESULT CDX12VideoProcessor::Reset()
 	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = {};
 	fsSwapChainDesc.Windowed = TRUE;
 
+	
 	HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(
 		D3D12Public::g_CommandManager.GetCommandQueue(),
 		D3D12Public::g_hWnd,
@@ -1392,15 +1321,13 @@ HRESULT CDX12VideoProcessor::Reset()
 		&fsSwapChainDesc,
 		nullptr,
 		&m_pDXGISwapChain1);
+
+	hr = m_pDXGISwapChain1->QueryInterface(MY_IID_PPV_ARGS(&m_pDXGISwapChain4)); 
 	EsramAllocator esram;
 	for (UINT i = 0; i < 3; i++)
 	{
-		hr = m_pDXGISwapChain1->GetBuffer(i, IID_ID3D12Resource, (void**)&SwapChainBuffer[i]);
+		hr = m_pDXGISwapChain4->GetBuffer(i, IID_ID3D12Resource, (void**)&SwapChainBuffer[i]);
 		SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", SwapChainBuffer[i]);
-
-		//SwapChainBuffer[i].Create(L"Main Color Buffer", 1280,528 , 1, DXGI_FORMAT_R10G10B10A2_UNORM, esram);
-
-
 	}
 
 	dxgiFactory.Release();
@@ -1432,11 +1359,6 @@ void CDX12VideoProcessor::UpdateStatsPresent()
 
 void CDX12VideoProcessor::UpdateStatsStatic()
 {
-}
-
-HRESULT CDX12VideoProcessor::DrawStats(ID3D12Resource* pRenderTarget)
-{
-	return E_NOTIMPL;
 }
 
 STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues* pValues)
