@@ -74,7 +74,6 @@
     <ClCompile Include="d3d12util\CommandContext.cpp" />
     <ClCompile Include="d3d12util\CommandListManager.cpp" />
     <ClCompile Include="d3d12util\CommandSignature.cpp" />
-    <ClCompile Include="d3d12util\DDSTextureLoader.cpp" />
     <ClCompile Include="d3d12util\DepthBuffer.cpp" />
     <ClCompile Include="d3d12util\DescriptorHeap.cpp" />
     <ClCompile Include="d3d12util\Display.cpp" />
@@ -141,7 +140,6 @@
     <ClInclude Include="d3d12util\Commond3d12.h" />
     <ClInclude Include="d3d12util\d3dx12.h" />
     <ClInclude Include="d3d12util\dds.h" />
-    <ClInclude Include="d3d12util\DDSTextureLoader.h" />
     <ClInclude Include="d3d12util\DepthBuffer.h" />
     <ClInclude Include="d3d12util\DescriptorHeap.h" />
     <ClInclude Include="d3d12util\Display.h" />
