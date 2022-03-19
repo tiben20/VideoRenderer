@@ -28,7 +28,7 @@ namespace D3D12Public
     extern uint32_t g_DisplayWidth;
     extern uint32_t g_DisplayHeight;
     extern bool g_bEnableHDROutput;
-
+    
     // Returns the number of elapsed frames since application start
     uint64_t GetFrameCount(void);
 

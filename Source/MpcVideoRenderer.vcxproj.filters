@@ -498,9 +498,6 @@
     <None Include="d3d12util\shaders\GenerateMipsCS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\LanczosFunctions.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\MotionBlurRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
@@ -523,9 +520,6 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
     <None Include="d3d12util\shaders\PostEffectsRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\ShaderUtility.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
     <None Include="d3d12util\shaders\SSAORS.hlsli">
@@ -558,6 +552,12 @@
     </None>
     <None Include="d3d12util\shaders\TextRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </None>
+    <None Include="d3d12util\shaders\LanczosFunctions.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </None>
+    <None Include="d3d12util\shaders\ShaderUtility.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -891,12 +891,6 @@
     <FxCompile Include="d3d12util\shaders\LanczosFast32CS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\LanczosHorizontalPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="d3d12util\shaders\LinearizeDepthCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
@@ -937,6 +931,12 @@
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosHorizontalPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
   </ItemGroup>

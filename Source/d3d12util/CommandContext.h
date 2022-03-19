@@ -121,6 +121,7 @@ public:
         return m_CommandList;
     }
 
+    void CopyBuffer(GpuResource& Dest, ID3D12Resource* Src, D3D12_RESOURCE_STATES OldState);
     void CopyBuffer( GpuResource& Dest, GpuResource& Src );
     void CopyBufferRegion( GpuResource& Dest, size_t DestOffset, GpuResource& Src, size_t SrcOffset, size_t NumBytes );
     void CopySubresource(GpuResource& Dest, UINT DestSubIndex, GpuResource& Src, UINT SrcSubIndex);
@@ -144,7 +145,10 @@ public:
 
     void WriteBuffer( GpuResource& Dest, size_t DestOffset, const void* Data, size_t NumBytes );
     void FillBuffer( GpuResource& Dest, size_t DestOffset, DWParam Value, size_t NumBytes );
-
+    
+    
+    void TransitionResourceShutUp(GpuResource& Resource, D3D12_RESOURCE_STATES NewState);
+    void TransitionResource(ID3D12Resource* Resource, D3D12_RESOURCE_STATES NewState, D3D12_RESOURCE_STATES OldState, bool FlushImmediate = false);
     void TransitionResource(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
     void BeginResourceTransition(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
     void InsertUAVBarrier(GpuResource& Resource, bool FlushImmediate = false);
@@ -733,6 +737,22 @@ inline void ComputeContext::ExecuteIndirect(CommandSignature& CommandSig,
 inline void ComputeContext::DispatchIndirect( GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset )
 {
     ExecuteIndirect(D3D12Public::DispatchIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
+}
+
+inline void CommandContext::CopyBuffer(GpuResource& Dest, ID3D12Resource* Src, D3D12_RESOURCE_STATES OldState)
+{
+  TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
+
+  D3D12_RESOURCE_BARRIER& BarrierDesc = m_ResourceBarrierBuffer[m_NumBarriersToFlush++];
+
+  BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+  BarrierDesc.Transition.pResource = Src;
+  BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+  BarrierDesc.Transition.StateBefore = OldState;
+  BarrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+  
+  FlushResourceBarriers();
+  m_CommandList->CopyResource(Dest.GetResource(), Src);
 }
 
 inline void CommandContext::CopyBuffer( GpuResource& Dest, GpuResource& Src )

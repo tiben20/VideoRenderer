@@ -354,6 +354,69 @@ void GraphicsContext::SetScissor( const D3D12_RECT& rect )
     m_CommandList->RSSetScissorRects( 1, &rect );
 }
 
+void CommandContext::TransitionResource(ID3D12Resource *Resource, D3D12_RESOURCE_STATES NewState, D3D12_RESOURCE_STATES OldState ,bool FlushImmediate)
+{
+  
+
+  if (m_Type == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+  {
+    ASSERT((OldState & VALID_COMPUTE_QUEUE_RESOURCE_STATES) == OldState);
+    ASSERT((NewState & VALID_COMPUTE_QUEUE_RESOURCE_STATES) == NewState);
+  }
+
+  if (OldState != NewState)
+  {
+    ASSERT(m_NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+    D3D12_RESOURCE_BARRIER& BarrierDesc = m_ResourceBarrierBuffer[m_NumBarriersToFlush++];
+
+    BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    BarrierDesc.Transition.pResource = Resource;
+    BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    BarrierDesc.Transition.StateBefore = OldState;
+    BarrierDesc.Transition.StateAfter = NewState;
+
+    
+    BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+
+  }
+  
+
+  if (FlushImmediate || m_NumBarriersToFlush == 16)
+    FlushResourceBarriers();
+}
+
+void CommandContext::TransitionResourceShutUp(GpuResource& Resource, D3D12_RESOURCE_STATES NewState)
+{
+  Resource.m_UsageState = D3D12_RESOURCE_STATE_COPY_DEST;
+  D3D12_RESOURCE_STATES OldState = Resource.m_UsageState;
+  if (1)
+  {
+    D3D12_RESOURCE_BARRIER& BarrierDesc = m_ResourceBarrierBuffer[m_NumBarriersToFlush++];
+
+    BarrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    BarrierDesc.Transition.pResource = Resource.GetResource();
+    BarrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    BarrierDesc.Transition.StateBefore = OldState;
+    BarrierDesc.Transition.StateAfter = NewState;
+
+    // Check to see if we already started the transition
+    if (NewState == Resource.m_TransitioningState)
+    {
+      BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
+      Resource.m_TransitioningState = (D3D12_RESOURCE_STATES)-1;
+    }
+    else
+      BarrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+
+    Resource.m_UsageState = NewState;
+  }
+  else if (NewState == D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+    InsertUAVBarrier(Resource, false);
+
+  if (m_NumBarriersToFlush == 16)
+    FlushResourceBarriers();
+}
+
 void CommandContext::TransitionResource(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate)
 {
     D3D12_RESOURCE_STATES OldState = Resource.m_UsageState;

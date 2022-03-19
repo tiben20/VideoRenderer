@@ -44,6 +44,7 @@
 #include "d3d12util/BufferManager.h"
 #include "d3d12util/CompiledShaders/ScreenQuadCommonVS.h"
 #include "d3d12util/CompiledShaders/LanczosVerticalPS.h"
+#include "d3d12util/CompiledShaders/LanczosHorizontalPS.h"
 #include "d3d12util/CompiledShaders/BufferCopyPS.h"
 #include "d3d12util/CompiledShaders/VideoQuadPresentVS.h"
 #include "d3d12util/CompiledShaders/ScreenQuadPresentVS.h"
@@ -64,6 +65,7 @@
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddXCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"
 #include "d3d12util/TextRenderer.h"
+#include "d3d12util/ImageScaling.h"
 #include "d3d12util/EsramAllocator.h"
 #include "d3d12util/math/Common.h"
 #define USE_PIX
@@ -304,10 +306,11 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	D3D12Public::InitializeCommonState();
 	D3D12Public::InitializeRenderingBuffers(1280,528);
 	TextRenderer::Initialize();
-	//Display::Initialize();
+	Display::Initialize();
 
 	m_VideoPSO = GraphicsPSO(L"Renderer: Default PSO"); // Not finalized.  Used as a template.
-
+	//m_pScalingResource.Create(L"Scaling Resource", m_srcRect.Width(), m_srcRect.Height(), 1, DXGI_FORMAT_R10G10B10A2_UNORM);
+	//ImageScaling::Initialize(m_pScalingResource.GetFormat());
 	SamplerDesc VideoSamplerDesc[3];
 	VideoSamplerDesc[0] = {};
 	VideoSamplerDesc[0].Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -331,16 +334,26 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	//D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER is speciefies range of samplers
 	//D3D12_DESCRIPTOR_RANGE_TYPE_CBV   Specifies a range of constant-buffer views (CBVs).
 
-		m_RootSig.Reset(2, 3);
-		m_RootSig.InitStaticSampler(0, VideoSamplerDesc[0]);
-		m_RootSig.InitStaticSampler(1, VideoSamplerDesc[1]);
-		m_RootSig.InitStaticSampler(2, VideoSamplerDesc[2]);
-		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_VERTEX);
-		m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-		m_RootSig.Finalize(L"RootSig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		//m_RootSig.Reset(4, 3);
+		//m_RootSig.InitStaticSampler(0, VideoSamplerDesc[0]);
+		//m_RootSig.InitStaticSampler(1, VideoSamplerDesc[1]);
+		//m_RootSig.InitStaticSampler(2, VideoSamplerDesc[2]);
 
-		DXGI_FORMAT ColorFormat = D3D12Public::g_SceneColorBuffer.GetFormat();
-		DXGI_FORMAT DepthFormat = D3D12Public::g_SceneDepthBuffer.GetFormat();
+
+		m_RootSig.Reset(4, 2);
+		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+		m_RootSig[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+		m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+		m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+		m_RootSig.InitStaticSampler(0, D3D12Public::SamplerLinearClampDesc);
+		m_RootSig.InitStaticSampler(1, D3D12Public::SamplerPointClampDesc);
+		m_RootSig.Finalize(L"Present");
+
+		//m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_VERTEX);
+		//m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+		//m_RootSig.Finalize(L"RootSig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+
 		static D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 		{
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,  0,  0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -349,7 +362,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 		//sizeof(bdesc.RenderTarget)
 		//
-		m_VideoPSO.SetRootSignature(m_RootSig);
+		/*m_VideoPSO.SetRootSignature(m_RootSig);
 		m_VideoPSO.SetRasterizerState(D3D12Public::RasterizerDefault);
 		m_VideoPSO.SetBlendState(D3D12Public::BlendPreMultiplied);
 		m_VideoPSO.SetDepthStencilState(D3D12Public::DepthStateDisabled);
@@ -357,19 +370,19 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 		m_VideoPSO.SetSampleMask(UINT_MAX);
 		m_VideoPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 		m_VideoPSO.SetVertexShader(g_pVideoQuadPresentVS, sizeof(g_pVideoQuadPresentVS));
-		m_VideoPSO.SetPixelShader(g_pBufferCopyPS, sizeof(g_pBufferCopyPS));
+		m_VideoPSO.SetPixelShader(g_pBufferCopyPS, sizeof(g_pBufferCopyPS));*/
 
 
-		DXGI_FORMAT SwapChainFormats[2] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
+		/*DXGI_FORMAT SwapChainFormats[2] = {DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM};
 		m_VideoPSO.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
-		m_VideoPSO.Finalize();
+		m_VideoPSO.Finalize();*/
 
 
 
 
 
 
-		SetupQuad();
+		//SetupQuad();
 
 		//m_pViewpointShaderConstant;
 		//m_pPixelShaderConstants;
@@ -381,6 +394,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 void CDX12VideoProcessor::UpdateQuad()
 {
+	return;
 	//result = D3D_SetupQuadData(o, &quad->generic, output, pVertexDataBegin, triangleVertices, orientation);
 //vertex buffer data pVertexDataBegin dst_data pData
 //index buffer data triangleVertices
@@ -1068,12 +1082,57 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 		desc = pD3D12Resource->GetDesc();
 	}
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2];
+	UINT64 pitch_plane[2];
+	UINT rows_plane[2];
+	UINT64 RequiredSize;
+	D3D12Public::g_Device->GetCopyableFootprints(&desc,
+		0, 2, 0, layoutplane, rows_plane, pitch_plane, &RequiredSize);
+	
+	m_pScalingResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R8_UNORM);
+	m_pScalingResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, DXGI_FORMAT_R8G8_UNORM);
 
 	
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
+	
 
-	if (resetquad)
-		UpdateQuad();
+	
+	D3D12_TEXTURE_COPY_LOCATION dst;
+	D3D12_TEXTURE_COPY_LOCATION src;
+	for (int i = 0; i < 2; i++) {
+		dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pScalingResource[i].GetResource());
+		src = CD3DX12_TEXTURE_COPY_LOCATION(pD3D12Resource, i);
+		pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+	}
+	
+	//pVideoContext.CopyTextureRegion(m_pScalingResource,0,0,0,)
+	//if (resetquad)
+		//UpdateQuad();
+	
+	pVideoContext.SetRootSignature(m_RootSig);
+	pVideoContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
+	//D3D12_RESOURCE_STATE_COPY_DEST
+	pVideoContext.TransitionResourceShutUp(m_pScalingResource[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	pVideoContext.TransitionResourceShutUp(m_pScalingResource[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	//pVideoContext.SetDynamicDescriptor(0, 0, D3D12_CPU_VIRTUAL_ADDRESS_UNKNOWN);
+	ImageScaling::SetPipelineBilinear(pVideoContext);
+	
+	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
+	pVideoContext.SetDynamicDescriptor(0, 0, SwapChainBufferColor[p_CurrentBuffer].GetSRV());
+	pVideoContext.SetRenderTarget(SwapChainBufferColor[p_CurrentBuffer].GetRTV());
+
+	
+	pVideoContext.SetViewportAndScissor(0, 0, m_srcRect.Width(), m_srcRect.Height());
+	pVideoContext.SetDynamicDescriptor(0, 0, m_pScalingResource[0].GetSRV());
+	pVideoContext.SetDynamicDescriptor(0, 0, m_pScalingResource[1].GetSRV());
+	pVideoContext.Draw(3);
+	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
+	pVideoContext.Finish();
+	DXGI_PRESENT_PARAMETERS presentParams = { 0 };
+	m_pDXGISwapChain4->Present1(0, 0, &presentParams);
+	p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
+	return S_OK;
 
 	D3D12_VIEWPORT VP;
 	VP.TopLeftX = 0;
@@ -1140,10 +1199,11 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	pVideoContext.Finish();
-	DXGI_PRESENT_PARAMETERS presentParams = { 0 };
-	m_pDXGISwapChain4->Present1(0,0, &presentParams);
-	p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
-	
+	//DXGI_PRESENT_PARAMETERS presentParams = { 0 };
+	//m_pDXGISwapChain4->Present1(0,0, &presentParams);
+	//p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
+	m_pScalingResource[0].Destroy();
+	m_pScalingResource[1].Destroy();
 	return S_OK;
 
 }
@@ -1300,7 +1360,7 @@ HRESULT CDX12VideoProcessor::Reset()
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.Width = 1280;
 	swapChainDesc.Height = 528;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 3;
 	swapChainDesc.SampleDesc.Count = 1;
@@ -1333,6 +1393,7 @@ HRESULT CDX12VideoProcessor::Reset()
 	dxgiFactory.Release();
 	DXGI_SWAP_CHAIN_DESC desc2;
 	m_pDXGISwapChain1->GetDesc(&desc2);
+	
 	if (desc2.OutputWindow != m_hWnd)
 		assert(0);
     return E_NOTIMPL;

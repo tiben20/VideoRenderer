@@ -161,12 +161,13 @@ private:
 	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
 	
 
+
 	DescriptorHeap m_pQuadHeap;
 	DescriptorHandle m_pQuadHeapHandle;
 	bool resetquad = false;
 	ID3D12Resource* SwapChainBuffer[3];
 	ColorBuffer SwapChainBufferColor[3];
-	ColorBuffer ResourceCopy;
+	ColorBuffer m_pScalingResource[2];
 	int p_CurrentBuffer = 0;
 
 	typedef struct  {

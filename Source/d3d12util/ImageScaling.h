@@ -13,13 +13,15 @@
 
 class GraphicsContext;
 class ColorBuffer;
+
 enum DXGI_FORMAT;
 
 namespace ImageScaling
 {
     void Initialize(DXGI_FORMAT DestFormat);
-
+    void SetPipelineBilinear(GraphicsContext& Context);
     enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos, kFilterCount };
 
     void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech = kLanczos);
+    
 }

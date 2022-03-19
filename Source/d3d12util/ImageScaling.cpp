@@ -313,6 +313,11 @@ void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
     LanczosCS[kFast32CS].Finalize();
 }
 
+void ImageScaling::SetPipelineBilinear(GraphicsContext& Context)
+{
+  Context.SetPipelineState(BilinearUpsamplePS);
+}
+
 void ImageScaling::Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech)
 {
     //ScopedTimer _prof(L"Image Upscale", Context);

@@ -144,7 +144,11 @@ void RootSignature::Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAG
             firstCompile = true;
         }
         else
-          RSRef = &iter->second;
+        {
+          ID3D12RootSignature* RSRef2=nullptr;
+          iter->second.CopyTo(&RSRef2);
+          RSRef = &RSRef2;
+        }
     }
 
     if (firstCompile)
