@@ -287,7 +287,7 @@ void Display::Initialize(void)
     
     s_PresentRS.Reset(4, 2);
     s_PresentRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-    s_PresentRS[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+    s_PresentRS[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
     s_PresentRS[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
     s_PresentRS[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
     s_PresentRS.InitStaticSampler(0, SamplerLinearClampDesc);
@@ -335,7 +335,7 @@ void Display::Initialize(void)
     SetNativeResolution();
 
     g_PreDisplayBuffer.Create(L"PreDisplay Buffer", g_DisplayWidth, g_DisplayHeight, 1, SwapChainFormat);
-    ImageScaling::Initialize(g_PreDisplayBuffer.GetFormat());
+    ImageScaling::Initialize(DXGI_FORMAT_R8G8B8A8_UNORM);// g_PreDisplayBuffer.GetFormat());
 }
 
 void Display::Shutdown( void )

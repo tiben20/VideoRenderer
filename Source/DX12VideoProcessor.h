@@ -130,7 +130,9 @@ private:
 	RootSignature m_RootSig;
 
 	GraphicsPSO m_VideoPSO; //video pso
-	
+	GraphicsPSO BilinearUpsamplePS2;
+
+
 	typedef struct {
 		FLOAT Colorspace[4 * 3];
 		FLOAT Opacity;
@@ -268,7 +270,16 @@ private:
 //CVideoProcessor
 	void SetGraphSize() override;
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
+	void SetShaderConvertColorParams();
+	__declspec(align(16)) struct CONSTANT_BUFFER_VAR {
+		DirectX::XMFLOAT4 cm_r;
+		DirectX::XMFLOAT4 cm_g;
+		DirectX::XMFLOAT4 cm_b;
+		DirectX::XMFLOAT4 cm_c;
+	};
+	CONSTANT_BUFFER_VAR m_pBufferVar;
 
+		bool m_PSConvColorData = false;
 	HRESULT ProcessSample(IMediaSample* pSample) override;
 	
 	void Display(GraphicsContext& Context, float x, float y, float w, float h);

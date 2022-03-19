@@ -666,9 +666,6 @@
     <FxCompile Include="d3d12util\shaders\BicubicVerticalUpsamplePS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="d3d12util\shaders\Bitonic32InnerSortCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
@@ -921,9 +918,6 @@
     <FxCompile Include="d3d12util\shaders\ResolveTAACS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BufferCopyPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
-    </FxCompile>
     <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
@@ -937,6 +931,12 @@
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ColorConvertNV12PS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\test</Filter>
     </FxCompile>
   </ItemGroup>

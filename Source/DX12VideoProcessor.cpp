@@ -64,6 +64,7 @@
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddXCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"
+#include "d3d12util/CompiledShaders/BilinearUpsamplePS.h"
 #include "d3d12util/TextRenderer.h"
 #include "d3d12util/ImageScaling.h"
 #include "d3d12util/EsramAllocator.h"
@@ -309,7 +310,8 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	Display::Initialize();
 
 	m_VideoPSO = GraphicsPSO(L"Renderer: Default PSO"); // Not finalized.  Used as a template.
-	//m_pScalingResource.Create(L"Scaling Resource", m_srcRect.Width(), m_srcRect.Height(), 1, DXGI_FORMAT_R10G10B10A2_UNORM);
+	BilinearUpsamplePS2 = GraphicsPSO(L"Image Scaling: Bilinear Upsample PSO");
+																											//m_pScalingResource.Create(L"Scaling Resource", m_srcRect.Width(), m_srcRect.Height(), 1, DXGI_FORMAT_R10G10B10A2_UNORM);
 	//ImageScaling::Initialize(m_pScalingResource.GetFormat());
 	SamplerDesc VideoSamplerDesc[3];
 	VideoSamplerDesc[0] = {};
@@ -341,13 +343,32 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 
 		m_RootSig.Reset(4, 2);
+		#if 0
 		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-		m_RootSig[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+		m_RootSig[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
 		m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
 		m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+#else
+		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+		m_RootSig[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
+		m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+		m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+#endif
 		m_RootSig.InitStaticSampler(0, D3D12Public::SamplerLinearClampDesc);
 		m_RootSig.InitStaticSampler(1, D3D12Public::SamplerPointClampDesc);
 		m_RootSig.Finalize(L"Present");
+
+		BilinearUpsamplePS2.SetRootSignature(m_RootSig);
+		BilinearUpsamplePS2.SetRasterizerState(D3D12Public::RasterizerTwoSided);
+		BilinearUpsamplePS2.SetBlendState(BlendDisable);
+		BilinearUpsamplePS2.SetDepthStencilState(D3D12Public::DepthStateDisabled);
+		BilinearUpsamplePS2.SetSampleMask(0xFFFFFFFF);
+		BilinearUpsamplePS2.SetInputLayout(0, nullptr);
+		BilinearUpsamplePS2.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		BilinearUpsamplePS2.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+		BilinearUpsamplePS2.SetPixelShader(g_pBilinearUpsamplePS, sizeof(g_pBilinearUpsamplePS));
+		BilinearUpsamplePS2.SetRenderTargetFormat(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN);
+		BilinearUpsamplePS2.Finalize();
 
 		//m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_VERTEX);
 		//m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
@@ -386,7 +407,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 		//m_pViewpointShaderConstant;
 		//m_pPixelShaderConstants;
-
+		SetShaderConvertColorParams();
 
 		return S_OK;
 	
@@ -1048,6 +1069,52 @@ BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 	return FALSE;
 }
 
+void CDX12VideoProcessor::SetShaderConvertColorParams()
+{
+	mp_csp_params csp_params;
+	set_colorspace(m_srcExFmt, csp_params.color);
+	csp_params.brightness = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Brightness) / 255;
+	csp_params.contrast = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Contrast);
+	csp_params.hue = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Hue) / 180 * acos(-1);
+	csp_params.saturation = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Saturation);
+	csp_params.gray = m_srcParams.CSType == CS_GRAY;
+
+	csp_params.input_bits = csp_params.texture_bits = m_srcParams.CDepth;
+
+	m_PSConvColorData =
+		m_srcParams.CSType == CS_YUV ||
+		m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16 ||
+		csp_params.gray ||
+		fabs(csp_params.brightness) > 1e-4f || fabs(csp_params.contrast - 1.0f) > 1e-4f;
+
+	mp_cmat cmatrix;
+	mp_get_csp_matrix(&csp_params, &cmatrix);
+	m_pBufferVar = {
+		{cmatrix.m[0][0], cmatrix.m[0][1], cmatrix.m[0][2], 0},
+		{cmatrix.m[1][0], cmatrix.m[1][1], cmatrix.m[1][2], 0},
+		{cmatrix.m[2][0], cmatrix.m[2][1], cmatrix.m[2][2], 0},
+		{cmatrix.c[0],    cmatrix.c[1],    cmatrix.c[2],    0},
+	};
+
+	if (m_srcParams.cformat == CF_Y410 || m_srcParams.cformat == CF_Y416) {
+		std::swap(m_pBufferVar.cm_r.x, m_pBufferVar.cm_r.y);
+		std::swap(m_pBufferVar.cm_g.x, m_pBufferVar.cm_g.y);
+		std::swap(m_pBufferVar.cm_b.x, m_pBufferVar.cm_b.y);
+	}
+	else if (m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16) {
+		std::swap(m_pBufferVar.cm_r.x, m_pBufferVar.cm_r.y); std::swap(m_pBufferVar.cm_r.y, m_pBufferVar.cm_r.z);
+		std::swap(m_pBufferVar.cm_g.x, m_pBufferVar.cm_g.y); std::swap(m_pBufferVar.cm_g.y, m_pBufferVar.cm_g.z);
+		std::swap(m_pBufferVar.cm_b.x, m_pBufferVar.cm_b.y); std::swap(m_pBufferVar.cm_b.y, m_pBufferVar.cm_b.z);
+	}
+	else if (csp_params.gray) {
+		m_pBufferVar.cm_g.x = m_pBufferVar.cm_g.y;
+		m_pBufferVar.cm_g.y = 0;
+		m_pBufferVar.cm_b.x = m_pBufferVar.cm_b.z;
+		m_pBufferVar.cm_b.z = 0;
+	}
+
+}
+
 HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
 
@@ -1088,9 +1155,16 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	UINT64 RequiredSize;
 	D3D12Public::g_Device->GetCopyableFootprints(&desc,
 		0, 2, 0, layoutplane, rows_plane, pitch_plane, &RequiredSize);
-	
+	if (desc.Format != DXGI_FORMAT_P010)// DXGI_FORMAT_NV12
+	{ 
 	m_pScalingResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R8_UNORM);
 	m_pScalingResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, DXGI_FORMAT_R8G8_UNORM);
+	}
+	else
+	{
+		m_pScalingResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R16_UNORM);
+		m_pScalingResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, DXGI_FORMAT_R16G16_UNORM);
+	}
 
 	
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
@@ -1117,6 +1191,7 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	pVideoContext.TransitionResourceShutUp(m_pScalingResource[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	//pVideoContext.SetDynamicDescriptor(0, 0, D3D12_CPU_VIRTUAL_ADDRESS_UNKNOWN);
 	ImageScaling::SetPipelineBilinear(pVideoContext);
+	//pVideoContext.SetPipelineState(BilinearUpsamplePS2);
 	
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 	pVideoContext.SetDynamicDescriptor(0, 0, SwapChainBufferColor[p_CurrentBuffer].GetSRV());
@@ -1124,9 +1199,15 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 	
 	pVideoContext.SetViewportAndScissor(0, 0, m_srcRect.Width(), m_srcRect.Height());
+
 	pVideoContext.SetDynamicDescriptor(0, 0, m_pScalingResource[0].GetSRV());
-	pVideoContext.SetDynamicDescriptor(0, 0, m_pScalingResource[1].GetSRV());
+	pVideoContext.SetDynamicDescriptor(0, 1, m_pScalingResource[1].GetSRV());
+	//pVideoContext.SetDynamicConstantBufferView(1, sizeof(m_pBufferVar), &m_pBufferVar);
 	pVideoContext.Draw(3);
+
+	Display(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
+
+
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	pVideoContext.Finish();
 	DXGI_PRESENT_PARAMETERS presentParams = { 0 };
@@ -1242,9 +1323,9 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 	
 	TextContext Text(Context);
 	Text.Begin();
-	Text.EnableDropShadow(false);
+	Text.EnableDropShadow(true);
 	Text.SetTextSize(20.0f);
-	Text.SetColor(Color(0.5f, 1.0f, 1.0f));
+	Text.SetColor(Color(255.0f, 1.0f, 1.0f,255.0f));
 	Text.DrawString(str.c_str());
 	
 	Text.End();
@@ -1360,7 +1441,7 @@ HRESULT CDX12VideoProcessor::Reset()
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.Width = 1280;
 	swapChainDesc.Height = 528;
-	swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;// DXGI_FORMAT_R10G10B10A2_UNORM;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 3;
 	swapChainDesc.SampleDesc.Count = 1;
