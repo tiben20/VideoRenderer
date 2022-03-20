@@ -71,5 +71,5 @@ interface __declspec(uuid("BC8753F5-0AC7-4806-8E5F-A12B2AFE153E")) IMediaSampleD
   // Get the D3D11 texture for the specified view.
   // 2D images with only one view always use view 0. For 3D, view 0 specifies the base view, view 1 the extension
   // view.
-  virtual HRESULT STDMETHODCALLTYPE GetD3D12Texture(ID3D12Resource** ppTexture) = 0;
+  virtual HRESULT STDMETHODCALLTYPE GetD3D12Texture(ID3D12Resource** ppTexture, int* iTextureIndex) = 0;
 };

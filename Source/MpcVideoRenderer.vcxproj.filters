@@ -34,9 +34,6 @@
     <Filter Include="Header Files\d3d12\d3d12helper\shaders">
       <UniqueIdentifier>{429dd92c-a204-44e8-9898-46952279a0cf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\test">
-      <UniqueIdentifier>{e8995242-517d-4edf-b204-3713fd95fc09}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\d3d12\d3d12helper\Buffers">
       <UniqueIdentifier>{7e3ba952-b6c5-4642-8713-ba362ab6e30f}</UniqueIdentifier>
     </Filter>
@@ -48,6 +45,9 @@
     </Filter>
     <Filter Include="Header Files\d3d12\d3d12helper\Utility">
       <UniqueIdentifier>{2c9ab5d2-efa7-48cb-8ca7-4557b0f734f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\GoodShaders">
+      <UniqueIdentifier>{e8995242-517d-4edf-b204-3713fd95fc09}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -227,6 +227,9 @@
     </ClCompile>
     <ClCompile Include="d3d12util\Color.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\TemporaryTexture.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -470,6 +473,9 @@
     <ClInclude Include="d3d12util\Hash.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
+    <ClInclude Include="d3d12util\TemporaryTexture.h">
+      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MpcVideoRenderer.rc">
@@ -554,16 +560,16 @@
     </None>
     <None Include="packages.config" />
     <None Include="d3d12util\shaders\PresentRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </None>
     <None Include="d3d12util\shaders\TextRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
     <None Include="d3d12util\shaders\LanczosFunctions.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </None>
     <None Include="d3d12util\shaders\ShaderUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -925,25 +931,28 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\VideoQuadPresentVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\LanczosHorizontalPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\ColorConvertNV12PS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\test</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ColorConvertVLCNV12PS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
