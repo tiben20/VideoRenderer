@@ -15,7 +15,6 @@
 
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
-#include "TemporaryTexture.h"
 //#include "ShadowBuffer.h"
 #include "GpuBuffer.h"
 //#include "DX12Helper.h"

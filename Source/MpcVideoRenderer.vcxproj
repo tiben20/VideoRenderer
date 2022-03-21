@@ -91,7 +91,6 @@
     <ClCompile Include="d3d12util\RootSignature.cpp" />
     <ClCompile Include="d3d12util\SamplerManager.cpp" />
     <ClCompile Include="d3d12util\SystemTime.cpp" />
-    <ClCompile Include="d3d12util\TemporaryTexture.cpp" />
     <ClCompile Include="d3d12util\TextRenderer.cpp" />
     <ClCompile Include="d3d12util\Texture.cpp" />
     <ClCompile Include="d3d12util\UploadBuffer.cpp" />
@@ -170,7 +169,6 @@
     <ClInclude Include="d3d12util\RootSignature.h" />
     <ClInclude Include="d3d12util\SamplerManager.h" />
     <ClInclude Include="d3d12util\SystemTime.h" />
-    <ClInclude Include="d3d12util\TemporaryTexture.h" />
     <ClInclude Include="d3d12util\TextRenderer.h" />
     <ClInclude Include="d3d12util\Texture.h" />
     <ClInclude Include="d3d12util\UploadBuffer.h" />
@@ -623,18 +621,6 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
-      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DisableOptimizations>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ColorConvertVLCNV12PS.hlsl">
-      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
-      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
-      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DisableOptimizations>
-      <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).pdb</AssemblerOutputFile>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;DEBUG</PreprocessorDefinitions>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AssemblyCodeAndHex</AssemblerOutput>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\CompositeHDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
@@ -1517,7 +1503,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.2</ShaderModel>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_GAMING_DESKTOP=1</PreprocessorDefinitions>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AssemblyCode</AssemblerOutput>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

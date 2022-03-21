@@ -36,8 +36,6 @@
 #include "d3d12util/gpubuffer.h"
 #include "d3d12util/CommandContext.h"
 #include "d3d12util/uploadbuffer.h"
-#include "d3d12util/TemporaryTexture.h"
-
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
@@ -163,14 +161,15 @@ private:
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	D3D12_DESCRIPTOR_HEAP_DESC m_pVertexHeapDesc;//m_cbvSrvHeap
 	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
-	std::vector<TemporaryTexture> m_pTemporaryTexture;
-	ColorBuffer m_pScalingResource[2];
+	
+
 
 	DescriptorHeap m_pQuadHeap;
 	DescriptorHandle m_pQuadHeapHandle;
 	bool resetquad = false;
 	ID3D12Resource* SwapChainBuffer[3];
 	ColorBuffer SwapChainBufferColor[3];
+	ColorBuffer m_pScalingResource[2];
 	int p_CurrentBuffer = 0;
 
 	typedef struct  {
@@ -222,8 +221,7 @@ private:
 	void ReleaseVP();
 	void ReleaseDevice();
 	void ReleaseSwapChain();
-	void SetupQuadVertices();
-	void SetupConstantBuffers(D3D12_CPU_DESCRIPTOR_HANDLE constantbufferhandle);
+	void SetupQuad();
 	void UpdateQuad();
 
 	bool HandleHDRToggle();

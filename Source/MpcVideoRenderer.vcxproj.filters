@@ -228,9 +228,6 @@
     <ClCompile Include="d3d12util\Color.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\TemporaryTexture.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -473,9 +470,6 @@
     <ClInclude Include="d3d12util\Hash.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\TemporaryTexture.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MpcVideoRenderer.rc">
@@ -552,9 +546,6 @@
     <None Include="d3d12util\shaders\BitonicSortCommon.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\ColorSpaceUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\CommonRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
@@ -571,6 +562,9 @@
     <None Include="d3d12util\shaders\ShaderUtility.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </None>
+    <None Include="d3d12util\shaders\ColorSpaceUtility.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="d3d12util\shaders\ScaleAndCompositeHDRPS.hlsl">
@@ -580,9 +574,6 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\ScreenQuadCommonVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ScreenQuadPresentVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\SharpeningUpsampleGammaPS.hlsl">
@@ -951,7 +942,7 @@
     <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ColorConvertVLCNV12PS.hlsl">
+    <FxCompile Include="d3d12util\shaders\ScreenQuadPresentVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </FxCompile>
   </ItemGroup>

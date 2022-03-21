@@ -18,29 +18,28 @@
 // Use null input layout
 // Draw(3)
 
-struct vertin
+#include "PresentRS.hlsli"
+
+struct VS_INPUT
 {
-    float3 pos : POSITION;
-    float4 col : COLOR;
-    float2 uv : TEXCOORD;
+float3 position     : POSITION;
+float2 uv           : TEXCOORD;
 };
 
-struct v2f
+struct VS_OUTPUT
 {
-    float4 pos : SV_POSITION;
-    float4 col : COLOR0;
-    float2 uv : TEXCOORD0;
+  float4 Pos : SV_POSITION;    // Upper-left and lower-right coordinates in clip space
+  float2 Tex : TEXCOORD0;        // Upper-left and lower-right normalized UVs
 };
 
-v2f main(vertin IN)
+[RootSignature(Present_RootSig)]
+VS_OUTPUT main( VS_INPUT input, uint VertID : SV_VertexID)
 {
-    v2f output = (v2f) 0;
-
-    output.pos = float4(IN.pos.xyz, 1);
-    output.col = IN.col;
-    output.uv = IN.uv;
-
-    return output;
-    
-
+  VS_OUTPUT output;
+  output.Pos = float4(input.position, 1);
+  output.Tex = float3(input.uv, 0);
+  return output;
+    // Texture coordinates range [0, 2], but only [0, 1] appears on screen.
+    //Tex = float2(uint2(VertID, VertID << 1) & 2);
+    //Pos = float4(lerp(float2(-1, 1), float2(1, -1), Tex), 0, 1);
 }
