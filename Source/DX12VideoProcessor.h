@@ -35,7 +35,10 @@
 #include "d3d12util/gpubuffer.h"
 #include "d3d12util/CommandContext.h"
 #include "d3d12util/uploadbuffer.h"
+#include "d3d12util/ImageScaling.h"
 #define TEST_SHADER 0
+
+
 
 class CVideoRendererInputPin;
 
@@ -272,12 +275,7 @@ private:
 	void SetGraphSize() override;
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
 	void SetShaderConvertColorParams();
-	__declspec(align(16)) struct CONSTANT_BUFFER_VAR {
-		DirectX::XMFLOAT4 cm_r;
-		DirectX::XMFLOAT4 cm_g;
-		DirectX::XMFLOAT4 cm_b;
-		DirectX::XMFLOAT4 cm_c;
-	};
+	
 	CONSTANT_BUFFER_VAR m_pBufferVar;
 
 		bool m_PSConvColorData = false;

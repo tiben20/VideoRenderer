@@ -15,7 +15,7 @@
 #include "TextRenderer.h"
 #include "FileUtility.h"
 #include "Texture.h"
-//#include "SystemTime.h"
+
 #include "GraphicsCommon.h"
 #include "CommandContext.h"
 #include "PipelineState.h"

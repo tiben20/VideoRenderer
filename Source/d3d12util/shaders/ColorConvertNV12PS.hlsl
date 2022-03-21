@@ -13,13 +13,18 @@
 #include "ShaderUtility.hlsli"
 #include "PresentRS.hlsli"
 
-#define w 720
-#define dx (1.0/720)
-#define dy (1.0/404)
-static const float2 wh = { 720, 404 };
-static const float2 dxdy2 = { 2.0 / 720, 2.0 / 404 };
+//static const float2 wh = { 720, 404 };
+//static const float2 dxdy2 = { 2.0 / 720, 2.0 / 404 };
 
 Texture2D ColorTex[2] : register(t0);
+
+cbuffer Constants : register(b0)
+{
+    float3 cm_r;
+    float3 cm_g;
+    float3 cm_b;
+    float3 cm_c;
+}
 
 SamplerState BilinearFilter : register(s0);
 float3 reverse_color(float3 floatin)
@@ -41,22 +46,22 @@ float3 main(float4 position : SV_Position, float2 uv : TexCoord0) : SV_Target0
     colorY = ColorTex[0].Sample(BilinearFilter, uv).r;
     colorUV = ColorTex[1].Sample(BilinearFilter, uv).rg;
     float3 color = float3(colorY, colorUV);
-    float3 cm_r, cm_g, cm_b, cm_c;
-    cm_r.x = 1.16438353;
-    cm_r.y = 0.000000000;
-    cm_r.z = 1.59602678;
+    //float3 cm_r, cm_g, cm_b, cm_c;
+    //cm_r.x = 1.16438353;
+    //cm_r.y = 0.000000000;
+    //cm_r.z = 1.59602678;
     //cm_r.w = 0.000000000;
-    cm_g.x = 1.16438353;
-    cm_g.y = -0.391762257;
-    cm_g.z = -0.812967598;
+    //cm_g.x = 1.16438353;
+    //cm_g.y = -0.391762257;
+    //cm_g.z = -0.812967598;
     //cm_g.w = 0.000000000;
-    cm_b.x = 1.16438353;
-    cm_b.y = 2.01723218;
-    cm_b.z = 0.000000000;
+    //cm_b.x = 1.16438353;
+    //cm_b.y = 2.01723218;
+    //cm_b.z = 0.000000000;
     //cm_b.w = 0.000000000;
-    cm_c.x = -0.874202192;
-    cm_c.xy = 0.531667769;
-    cm_c.xz = -1.08563077;
+    //cm_c.x = -0.874202192;
+    //cm_c.xy = 0.531667769;
+    //cm_c.xz = -1.08563077;
     //cm_c.xw = 0.000000000;
 
     color.rgb = float3(mul(cm_r, color), mul(cm_g, color), mul(cm_b, color)) + cm_c;

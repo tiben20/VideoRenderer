@@ -43,14 +43,7 @@
 #include "d3d12util/CompiledShaders/CompositeHDRPS.h"
 #include "d3d12util/CompiledShaders/BlendUIHDRPS.h"
 #include "d3d12util/CompiledShaders/ScaleAndCompositeHDRPS.h"
-/*#include "d3d12util/CompiledShaders/GenerateMipsLinearCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearOddCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearOddXCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearOddYCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddXCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"*/
+
 using namespace D3D12Engine;
 
 namespace D3D12Engine
@@ -80,6 +73,7 @@ namespace ImageScaling
     BoolVar ForcePixelShader("Graphics/Display/Image Scaling/Prefer Pixel Shader", false);
     /*Rendering PSO*/
     RootSignature s_PresentRS;
+    RootSignature s_PresentRSColor;
     GraphicsPSO s_BlendUIPSO(L"Core: BlendUI");
     GraphicsPSO s_BlendUIHDRPSO(L"Core: BlendUIHDR");
     GraphicsPSO PresentSDRPS(L"Core: PresentSDR");
@@ -179,11 +173,12 @@ namespace ImageScaling
 
     }
 
-    void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1)
+    void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant)
     {
-      Context.SetRootSignature(s_PresentRS);
+      Context.SetRootSignature(s_PresentRSColor);
       Context.SetPipelineState(ColorConvertNV12PS);
       Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_BUFFER_VAR), &colorconstant);
       Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
       Context.TransitionResourceShutUp(source0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
       Context.TransitionResourceShutUp(source1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -394,6 +389,15 @@ void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
   s_PresentRS.InitStaticSampler(1, SamplerPointClampDesc);
   s_PresentRS.Finalize(L"Present");
 
+  s_PresentRSColor.Reset(4, 2);
+  s_PresentRSColor[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+  s_PresentRSColor[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
+  s_PresentRSColor[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+  s_PresentRSColor[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+  s_PresentRSColor.InitStaticSampler(0, SamplerLinearClampDesc);
+  s_PresentRSColor.InitStaticSampler(1, SamplerPointClampDesc);
+  s_PresentRSColor.Finalize(L"Present");
+
   s_BlendUIPSO.SetRootSignature(s_PresentRS);
   s_BlendUIPSO.SetRasterizerState(RasterizerTwoSided);
   s_BlendUIPSO.SetBlendState(BlendPreMultiplied);
@@ -428,7 +432,7 @@ void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
   PresentHDRPS.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
   PresentHDRPS.Finalize();
 
-  ColorConvertNV12PS.SetRootSignature(s_PresentRS);
+  ColorConvertNV12PS.SetRootSignature(s_PresentRSColor);
   //BilinearUpsamplePS2.SetRasterizerState(D3D12Engine::RasterizerDefault);
   ColorConvertNV12PS.SetRasterizerState(D3D12Engine::RasterizerDefault);
   ColorConvertNV12PS.SetBlendState(D3D12Engine::BlendDisable);

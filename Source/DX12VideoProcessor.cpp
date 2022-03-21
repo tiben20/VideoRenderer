@@ -44,7 +44,7 @@
 #include "d3d12util/BufferManager.h"
 
 #include "d3d12util/TextRenderer.h"
-#include "d3d12util/ImageScaling.h"
+
 #include "d3d12util/EsramAllocator.h"
 #include "d3d12util/math/Common.h"
 
@@ -276,6 +276,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	
 	if (D3D12Engine::g_CommandManager.GetGraphicsQueue().IsReady())
 		return S_OK;
+	UpdateStatsStatic();
 	D3D12Engine::g_CommandManager.Create(D3D12Engine::g_Device);
 	D3D12Engine::InitializeCommonState();
 	D3D12Engine::InitializeRenderingBuffers(1280,528);
@@ -459,15 +460,15 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	}
 
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-	//pVideoContext.SetDynamicDescriptor(0, 0, SwapChainBufferColor[p_CurrentBuffer].GetSRV());
+
 	pVideoContext.SetRenderTarget(SwapChainBufferColor[p_CurrentBuffer].GetRTV());
-	float clearcolor[4] = { 255.0f, 255.0f, 255.0f, 255.0f };
+
 	pVideoContext.ClearColor(SwapChainBufferColor[p_CurrentBuffer]);
 
 	
 	
 	pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
-	ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1]);
+	ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar);
 	pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
 	/*draw the text*/
 	if (m_bShowStats)
@@ -1207,7 +1208,7 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
-	str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
+	//str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
 	wchar_t frametype = 'p';//(m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
 	str += fmt::format(
 		L"\nFrame rate    : {:7.3f}{},{:7.3f}",
@@ -1242,10 +1243,11 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 	str += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
 	
 	TextContext Text(Context);
+	Text.SetFont(L"Comic Sans MS", 24.0f);
 	Text.Begin();
 	Text.EnableDropShadow(true);
-	Text.SetTextSize(20.0f);
-	Text.SetColor(Color(255.0f, 1.0f, 1.0f,255.0f));
+	Text.SetTextSize(24.0f);
+	Text.SetColor(Color(255.0f, 1.0f, 1.0f,1.0f));
 	Text.DrawString(str.c_str());
 	
 	Text.End();
@@ -1398,6 +1400,63 @@ void CDX12VideoProcessor::UpdateStatsPresent()
 
 void CDX12VideoProcessor::UpdateStatsStatic()
 {
+	if (m_srcParams.cformat) {
+		m_strStatsHeader = fmt::format(L"MPC VR {}, Direct3D 12", _CRT_WIDE(VERSION_STR));
+
+		UpdateStatsInputFmt();
+
+		/*m_strStatsVProc.assign(L"\nVideoProcessor: ");
+		if (0) {
+			m_strStatsVProc += fmt::format(L"D3D11 VP, output to {}", DXGIFormatToString(m_D3D11OutputFmt));
+		}
+		else {
+			m_strStatsVProc.append(L"Shaders");
+			if (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422) {
+				m_strStatsVProc.append(L", Chroma scaling: ");
+				switch (m_iChromaScaling) {
+				case CHROMA_Nearest:
+					m_strStatsVProc.append(L"Nearest-neighbor");
+					break;
+				case CHROMA_Bilinear:
+					m_strStatsVProc.append(L"Bilinear");
+					break;
+				case CHROMA_CatmullRom:
+					m_strStatsVProc.append(L"Catmull-Rom");
+					break;
+				}
+			}
+		}*/
+		m_strStatsVProc += fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(m_InternalTexFmt));
+
+		if (SourceIsHDR()) {
+			m_strStatsHDR.assign(L"\nHDR processing: ");
+			if (m_bHdrPassthroughSupport && m_bHdrPassthrough) {
+				m_strStatsHDR.append(L"Passthrough");
+				if (m_lastHdr10.bValid) {
+					m_strStatsHDR += fmt::format(L", {} nits", m_lastHdr10.hdr10.MaxMasteringLuminance / 10000);
+				}
+			}
+			else if (m_bConvertToSdr) {
+				m_strStatsHDR.append(L"Convert to SDR");
+			}
+			else {
+				m_strStatsHDR.append(L"Not used");
+			}
+		}
+		else {
+			m_strStatsHDR.clear();
+		}
+
+		UpdateStatsPresent();
+	}
+	else {
+		m_strStatsHeader = L"Error";
+		m_strStatsVProc.clear();
+		m_strStatsInputFmt.clear();
+		//m_strStatsPostProc.clear();
+		m_strStatsHDR.clear();
+		m_strStatsPresent.clear();
+	}
 }
 
 STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues* pValues)
