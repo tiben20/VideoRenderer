@@ -72,11 +72,6 @@ public:
 
     Color GetClearColor(void) const { return m_ClearColor; }
 
-    // This will work for all texture sizes, but it's recommended for speed and quality
-    // that you use dimensions with powers of two (but not necessarily square.)  Pass
-    // 0 for ArrayCount to reserve space for mips at creation time.
-    void GenerateMipMaps(CommandContext& Context);
-
 protected:
 
     D3D12_RESOURCE_FLAGS CombineResourceFlags( void ) const

@@ -17,6 +17,7 @@
 #include "CommandContext.h"
 #include "EngineTuning.h"
 
+#include "d3d12util/CompiledShaders/ColorConvertNV12PS.h"
 #include "d3d12util/CompiledShaders/BilinearUpsamplePS.h"
 #include "d3d12util/CompiledShaders/BicubicHorizontalUpsamplePS.h"
 #include "d3d12util/CompiledShaders/BicubicVerticalUpsamplePS.h"
@@ -42,15 +43,14 @@
 #include "d3d12util/CompiledShaders/CompositeHDRPS.h"
 #include "d3d12util/CompiledShaders/BlendUIHDRPS.h"
 #include "d3d12util/CompiledShaders/ScaleAndCompositeHDRPS.h"
-#include "d3d12util/CompiledShaders/MagnifyPixelsPS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearCS.h"
+/*#include "d3d12util/CompiledShaders/GenerateMipsLinearCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsLinearOddCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsLinearOddXCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsLinearOddYCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsGammaCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddCS.h"
 #include "d3d12util/CompiledShaders/GenerateMipsGammaOddXCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"*/
 using namespace D3D12Engine;
 
 namespace D3D12Engine
@@ -60,6 +60,7 @@ namespace D3D12Engine
 
 namespace ImageScaling
 {
+  GraphicsPSO ColorConvertNV12PS(L"Image Scaling: Sharpen Upsample PSO");
   /*Scaling PSO*/
     GraphicsPSO SharpeningUpsamplePS(L"Image Scaling: Sharpen Upsample PSO");
     GraphicsPSO BicubicHorizontalUpsamplePS(L"Image Scaling: Bicubic Horizontal Upsample PSO");
@@ -113,7 +114,7 @@ namespace ImageScaling
         0.7071f / g_NativeWidth, 0.7071f / g_NativeHeight);
       Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
       Context.SetRenderTarget(renderTarget.GetRTV());
-      Context.SetViewportAndScissor(0, 0, g_DisplayWidth, g_DisplayHeight);
+      Context.SetViewportAndScissor(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
       Context.Draw(3);
     }
 
@@ -180,7 +181,9 @@ namespace ImageScaling
 
     void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1)
     {
-      //Context.SetPipelineState(BilinearUpsamplePS);
+      Context.SetRootSignature(s_PresentRS);
+      Context.SetPipelineState(ColorConvertNV12PS);
+      Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
       Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
       Context.TransitionResourceShutUp(source0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
       Context.TransitionResourceShutUp(source1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -424,6 +427,20 @@ void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
   DXGI_FORMAT SwapChainFormats[2] = { DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM };
   PresentHDRPS.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
   PresentHDRPS.Finalize();
+
+  ColorConvertNV12PS.SetRootSignature(s_PresentRS);
+  //BilinearUpsamplePS2.SetRasterizerState(D3D12Engine::RasterizerDefault);
+  ColorConvertNV12PS.SetRasterizerState(D3D12Engine::RasterizerDefault);
+  ColorConvertNV12PS.SetBlendState(D3D12Engine::BlendDisable);
+  //BilinearUpsamplePS2.SetBlendState(D3D12Engine::BlendDisable);
+  ColorConvertNV12PS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+  ColorConvertNV12PS.SetSampleMask(0xFFFFFFFF);
+  ColorConvertNV12PS.SetInputLayout(0, nullptr);
+  ColorConvertNV12PS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+  ColorConvertNV12PS.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+  ColorConvertNV12PS.SetPixelShader(g_pColorConvertNV12PS, sizeof(g_pColorConvertNV12PS));
+  ColorConvertNV12PS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
+  ColorConvertNV12PS.Finalize();
   /*Scaling*/
     BilinearUpsamplePS.SetRootSignature(s_PresentRS);
     BilinearUpsamplePS.SetRasterizerState( RasterizerTwoSided );

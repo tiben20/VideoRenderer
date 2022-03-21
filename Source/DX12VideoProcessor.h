@@ -31,7 +31,6 @@
 #include "DX9Device.h"
 #include "VideoProcessor.h"
 #include "d3d12util/PipelineState.h"
-#include "d3d12util/display.h"
 #include "d3d12util/ColorBuffer.h"
 #include "d3d12util/gpubuffer.h"
 #include "d3d12util/CommandContext.h"

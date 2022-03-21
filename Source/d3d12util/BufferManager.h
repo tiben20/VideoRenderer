@@ -81,7 +81,7 @@ namespace D3D12Engine
     extern TypedBuffer g_FXAAColorQueue;
 
     void InitializeRenderingBuffers(uint32_t NativeWidth, uint32_t NativeHeight );
-    void ResizeDisplayDependentBuffers(uint32_t NativeWidth, uint32_t NativeHeight);
+
     void DestroyRenderingBuffers();
 
 } // namespace D3D12Engine

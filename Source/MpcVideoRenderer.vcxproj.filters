@@ -46,9 +46,6 @@
     <Filter Include="Header Files\d3d12\d3d12helper\Utility">
       <UniqueIdentifier>{2c9ab5d2-efa7-48cb-8ca7-4557b0f734f4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\GoodShaders">
-      <UniqueIdentifier>{e8995242-517d-4edf-b204-3713fd95fc09}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -192,9 +189,6 @@
     <ClCompile Include="d3d12util\ImageScaling.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\Display.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\PipelineState.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClCompile>
@@ -222,10 +216,10 @@
     <ClCompile Include="d3d12util\FileUtility.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\EngineTuning.cpp">
+    <ClCompile Include="d3d12util\Color.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\Color.cpp">
+    <ClCompile Include="d3d12util\EngineTuning.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
@@ -374,9 +368,6 @@
     <ClInclude Include="d3d12util\math\Common.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\dds.h">
-      <Filter>Header Files\d3d12\d3d12helper</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\ColorBuffer.h">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClInclude>
@@ -422,9 +413,6 @@
     <ClInclude Include="d3d12util\ImageScaling.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\Display.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\GpuResource.h">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClInclude>
@@ -461,14 +449,14 @@
     <ClInclude Include="d3d12util\FileUtility.h">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\EngineTuning.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\Color.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\Hash.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\EngineTuning.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -486,28 +474,7 @@
     <None Include="d3d12util\math\Functions.inl">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </None>
-    <None Include="d3d12util\shaders\DoFCommon.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\DoFRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\FXAAPass1CS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\FXAAPass2CS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\FXAARootSignature.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\GenerateMipsCS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\MotionBlurRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\PerfGraphRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
     <None Include="d3d12util\shaders\PixelPacking.hlsli">
@@ -525,45 +492,32 @@
     <None Include="d3d12util\shaders\PixelPacking_Velocity.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\PostEffectsRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\SSAORS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\ToneMappingUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\AoBlurAndUpsampleCS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\AoRenderCS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
     <None Include="d3d12util\shaders\BicubicFilterFunctions.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\BitonicSortCommon.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\CommonRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="packages.config" />
-    <None Include="d3d12util\shaders\PresentRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
     </None>
     <None Include="d3d12util\shaders\TextRS.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
-    <None Include="d3d12util\shaders\LanczosFunctions.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\ShaderUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
+    <None Include="d3d12util\shaders\ToneMappingUtility.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
     <None Include="d3d12util\shaders\ColorSpaceUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </None>
+    <None Include="d3d12util\shaders\LanczosFunctions.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </None>
+    <None Include="d3d12util\shaders\PresentRS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </None>
+    <None Include="d3d12util\shaders\ShaderUtility.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -576,15 +530,6 @@
     <FxCompile Include="d3d12util\shaders\ScreenQuadCommonVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\SharpeningUpsampleGammaPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\SharpeningUpsamplePS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\SharpenTAACS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="d3d12util\shaders\TemporalBlendCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
@@ -592,57 +537,6 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\TextShadowPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ToneMap2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ToneMapCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ToneMapHDR2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ToneMapHDRCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\UpsampleAndBlurCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AdaptExposureCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoBlurUpsampleBlendOutCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoBlurUpsampleCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoBlurUpsamplePreMinBlendOutCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoBlurUpsamplePreMinCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoPrepareDepthBuffers1CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoPrepareDepthBuffers2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoRender1CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AoRender2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ApplyBloom2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ApplyBloomCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\AverageLumaCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\BicubicHorizontalUpsamplePS.hlsl">
@@ -669,214 +563,13 @@
     <FxCompile Include="d3d12util\shaders\BicubicVerticalUpsamplePS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\Bitonic32InnerSortCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\Bitonic32OuterSortCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\Bitonic32PreSortCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\Bitonic64InnerSortCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\Bitonic64OuterSortCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\Bitonic64PreSortCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BitonicIndirectArgsCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="d3d12util\shaders\BlendUIHDRPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BloomExtractAndDownsampleHdrCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BloomExtractAndDownsampleLdrCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BlurCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BoundNeighborhoodCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\CameraMotionBlurPrePassCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\CameraMotionBlurPrePassLinearZCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\CameraVelocityCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\CompositeHDRPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\CompositeSDRPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\CopyBackPostBufferCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DebugDrawHistogramCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DebugLuminanceHdr2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DebugLuminanceHdrCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DebugLuminanceLdr2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DebugLuminanceLdrCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DebugSSAOCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFCombine2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFCombineCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFCombineFast2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFCombineFastCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFDebugBlueCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFDebugGreenCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFDebugRedCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFMedianFilterCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFMedianFilterFixupCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFMedianFilterSepAlphaCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPass1CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPass2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPass2DebugCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPass2FastCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPass2FixupCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPreFilterCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPreFilterFastCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFPreFilterFixupCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFTilePassCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DoFTilePassFixupCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DownsampleBloomAllCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DownsampleBloomCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DownsampleDepthPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ExtractLumaCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass1_Luma_CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass1_Luma2_CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass1_RGB_CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass1_RGB2_CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2H2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2HCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2HDebug2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2HDebugCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2V2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2VCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2VDebug2CS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAPass2VDebugCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\FXAAResolveWorkQueueCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateHistogramCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaOddCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaOddXCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsGammaOddYCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearOddCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearOddXCS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearOddYCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\LanczosCS.hlsl">
@@ -894,56 +587,47 @@
     <FxCompile Include="d3d12util\shaders\LinearizeDepthCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\MagnifyPixelsPS.hlsl">
+    <FxCompile Include="d3d12util\shaders\ToneMapHDR2CS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\MotionBlurFinalPassCS.hlsl">
+    <FxCompile Include="d3d12util\shaders\ToneMapHDRCS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\MotionBlurFinalPassPS.hlsl">
+    <FxCompile Include="d3d12util\shaders\VideoQuadPresentVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\MotionBlurPrePassCS.hlsl">
+    <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PerfGraphBackgroundVS.hlsl">
+    <FxCompile Include="d3d12util\shaders\ColorConvertNV12PS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PerfGraphPS.hlsl">
+    <FxCompile Include="d3d12util\shaders\LanczosHorizontalPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PerfGraphVS.hlsl">
+    <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\ScreenQuadPresentVS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\SharpeningUpsamplePS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\PresentSDRPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ResolveTAACS.hlsl">
+    <FxCompile Include="d3d12util\shaders\BufferCopyPS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\VideoQuadPresentVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\LanczosHorizontalPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\LanczosVerticalPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ColorConvertNV12PS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BilinearUpsamplePS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
-    </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ScreenQuadPresentVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\GoodShaders</Filter>
+    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearCS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -42,36 +42,11 @@
 
 
 #include "d3d12util/BufferManager.h"
-#include "d3d12util/CompiledShaders/ScreenQuadCommonVS.h"
-#include "d3d12util/CompiledShaders/LanczosVerticalPS.h"
-#include "d3d12util/CompiledShaders/LanczosHorizontalPS.h"
-#include "d3d12util/CompiledShaders/BufferCopyPS.h"
-#include "d3d12util/CompiledShaders/VideoQuadPresentVS.h"
-#include "d3d12util/CompiledShaders/ScreenQuadPresentVS.h"
-#include "d3d12util/CompiledShaders/PresentSDRPS.h"
-#include "d3d12util/CompiledShaders/PresentHDRPS.h"
-#include "d3d12util/CompiledShaders/CompositeSDRPS.h"
-#include "d3d12util/CompiledShaders/ScaleAndCompositeSDRPS.h"
-#include "d3d12util/CompiledShaders/CompositeHDRPS.h"
-#include "d3d12util/CompiledShaders/BlendUIHDRPS.h"
-#include "d3d12util/CompiledShaders/ScaleAndCompositeHDRPS.h"
-#include "d3d12util/CompiledShaders/MagnifyPixelsPS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearOddCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearOddXCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsLinearOddYCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddXCS.h"
-#include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"
-#include "d3d12util/CompiledShaders/BilinearUpsamplePS.h"
-#include "d3d12util/CompiledShaders/ColorConvertNV12PS.h"
+
 #include "d3d12util/TextRenderer.h"
 #include "d3d12util/ImageScaling.h"
 #include "d3d12util/EsramAllocator.h"
 #include "d3d12util/math/Common.h"
-#define USE_PIX
-#include "pix3.h"
 
 
 #include "../external/minhook/include/MinHook.h"
@@ -389,19 +364,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 		blend.RenderTarget[0].LogicOpEnable = FALSE;
 		blend.RenderTarget[0].LogicOp = D3D12_LOGIC_OP_NOOP;
 		*/
-		BilinearUpsamplePS2.SetRootSignature(m_RootSig);
-		//BilinearUpsamplePS2.SetRasterizerState(D3D12Engine::RasterizerDefault);
-		BilinearUpsamplePS2.SetRasterizerState(rast);
-		BilinearUpsamplePS2.SetBlendState(blend);
-		//BilinearUpsamplePS2.SetBlendState(D3D12Engine::BlendDisable);
-		BilinearUpsamplePS2.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
-		BilinearUpsamplePS2.SetSampleMask(0xFFFFFFFF);
-		BilinearUpsamplePS2.SetInputLayout(0, nullptr);
-		BilinearUpsamplePS2.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-		BilinearUpsamplePS2.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
-		BilinearUpsamplePS2.SetPixelShader(g_pColorConvertNV12PS, sizeof(g_pColorConvertNV12PS));
-		BilinearUpsamplePS2.SetRenderTargetFormat(m_SwapChainFmt, DXGI_FORMAT_UNKNOWN);
-		BilinearUpsamplePS2.Finalize();
+
 		
 		//m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_VERTEX);
 		//m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
@@ -494,19 +457,6 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 		src = CD3DX12_TEXTURE_COPY_LOCATION(pD3D12Resource, i);
 		pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 	}
-	
-	//pVideoContext.CopyTextureRegion(m_pPlaneResource,0,0,0,)
-	//if (resetquad)
-		//UpdateQuad();
-
-	pVideoContext.SetRootSignature(m_RootSig);
-	pVideoContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-	//pVideoContext.TransitionResourceShutUp(m_pPlaneResource[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	//pVideoContext.TransitionResourceShutUp(m_pPlaneResource[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-	pVideoContext.SetPipelineState(BilinearUpsamplePS2);
 
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 	//pVideoContext.SetDynamicDescriptor(0, 0, SwapChainBufferColor[p_CurrentBuffer].GetSRV());
@@ -519,10 +469,12 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
 	ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1]);
 	pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
+	/*draw the text*/
 	if (m_bShowStats)
 		Display(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
 
-	ImageScaling::Upscale(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, ImageScaling::kBicubic, m_videoRect);
+	
+	ImageScaling::Upscale(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, (ImageScaling::eScalingFilter)m_iUpscaling, m_videoRect);
 
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 	/*Render the overlay*/
@@ -538,8 +490,6 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	m_pDXGISwapChain4->Present1(1, 0, &presentParams);
 	p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
 	return S_OK;
-
-
 }
 
 void CDX12VideoProcessor::UpdateQuad()
@@ -1271,7 +1221,15 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 	const int dstW = m_videoRect.Width();
 	const int dstH = m_videoRect.Height();
 	str += fmt::format(L"\nScaling       : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
-	str.append(L" D3D12");
+	//enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos, kFilterCount };
+	if (m_iUpscaling == 0)
+		str.append(L" Bilinear");
+	else if (m_iUpscaling == 1)
+		str.append(L" Sharpening");
+	else if (m_iUpscaling == 2)
+		str.append(L" Bicubic");
+	else if (m_iUpscaling == 3)
+		str.append(L" kLanczos");
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);
 	str += fmt::format(L"\nFrames: {:5}, skipped: {}/{}, failed: {}",
