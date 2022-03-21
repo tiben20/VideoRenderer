@@ -48,65 +48,16 @@ class CDX12VideoProcessor
 {
 private:
 	friend class CVideoRendererInputPin;
-	//CComPtr
-// Direct3D 12
-	CopyFrameDataFn m_pConvertFn = nullptr;
-	CopyFrameDataFn m_pCopyGpuFn = CopyFrameAsIs;
-	CComPtr<ID3D12Device1>        m_pDevice;
-	//DescriptorAllocator m_pSamplerPoint;
-	//DescriptorAllocator m_pSamplerLinear;
-	//DescriptorAllocator m_pSamplerDither;
-	CComPtr<ID3D12PipelineState>     m_pAlphaBlendState;
-	CComPtr<ID3D12PipelineState>     m_pAlphaBlendStateInv;
+	
 
-	CComPtr<ID3D12Resource>          m_pFullFrameVertexBuffer = nullptr;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC m_PSODesc;
-	CComPtr<ID3D12PipelineState> m_PSO;
-	CComPtr<ID3D12RootSignature> m_pRootSignature;
-	D3D12_SHADER_BYTECODE m_pVS_Simple = { 0 };
-	D3D12_SHADER_BYTECODE m_pPS_Simple = { 0 };
-	/*BLEND STATE*/
-	D3D12_BLEND_DESC BlendNoColorWrite = { 0 };		// XXX
-	D3D12_BLEND_DESC BlendDisable = { 0 };			// 1, 0
-	D3D12_BLEND_DESC BlendPreMultiplied = { 0 };		// 1, 1-SrcA
-	D3D12_BLEND_DESC BlendTraditional = { 0 };		// SrcA, 1-SrcA
-	D3D12_BLEND_DESC BlendAdditive = { 0 };			// 1, 1
-	D3D12_BLEND_DESC BlendTraditionalAdditive = { 0 };// SrcA, 1
-	D3D12_BLEND_DESC BlendTraditionalInverse = { 0 };// SrcA, 1
 
-	CComPtr<ID3D12Debug>       m_pD3DDebug;
-	CComPtr<ID3D12Debug1> m_pD3DDebug1;
-
-	/*from d3d12 hello*/
-	static const UINT FrameCount = 2;
-	struct Vertex
-	{
-		XMFLOAT3 position;
-		XMFLOAT4 color;
-	};
-
-	CD3DX12_VIEWPORT m_viewport;
-	CD3DX12_RECT m_scissorRect;
+	CComPtr<ID3D12Debug>    m_pD3DDebug;
+	CComPtr<ID3D12Debug1>   m_pD3DDebug1;
 
 	void GetHardwareAdapter(
 		IDXGIFactory1* pFactory,
 		IDXGIAdapter1** ppAdapter,
 		bool requestHighPerformanceAdapter = false);
-
-	float m_aspectRatio;
-
-	// Adapter info.
-	bool m_useWarpDevice;
-
-	UINT m_rtvDescriptorSize;
-
-	// Synchronization objects.
-	UINT m_frameIndex;
-	HANDLE m_fenceEvent;
-	CComPtr<ID3D12Fence> m_fence;
-	UINT64 m_fenceValue;
-	/*d3d hello*/
-	//DescriptorAllocator m_pPostScaleConstants;
 
 //Dxgi device and swapchain
 	CComPtr<IDXGIAdapter> m_pDXGIAdapter;
@@ -188,17 +139,8 @@ private:
 		} texture;
 	} VideoQuadVertex;
 
-	struct VideoVertexBuffer {
-		BYTE* data;
-		uint8_t size;
-		uint8_t allocated_size;
-		uint8_t depthsize;
-		uint8_t stride;
-	};
-	//VideoVertexBuffer m_pVideoBuffer;
-	//GraphicsContext m_context;
-	//ColorBuffer m_pVideoBuffer;
-	//GpuBuffer m_pGpuBuffer;
+
+
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX12VideoProcessor() override;
@@ -234,7 +176,6 @@ private:
 		return m_bitsPerChannelSupport >= 10 && (m_InternalTexFmt == DXGI_FORMAT_R10G10B10A2_UNORM || m_InternalTexFmt == DXGI_FORMAT_R16G16B16A16_FLOAT);
 	}
 	//Variables
-	bool m_bDecoderDevice = false;
 	bool m_bIsFullscreen = false;
 
 	bool m_bHdrPassthroughSupport = false;
@@ -256,9 +197,6 @@ private:
 	// Input parameters
 	DXGI_FORMAT m_srcDXGIFormat = DXGI_FORMAT_UNKNOWN;
 
-	// D3D11 VP texture format
-	DXGI_FORMAT m_D3D11OutputFmt = DXGI_FORMAT_UNKNOWN;
-
 	// intermediate texture format
 	DXGI_FORMAT m_InternalTexFmt = DXGI_FORMAT_B8G8R8A8_UNORM;
 
@@ -266,21 +204,19 @@ private:
 	DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
 	UINT32 m_bitsPerChannelSupport = 8;
 
-	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_XRGB(255, 255, 255);
-
 	bool m_bCallbackDeviceIsSet = false;
 
 	void SetCallbackDevice(const bool bChangeDevice = false);
 //CVideoProcessor
 	void SetGraphSize() override;
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
+
 	void SetShaderConvertColorParams();
-	
 	CONSTANT_BUFFER_VAR m_pBufferVar;
 
-		bool m_PSConvColorData = false;
+	bool m_PSConvColorData = false;
 	HRESULT ProcessSample(IMediaSample* pSample) override;
-	
+	/*Draw the stats*/
 	void Display(GraphicsContext& Context, float x, float y, float w, float h);
 
 	HRESULT FillBlack() override;
@@ -298,11 +234,9 @@ private:
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
 	
-	
-
 public:
 	HRESULT SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice);
-	HRESULT InitSwapChain();
+	
 
 	// IMFVideoProcessor
 	STDMETHODIMP SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues* pValues) override;

@@ -189,7 +189,16 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	D3D12Engine::DestroyCommonState();
 	D3D12Engine::DestroyRenderingBuffers();
 	TextRenderer::Shutdown();
+	ReleaseSwapChain();
+	g_Device->Release();
+	g_hWnd = nullptr;
 	
+	m_pDXGIAdapter.Release();
+	m_pDXGIFactory2.Release();
+	
+	
+	
+	m_pDXGIFactory1.Release();
 	
 }
 
@@ -490,6 +499,10 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 	m_pDXGISwapChain4->Present1(1, 0, &presentParams);
 	p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
+	if (m_pFilter->m_filterState == State_Running) {
+		m_pFilter->StreamTime(rtClock);
+	}
+
 	return S_OK;
 }
 
@@ -1050,6 +1063,8 @@ void CDX12VideoProcessor::SetRotation(int value)
 
 void CDX12VideoProcessor::Flush()
 {
+	m_rtStart = 0;
+	D3D12Engine::g_CommandManager.IdleGPU();
 	return;
 }
 
@@ -1087,6 +1102,18 @@ void CDX12VideoProcessor::ReleaseDevice()
 
 void CDX12VideoProcessor::ReleaseSwapChain()
 {
+	
+	for (uint32_t i = 0; i < 3; ++i)
+	{
+		SwapChainBufferColor[i].Destroy();
+	}
+	if (m_pDXGISwapChain1) {
+		m_pDXGISwapChain1->SetFullscreenState(FALSE, nullptr);
+	}
+	m_pDXGIOutput.Release();
+	m_pDXGISwapChain4.Release();
+	m_pDXGISwapChain1.Release();
+
 }
 
 bool CDX12VideoProcessor::HandleHDRToggle()
@@ -1261,13 +1288,6 @@ HRESULT CDX12VideoProcessor::Render(int field)
 
 HRESULT CDX12VideoProcessor::FillBlack()
 {
-	//paint the background black
-	/*GraphicsContext& gfxContext = GraphicsContext::Begin(L"Scene Render");
-	gfxContext.TransitionResource(D3D12Engine::g_SceneColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-	
-	gfxContext.ClearColor(D3D12Engine::g_SceneColorBuffer);
-
-	gfxContext.Finish();*/
     return S_OK;
 }
 
