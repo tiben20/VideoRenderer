@@ -20,7 +20,7 @@
 #include "ReadbackBuffer.h"
 #include <fstream>
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 DXGI_FORMAT PixelBuffer::GetBaseFormat( DXGI_FORMAT defaultFormat )
 {

@@ -22,7 +22,7 @@
 
 using namespace std;
 using namespace Math;
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 namespace EngineTuning
 {

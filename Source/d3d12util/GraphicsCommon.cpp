@@ -33,7 +33,7 @@
 #include "d3d12util/CompiledShaders/ScreenQuadCommonVS.h"
 #include "d3d12util/CompiledShaders/DownsampleDepthPS.h"
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     SamplerDesc SamplerLinearWrapDesc;
     SamplerDesc SamplerAnisoWrapDesc;
@@ -112,7 +112,7 @@ namespace D3D12Public
     void Shutdown(void);
 }*/
 
-void D3D12Public::InitializeCommonState(void)
+void D3D12Engine::InitializeCommonState(void)
 {
 
     SamplerLinearWrapDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -298,7 +298,7 @@ void D3D12Public::InitializeCommonState(void)
     g_DownsampleDepthPSO.Finalize();
 }
 
-void D3D12Public::DestroyCommonState(void)
+void D3D12Engine::DestroyCommonState(void)
 {
     for (uint32_t i = 0; i < kNumDefaultTextures; ++i)
         DefaultTextures[i].Destroy();

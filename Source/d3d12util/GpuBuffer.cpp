@@ -19,7 +19,7 @@
 #include "BufferManager.h"
 #include "UploadBuffer.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 void GpuBuffer::Create( const std::wstring& name, uint32_t NumElements, uint32_t ElementSize, const void* initialData )
 {

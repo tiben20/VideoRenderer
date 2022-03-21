@@ -167,7 +167,7 @@ void RootSignature::Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAG
         }
 
         
-        EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&m_Signature) ));
+        EXECUTE_ASSERT(S_OK == D3D12Engine::g_Device->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&m_Signature) ));
 
         m_Signature->SetName(name.c_str());
 

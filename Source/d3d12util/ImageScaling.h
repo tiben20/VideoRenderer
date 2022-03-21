@@ -19,9 +19,11 @@ enum DXGI_FORMAT;
 namespace ImageScaling
 {
     void Initialize(DXGI_FORMAT DestFormat);
+    void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1);
     void SetPipelineBilinear(GraphicsContext& Context);
     enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos, kFilterCount };
-
-    void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech = kLanczos);
+    void PreparePresentSDR(GraphicsContext& Context,ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
+    void PreparePresentHDR(GraphicsContext& Context,ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
+    void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech = kLanczos, CRect destRect = CRect());
     
 }

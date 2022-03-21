@@ -17,7 +17,7 @@
 #include "CommandContext.h"
 #include "EsramAllocator.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, uint32_t ArraySize, uint32_t NumMips)
 {
@@ -72,8 +72,8 @@ void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, u
 
     if (m_SRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        m_RTVHandle = D3D12Public::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        m_SRVHandle = D3D12Public::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        m_RTVHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        m_SRVHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
     ID3D12Resource* Resource = m_pResource;
@@ -91,7 +91,7 @@ void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, u
     for (uint32_t i = 0; i < NumMips; ++i)
     {
         if (m_UAVHandle[i].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            m_UAVHandle[i] = D3D12Public::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_UAVHandle[i] = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         Device->CreateUnorderedAccessView(Resource, nullptr, &UAVDesc, m_UAVHandle[i]);
 
@@ -101,13 +101,13 @@ void ColorBuffer::CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format, u
 
 void ColorBuffer::CreateFromSwapChain( const std::wstring& Name, ID3D12Resource* BaseResource )
 {
-    AssociateWithResource(D3D12Public::g_Device, Name, BaseResource, D3D12_RESOURCE_STATE_PRESENT);
+    AssociateWithResource(D3D12Engine::g_Device, Name, BaseResource, D3D12_RESOURCE_STATE_PRESENT);
 
-    //m_UAVHandle[0] = D3D12Public::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    //D3D12Public::g_Device->CreateUnorderedAccessView(m_pResource.Get(), nullptr, nullptr, m_UAVHandle[0]);
+    //m_UAVHandle[0] = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    //D3D12Engine::g_Device->CreateUnorderedAccessView(m_pResource.Get(), nullptr, nullptr, m_UAVHandle[0]);
 
-    m_RTVHandle = D3D12Public::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    D3D12Public::g_Device->CreateRenderTargetView(m_pResource, nullptr, m_RTVHandle);
+    m_RTVHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    D3D12Engine::g_Device->CreateRenderTargetView(m_pResource, nullptr, m_RTVHandle);
 }
 
 void ColorBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t NumMips,
@@ -127,8 +127,8 @@ void ColorBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Heig
     ClearValue.Color[2] = m_ClearColor.B();
     ClearValue.Color[3] = m_ClearColor.A();
 
-    CreateTextureResource(D3D12Public::g_Device, Name, ResourceDesc, ClearValue, VidMem);
-    CreateDerivedViews(D3D12Public::g_Device, Format, 1, NumMips);
+    CreateTextureResource(D3D12Engine::g_Device, Name, ResourceDesc, ClearValue, VidMem);
+    CreateDerivedViews(D3D12Engine::g_Device, Format, 1, NumMips);
 }
 
 void ColorBuffer::Create(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t NumMips,
@@ -150,8 +150,8 @@ void ColorBuffer::CreateArray( const std::wstring& Name, uint32_t Width, uint32_
     ClearValue.Color[2] = m_ClearColor.B();
     ClearValue.Color[3] = m_ClearColor.A();
 
-    CreateTextureResource(D3D12Public::g_Device, Name, ResourceDesc, ClearValue, VidMem);
-    CreateDerivedViews(D3D12Public::g_Device, Format, ArrayCount, 1);
+    CreateTextureResource(D3D12Engine::g_Device, Name, ResourceDesc, ClearValue, VidMem);
+    CreateDerivedViews(D3D12Engine::g_Device, Format, ArrayCount, 1);
 }
 
 void ColorBuffer::CreateArray( const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,
@@ -167,7 +167,7 @@ void ColorBuffer::GenerateMipMaps(CommandContext& BaseContext)
 
     ComputeContext& Context = BaseContext.GetComputeContext();
 
-    Context.SetRootSignature(D3D12Public::g_CommonRS);
+    Context.SetRootSignature(D3D12Engine::g_CommonRS);
 
     Context.TransitionResource(*this, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     Context.SetDynamicDescriptor(1, 0, m_SRVHandle);
@@ -183,9 +183,9 @@ void ColorBuffer::GenerateMipMaps(CommandContext& BaseContext)
         // the source width or height is odd.
         uint32_t NonPowerOfTwo = (SrcWidth & 1) | (SrcHeight & 1) << 1;
         if (m_Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
-            Context.SetPipelineState(D3D12Public::g_GenerateMipsGammaPSO[NonPowerOfTwo]);
+            Context.SetPipelineState(D3D12Engine::g_GenerateMipsGammaPSO[NonPowerOfTwo]);
         else
-            Context.SetPipelineState(D3D12Public::g_GenerateMipsLinearPSO[NonPowerOfTwo]);
+            Context.SetPipelineState(D3D12Engine::g_GenerateMipsLinearPSO[NonPowerOfTwo]);
 
         // We can downsample up to four times, but if the ratio between levels is not
         // exactly 2:1, we have to shift our blend weights, which gets complicated or

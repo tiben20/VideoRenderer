@@ -19,7 +19,7 @@
 #include "GpuBuffer.h"
 //#include "DX12Helper.h"
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     extern DepthBuffer g_SceneDepthBuffer;  // D32_FLOAT_S8_UINT
     extern ColorBuffer g_SceneColorBuffer;  // R11G11B10_FLOAT
@@ -84,4 +84,4 @@ namespace D3D12Public
     void ResizeDisplayDependentBuffers(uint32_t NativeWidth, uint32_t NativeHeight);
     void DestroyRenderingBuffers();
 
-} // namespace D3D12Public
+} // namespace D3D12Engine

@@ -21,7 +21,7 @@ class RootSignature;
 class ComputePSO;
 class GraphicsPSO;
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     void InitializeCommonState(void);
     void DestroyCommonState(void);

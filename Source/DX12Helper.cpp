@@ -27,7 +27,7 @@
 #include "DX12Helper.h"
 #include <string>
 #include "d3d12util/CommandListManager.h"
-namespace D3D12Public
+namespace D3D12Engine
 {
 	ID3D12Device* g_Device = nullptr;
 	CommandListManager g_CommandManager;

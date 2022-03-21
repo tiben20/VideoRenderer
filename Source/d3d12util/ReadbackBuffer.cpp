@@ -15,7 +15,7 @@
 #include "ReadbackBuffer.h"
 #include "DX12Helper.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 void ReadbackBuffer::Create( const std::wstring& name, uint32_t NumElements, uint32_t ElementSize )
 {

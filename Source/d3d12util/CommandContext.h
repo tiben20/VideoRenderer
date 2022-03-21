@@ -719,7 +719,7 @@ inline void GraphicsContext::ExecuteIndirect(CommandSignature& CommandSig,
 
 inline void GraphicsContext::DrawIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset)
 {
-    ExecuteIndirect(D3D12Public::DrawIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
+    ExecuteIndirect(D3D12Engine::DrawIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
 }
 
 inline void ComputeContext::ExecuteIndirect(CommandSignature& CommandSig,
@@ -736,7 +736,7 @@ inline void ComputeContext::ExecuteIndirect(CommandSignature& CommandSig,
 
 inline void ComputeContext::DispatchIndirect( GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset )
 {
-    ExecuteIndirect(D3D12Public::DispatchIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
+    ExecuteIndirect(D3D12Engine::DispatchIndirectCommandSignature, ArgumentBuffer, ArgumentBufferOffset);
 }
 
 inline void CommandContext::CopyBuffer(GpuResource& Dest, ID3D12Resource* Src, D3D12_RESOURCE_STATES OldState)

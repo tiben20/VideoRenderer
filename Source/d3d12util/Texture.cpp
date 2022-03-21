@@ -21,7 +21,7 @@
 #include <thread>
 
 using namespace std;
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 //--------------------------------------------------------------------------------------
 // Return the BPP for a particular format
@@ -75,6 +75,6 @@ void Texture::Create2D( size_t RowPitchBytes, size_t Width, size_t Height, DXGI_
     CommandContext::InitializeTexture(*this, 1, &texResource);
 
     if (m_hCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        m_hCpuDescriptorHandle = D3D12Public::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        m_hCpuDescriptorHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     g_Device->CreateShaderResourceView(m_pResource, nullptr, m_hCpuDescriptorHandle);
 }

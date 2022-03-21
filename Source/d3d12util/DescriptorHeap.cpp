@@ -17,7 +17,7 @@
 //#include "DX12Helper.h"
 #include "CommandListManager.h"
 #include "DX12Helper.h"
-//using namespace D3D12Public;
+//using namespace D3D12Engine;
 
 //
 // DescriptorAllocator implementation
@@ -41,7 +41,7 @@ ID3D12DescriptorHeap* DescriptorAllocator::RequestNewHeap(D3D12_DESCRIPTOR_HEAP_
     Desc.NodeMask = 1;
 
     CComPtr<ID3D12DescriptorHeap> pHeap;
-    EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
+    EXECUTE_ASSERT(S_OK == D3D12Engine::g_Device->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
     sm_DescriptorHeapPool.emplace_back(pHeap);
     return pHeap;
 }
@@ -55,7 +55,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorAllocator::Allocate( uint32_t Count )
         m_RemainingFreeHandles = sm_NumDescriptorsPerHeap;
 
         if (m_DescriptorSize == 0)
-            m_DescriptorSize = D3D12Public::g_Device->GetDescriptorHandleIncrementSize(m_Type);
+            m_DescriptorSize = D3D12Engine::g_Device->GetDescriptorHandleIncrementSize(m_Type);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE ret = m_CurrentHandle;
@@ -75,7 +75,7 @@ void DescriptorHeap::Create(const std::wstring& Name, D3D12_DESCRIPTOR_HEAP_TYPE
     m_HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     m_HeapDesc.NodeMask = 1;
 
-    EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(&m_Heap)));
+    EXECUTE_ASSERT(S_OK == D3D12Engine::g_Device->CreateDescriptorHeap(&m_HeapDesc, IID_PPV_ARGS(&m_Heap)));
 
 #ifdef RELEASE
     (void)Name;
@@ -83,7 +83,7 @@ void DescriptorHeap::Create(const std::wstring& Name, D3D12_DESCRIPTOR_HEAP_TYPE
     m_Heap->SetName(Name.c_str());
 #endif
 
-    m_DescriptorSize = D3D12Public::g_Device->GetDescriptorHandleIncrementSize(m_HeapDesc.Type);
+    m_DescriptorSize = D3D12Engine::g_Device->GetDescriptorHandleIncrementSize(m_HeapDesc.Type);
     m_NumFreeDescriptors = m_HeapDesc.NumDescriptors;
     m_FirstHandle = DescriptorHandle(
         m_Heap->GetCPUDescriptorHandleForHeapStart(),

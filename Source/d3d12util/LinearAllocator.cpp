@@ -36,7 +36,7 @@ LinearAllocationPage* LinearAllocatorPageManager::RequestPage()
 {
     lock_guard<mutex> LockGuard(m_Mutex);
 
-    while (!m_RetiredPages.empty() && D3D12Public::g_CommandManager.IsFenceComplete(m_RetiredPages.front().first))
+    while (!m_RetiredPages.empty() && D3D12Engine::g_CommandManager.IsFenceComplete(m_RetiredPages.front().first))
     {
         m_AvailablePages.push(m_RetiredPages.front().second);
         m_RetiredPages.pop();
@@ -69,7 +69,7 @@ void LinearAllocatorPageManager::FreeLargePages( uint64_t FenceValue, const vect
 {
     lock_guard<mutex> LockGuard(m_Mutex);
 
-    while (!m_DeletionQueue.empty() && D3D12Public::g_CommandManager.IsFenceComplete(m_DeletionQueue.front().first))
+    while (!m_DeletionQueue.empty() && D3D12Engine::g_CommandManager.IsFenceComplete(m_DeletionQueue.front().first))
     {
         delete m_DeletionQueue.front().second;
         m_DeletionQueue.pop();
@@ -119,7 +119,7 @@ LinearAllocationPage* LinearAllocatorPageManager::CreateNewPage( size_t PageSize
     }
 
     ID3D12Resource* pBuffer;
-    EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
+    EXECUTE_ASSERT(S_OK == D3D12Engine::g_Device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
         &ResourceDesc, DefaultUsage, nullptr, MY_IID_PPV_ARGS(&pBuffer)) );
 
     pBuffer->SetName(L"LinearAllocator Page");

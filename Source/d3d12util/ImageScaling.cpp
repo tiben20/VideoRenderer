@@ -16,7 +16,6 @@
 #include "BufferManager.h"
 #include "CommandContext.h"
 #include "EngineTuning.h"
-#include "d3d12util/CompiledShaders/ScreenQuadPresentVS.h"
 
 #include "d3d12util/CompiledShaders/BilinearUpsamplePS.h"
 #include "d3d12util/CompiledShaders/BicubicHorizontalUpsamplePS.h"
@@ -34,15 +33,34 @@
 #include "d3d12util/CompiledShaders/LanczosFast24CS.h"
 #include "d3d12util/CompiledShaders/LanczosFast32CS.h"
 
-using namespace D3D12Public;
+#include "d3d12util/CompiledShaders/ScreenQuadPresentVS.h"
+#include "d3d12util/CompiledShaders/BufferCopyPS.h"
+#include "d3d12util/CompiledShaders/PresentSDRPS.h"
+#include "d3d12util/CompiledShaders/PresentHDRPS.h"
+#include "d3d12util/CompiledShaders/CompositeSDRPS.h"
+#include "d3d12util/CompiledShaders/ScaleAndCompositeSDRPS.h"
+#include "d3d12util/CompiledShaders/CompositeHDRPS.h"
+#include "d3d12util/CompiledShaders/BlendUIHDRPS.h"
+#include "d3d12util/CompiledShaders/ScaleAndCompositeHDRPS.h"
+#include "d3d12util/CompiledShaders/MagnifyPixelsPS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsLinearCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsLinearOddCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsLinearOddXCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsLinearOddYCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsGammaCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsGammaOddCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsGammaOddXCS.h"
+#include "d3d12util/CompiledShaders/GenerateMipsGammaOddYCS.h"
+using namespace D3D12Engine;
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     extern RootSignature s_PresentRS;
 }
 
 namespace ImageScaling
 {
+  /*Scaling PSO*/
     GraphicsPSO SharpeningUpsamplePS(L"Image Scaling: Sharpen Upsample PSO");
     GraphicsPSO BicubicHorizontalUpsamplePS(L"Image Scaling: Bicubic Horizontal Upsample PSO");
     GraphicsPSO BicubicVerticalUpsamplePS(L"Image Scaling: Bicubic Vertical Upsample PSO");
@@ -59,19 +77,132 @@ namespace ImageScaling
     NumVar SharpeningRotation("Graphics/Display/Image Scaling/Sharpness Sample Rotation", 45.0f, 0.0f, 90.0f, 15.0f);
     NumVar SharpeningStrength("Graphics/Display/Image Scaling/Sharpness Strength", 0.10f, 0.0f, 1.0f, 0.01f);
     BoolVar ForcePixelShader("Graphics/Display/Image Scaling/Prefer Pixel Shader", false);
+    /*Rendering PSO*/
+    RootSignature s_PresentRS;
+    GraphicsPSO s_BlendUIPSO(L"Core: BlendUI");
+    GraphicsPSO s_BlendUIHDRPSO(L"Core: BlendUIHDR");
+    GraphicsPSO PresentSDRPS(L"Core: PresentSDR");
+    GraphicsPSO PresentHDRPS(L"Core: PresentHDR");
+    GraphicsPSO CompositeSDRPS(L"Core: CompositeSDR");
+    GraphicsPSO ScaleAndCompositeSDRPS(L"Core: ScaleAndCompositeSDR");
+    GraphicsPSO CompositeHDRPS(L"Core: CompositeHDR");
+    GraphicsPSO ScaleAndCompositeHDRPS(L"Core: ScaleAndCompositeHDR");
 
-    void BilinearScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source)
+    void ImageScaling::PreparePresentHDR(GraphicsContext& Context,ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect)
+    {
+
+      bool NeedsScaling = true;// g_NativeWidth != g_DisplayWidth || g_NativeHeight != g_DisplayHeight;
+
+      Context.SetRootSignature(s_PresentRS);
+      Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+      Context.TransitionResource(videoSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+      Context.SetDynamicDescriptor(0, 0, videoSource.GetSRV());
+
+      ColorBuffer& Dest = renderTarget;
+
+      // On Windows, prefer scaling and compositing in one step via pixel shader
+      Context.SetRootSignature(s_PresentRS);
+      Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        Context.SetDynamicDescriptor(0, 1, g_OverlayBuffer.GetSRV());
+        Context.SetPipelineState(NeedsScaling ? ScaleAndCompositeHDRPS : CompositeHDRPS);
+        //NumVar g_HDRPaperWhite("Graphics/Display/Paper White (nits)", 200.0f, 100.0f, 500.0f, 50.0f);
+        //NumVar g_MaxDisplayLuminance("Graphics/Display/Peak Brightness (nits)", 1000.0f, 500.0f, 10000.0f, 100.0f);
+        uint32_t g_NativeWidth = 800;
+        uint32_t g_NativeHeight = 600;
+      Context.SetConstants(1, (float)/*g_HDRPaperWhite*/50.0f / 10000.0f, (float)/*g_MaxDisplayLuminance*/500.0f,
+        0.7071f / g_NativeWidth, 0.7071f / g_NativeHeight);
+      Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
+      Context.SetRenderTarget(renderTarget.GetRTV());
+      Context.SetViewportAndScissor(0, 0, g_DisplayWidth, g_DisplayHeight);
+      Context.Draw(3);
+    }
+
+    void ImageScaling::PreparePresentSDR(GraphicsContext& Context,ColorBuffer& renderTarget, ColorBuffer& videoSource,CRect renderrect)
+    {
+
+      Context.SetRootSignature(s_PresentRS);
+      Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+      // We're going to be reading these buffers to write to the swap chain buffer(s)
+      Context.TransitionResource(videoSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+      Context.SetDynamicDescriptor(0, 0, videoSource.GetSRV());
+
+      bool NeedsScaling = false;// g_NativeWidth != g_DisplayWidth || g_NativeHeight != g_DisplayHeight;
+
+      // On Windows, prefer scaling and compositing in one step via pixel shader
+      if (!NeedsScaling)
+      {
+        Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        Context.SetDynamicDescriptor(0, 1, g_OverlayBuffer.GetSRV());
+        Context.SetPipelineState(ScaleAndCompositeSDRPS);
+        Context.SetConstants(1, 0.7071f / renderTarget.GetWidth(), 0.7071f / renderTarget.GetHeight());
+        Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        Context.SetRenderTarget(renderTarget.GetRTV());
+        Context.SetViewportAndScissor(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
+        Context.Draw(3);
+      }
+      else
+      {
+        ColorBuffer& Dest = renderTarget;
+
+        // Scale or Copy
+        if (NeedsScaling)
+        {
+          //ImageScaling::Upscale(Context, Dest, videoSource, eScalingFilter((int)UpsampleFilter));
+        }
+        else
+        {
+          Context.SetPipelineState(PresentSDRPS);
+          Context.TransitionResource(Dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+          Context.SetRenderTarget(Dest.GetRTV());
+          Context.SetViewportAndScissor(0, 0, 1024, 768);
+          Context.Draw(3);
+        }
+
+        // Magnify without stretching
+        /*if (DebugZoom != kDebugZoomOff)
+        {
+          Context.SetPipelineState(MagnifyPixelsPS);
+          Context.TransitionResource(g_PreDisplayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+          Context.TransitionResource(g_DisplayPlane[g_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
+          Context.SetRenderTarget(g_DisplayPlane[g_CurrentBuffer].GetRTV());
+          Context.SetDynamicDescriptor(0, 0, g_PreDisplayBuffer.GetSRV());
+          Context.SetViewportAndScissor(0, 0, g_DisplayWidth, g_DisplayHeight);
+          Context.SetConstants(1, 1.0f / ((int)DebugZoom + 1.0f));
+          Context.Draw(3);
+        }*/
+
+        //CompositeOverlays(Context);
+      }
+
+
+    }
+
+    void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1)
+    {
+      //Context.SetPipelineState(BilinearUpsamplePS);
+      Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+      Context.TransitionResourceShutUp(source0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+      Context.TransitionResourceShutUp(source1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+      Context.SetRenderTarget(dest.GetRTV());
+      Context.SetViewport(0, 0, dest.GetWidth(), dest.GetHeight());
+      Context.SetDynamicDescriptor(0, 0, source0.GetSRV());
+      Context.SetDynamicDescriptor(0, 1, source1.GetSRV());
+      Context.Draw(3);
+    }
+
+    void BilinearScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect destRect)
     {
         Context.SetPipelineState(BilinearUpsamplePS);
         Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
         Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         Context.SetRenderTarget(dest.GetRTV());
-        Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+        Context.SetViewportAndScissor(0, 0, destRect.Width(), destRect.Height());
         Context.SetDynamicDescriptor(0, 0, source.GetSRV());
         Context.Draw(3);
     }
 
-    void BicubicScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source)
+    void BicubicScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect destRect)
     {
         // On Windows it is illegal to have a UAV of a swap chain buffer. In that case we
         // must fall back to the slower, two-pass pixel shader.
@@ -83,28 +214,28 @@ namespace ImageScaling
             ComputeContext& cmpCtx = Context.GetComputeContext();
             cmpCtx.SetRootSignature(s_PresentRS);
 
-            const float scaleX = (float)source.GetWidth() / (float)dest.GetWidth();
-            const float scaleY = (float)source.GetHeight() / (float)dest.GetHeight();
+            const float scaleX = (float)source.GetWidth() / (float)destRect.Width();
+            const float scaleY = (float)source.GetHeight() / (float)destRect.Height();
             cmpCtx.SetConstants(1, scaleX, scaleY, (float)BicubicUpsampleWeight);
 
             uint32_t tileWidth, tileHeight, shaderMode;
 
-            if (source.GetWidth() * 16 <= dest.GetWidth() * 13 &&
-                source.GetHeight() * 16 <= dest.GetHeight() * 13)
+            if (source.GetWidth() * 16 <= destRect.Width() * 13 &&
+                source.GetHeight() * 16 <= destRect.Height() * 13)
             {
                 tileWidth = 16;
                 tileHeight = 16;
                 shaderMode = kFast16CS;
             }
-            else if (source.GetWidth() * 24 <= dest.GetWidth() * 21 &&
-                source.GetHeight() * 24 <= dest.GetHeight() * 21)
+            else if (source.GetWidth() * 24 <= destRect.Width() * 21 &&
+                source.GetHeight() * 24 <= destRect.Height() * 21)
             {
                 tileWidth = 32; // For some reason, occupancy drops with 24x24, reducing perf
                 tileHeight = 24;
                 shaderMode = kFast24CS;
             }
-            else if (source.GetWidth() * 32 <= dest.GetWidth() * 29 &&
-                source.GetHeight() * 32 <= dest.GetHeight() * 29)
+            else if (source.GetWidth() * 32 <= destRect.Width() * 29 &&
+                source.GetHeight() * 32 <= destRect.Height() * 29)
             {
                 tileWidth = 32;
                 tileHeight = 32;
@@ -130,7 +261,7 @@ namespace ImageScaling
         {
             Context.TransitionResource(g_HorizontalBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
             Context.SetRenderTarget(g_HorizontalBuffer.GetRTV());
-            Context.SetViewportAndScissor(0, 0, dest.GetWidth(), source.GetHeight());
+            Context.SetViewportAndScissor(0, 0, destRect.Width(), source.GetHeight());
             Context.SetPipelineState(BicubicHorizontalUpsamplePS);
             Context.SetConstants(1, source.GetWidth(), source.GetHeight(), (float)BicubicUpsampleWeight);
             Context.Draw(3);
@@ -138,20 +269,20 @@ namespace ImageScaling
             Context.TransitionResource(g_HorizontalBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
             Context.SetRenderTarget(dest.GetRTV());
-            Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+            Context.SetViewportAndScissor(0, 0, destRect.Width(), destRect.Height());
             Context.SetPipelineState(BicubicVerticalUpsamplePS);
-            Context.SetConstants(1, dest.GetWidth(), source.GetHeight(), (float)BicubicUpsampleWeight);
+            Context.SetConstants(1, destRect.Width(), source.GetHeight(), (float)BicubicUpsampleWeight);
             Context.SetDynamicDescriptor(0, 0, g_HorizontalBuffer.GetSRV());
             Context.Draw(3);
         }
     }
 
-    void BilinearSharpeningScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source)
+    void BilinearSharpeningScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect destRect)
     {
         Context.SetPipelineState(SharpeningUpsamplePS);
         Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
         Context.SetRenderTarget(dest.GetRTV());
-        Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+        Context.SetViewportAndScissor(0, 0, destRect.Width(), destRect.Height());
         float TexelWidth = 1.0f / source.GetWidth();
         float TexelHeight = 1.0f / source.GetHeight();
         float X = Math::Cos((float)SharpeningRotation / 180.0f * 3.14159f) * (float)SharpeningSpread;
@@ -163,7 +294,7 @@ namespace ImageScaling
         Context.Draw(3);
     }
 
-    void LanczosScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source)
+    void LanczosScale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect destRect)
     {
         // Constants
         const float srcWidth = (float)source.GetWidth();
@@ -179,28 +310,28 @@ namespace ImageScaling
             ComputeContext& cmpCtx = Context.GetComputeContext();
             cmpCtx.SetRootSignature(s_PresentRS);
 
-            const float scaleX = srcWidth / (float)dest.GetWidth();
-            const float scaleY = srcHeight / (float)dest.GetHeight();
+            const float scaleX = srcWidth / (float)destRect.Width();
+            const float scaleY = srcHeight / (float)destRect.Height();
             cmpCtx.SetConstants(1, scaleX, scaleY);
 
             uint32_t tileWidth, tileHeight, shaderMode;
 
-            if (source.GetWidth() * 16 <= dest.GetWidth() * 13 &&
-                source.GetHeight() * 16 <= dest.GetHeight() * 13)
+            if (source.GetWidth() * 16 <= destRect.Width() * 13 &&
+                source.GetHeight() * 16 <= destRect.Height() * 13)
             {
                 tileWidth = 16;
                 tileHeight = 16;
                 shaderMode = kFast16CS;
             }
-            else if (source.GetWidth() * 24 <= dest.GetWidth() * 21 &&
-                     source.GetHeight() * 24 <= dest.GetHeight() * 21)
+            else if (source.GetWidth() * 24 <= destRect.Width() * 21 &&
+                     source.GetHeight() * 24 <= destRect.Height() * 21)
             {
                 tileWidth = 32; // For some reason, occupancy drops with 24x24, reducing perf
                 tileHeight = 24;
                 shaderMode = kFast24CS;
             }
-            else if (source.GetWidth() * 32 <= dest.GetWidth() * 29 &&
-                     source.GetHeight() * 32 <= dest.GetHeight() * 29)
+            else if (source.GetWidth() * 32 <= destRect.Width() * 29 &&
+                     source.GetHeight() * 32 <= destRect.Height() * 29)
             {
                 tileWidth = 32;
                 tileHeight = 32;
@@ -241,7 +372,7 @@ namespace ImageScaling
             Context.TransitionResource(g_HorizontalBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             Context.SetPipelineState(LanczosVerticalPS);
             Context.SetRenderTarget(dest.GetRTV());
-            Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+            Context.SetViewportAndScissor(0, 0, destRect.Width(), destRect.Height());
             Context.SetDynamicDescriptor(0, 0, g_HorizontalBuffer.GetSRV());
             Context.Draw(3);
         }
@@ -250,6 +381,50 @@ namespace ImageScaling
 
 void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
 {
+  /* Rendering and present PSOs*/
+  s_PresentRS.Reset(4, 2);
+  s_PresentRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+  s_PresentRS[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
+  s_PresentRS[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+  s_PresentRS[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+  s_PresentRS.InitStaticSampler(0, SamplerLinearClampDesc);
+  s_PresentRS.InitStaticSampler(1, SamplerPointClampDesc);
+  s_PresentRS.Finalize(L"Present");
+
+  s_BlendUIPSO.SetRootSignature(s_PresentRS);
+  s_BlendUIPSO.SetRasterizerState(RasterizerTwoSided);
+  s_BlendUIPSO.SetBlendState(BlendPreMultiplied);
+  s_BlendUIPSO.SetDepthStencilState(DepthStateDisabled);
+  s_BlendUIPSO.SetSampleMask(0xFFFFFFFF);
+  s_BlendUIPSO.SetInputLayout(0, nullptr);
+  s_BlendUIPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+  s_BlendUIPSO.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+  s_BlendUIPSO.SetPixelShader(g_pBufferCopyPS, sizeof(g_pBufferCopyPS));
+  s_BlendUIPSO.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
+  s_BlendUIPSO.Finalize();
+
+  s_BlendUIHDRPSO = s_BlendUIPSO;
+  s_BlendUIHDRPSO.SetPixelShader(g_pBlendUIHDRPS, sizeof(g_pBlendUIHDRPS));
+  s_BlendUIHDRPSO.Finalize();
+
+#define CreatePSO( ObjName, ShaderByteCode ) \
+    ObjName = s_BlendUIPSO; \
+    ObjName.SetBlendState( BlendDisable ); \
+    ObjName.SetPixelShader(ShaderByteCode, sizeof(ShaderByteCode) ); \
+    ObjName.Finalize();
+
+  CreatePSO(PresentSDRPS, g_pPresentSDRPS);
+  CreatePSO(CompositeSDRPS, g_pCompositeSDRPS);
+  CreatePSO(ScaleAndCompositeSDRPS, g_pScaleAndCompositeSDRPS);
+  CreatePSO(CompositeHDRPS, g_pCompositeHDRPS);
+  CreatePSO(ScaleAndCompositeHDRPS, g_pScaleAndCompositeHDRPS);
+
+  PresentHDRPS = PresentSDRPS;
+  PresentHDRPS.SetPixelShader(g_pPresentHDRPS, sizeof(g_pPresentHDRPS));
+  DXGI_FORMAT SwapChainFormats[2] = { DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM };
+  PresentHDRPS.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
+  PresentHDRPS.Finalize();
+  /*Scaling*/
     BilinearUpsamplePS.SetRootSignature(s_PresentRS);
     BilinearUpsamplePS.SetRasterizerState( RasterizerTwoSided );
     BilinearUpsamplePS.SetBlendState( BlendDisable );
@@ -311,6 +486,7 @@ void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
     LanczosCS[kFast32CS].SetRootSignature(s_PresentRS);
     LanczosCS[kFast32CS].SetComputeShader(g_pLanczosFast32CS, sizeof(g_pLanczosFast32CS));
     LanczosCS[kFast32CS].Finalize();
+
 }
 
 void ImageScaling::SetPipelineBilinear(GraphicsContext& Context)
@@ -318,7 +494,7 @@ void ImageScaling::SetPipelineBilinear(GraphicsContext& Context)
   Context.SetPipelineState(BilinearUpsamplePS);
 }
 
-void ImageScaling::Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech)
+void ImageScaling::Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech, CRect destRect)
 {
     //ScopedTimer _prof(L"Image Upscale", Context);
 
@@ -329,9 +505,9 @@ void ImageScaling::Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuf
 
     switch (tech)
     {
-    case kBicubic: return BicubicScale(Context, dest, source);
-    case kSharpening: return BilinearSharpeningScale(Context, dest, source);
-    case kBilinear: return BilinearScale(Context, dest, source);
-    case kLanczos: return LanczosScale(Context, dest, source);
+    case kBicubic: return BicubicScale(Context, dest, source, destRect);
+    case kSharpening: return BilinearSharpeningScale(Context, dest, source, destRect);
+    case kBilinear: return BilinearScale(Context, dest, source, destRect);
+    case kLanczos: return LanczosScale(Context, dest, source, destRect);
     }
 }

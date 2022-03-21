@@ -169,7 +169,9 @@ private:
 	bool resetquad = false;
 	ID3D12Resource* SwapChainBuffer[3];
 	ColorBuffer SwapChainBufferColor[3];
-	ColorBuffer m_pScalingResource[2];
+	ColorBuffer m_pResizeResource;// same format as back buffer,will have the plane rendered onto
+	ColorBuffer m_pPlaneResource[2];//Those surface are for copy texture from nv12 to rgb
+
 	int p_CurrentBuffer = 0;
 
 	typedef struct  {
@@ -259,7 +261,7 @@ private:
 	DXGI_FORMAT m_InternalTexFmt = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	// swap chain format
-	DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_B8G8R8A8_UNORM;
+	DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
 	UINT32 m_bitsPerChannelSupport = 8;
 
 	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_XRGB(255, 255, 255);

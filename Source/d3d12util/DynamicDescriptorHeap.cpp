@@ -17,7 +17,7 @@
 #include "CommandListManager.h"
 #include "RootSignature.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 //
 // DynamicDescriptorHeap Implementation
@@ -94,7 +94,7 @@ DynamicDescriptorHeap::DynamicDescriptorHeap(CommandContext& OwningContext, D3D1
 {
     m_CurrentHeapPtr = nullptr;
     m_CurrentOffset = 0;
-    m_DescriptorSize = D3D12Public::g_Device->GetDescriptorHandleIncrementSize(HeapType);
+    m_DescriptorSize = D3D12Engine::g_Device->GetDescriptorHandleIncrementSize(HeapType);
 }
 
 DynamicDescriptorHeap::~DynamicDescriptorHeap()

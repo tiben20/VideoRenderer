@@ -56,7 +56,7 @@ DXGI_FORMAT SwapChainFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
 
 using namespace Math;
 using namespace ImageScaling;
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 namespace
 {
@@ -69,7 +69,7 @@ namespace
     BoolVar s_DropRandomFrames("Timing/Drop Random Frames", false);
 }
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     void PreparePresentSDR();
     void PreparePresentHDR();
@@ -195,36 +195,7 @@ namespace D3D12Public
     EnumVar DebugZoom("Graphics/Display/Magnify Pixels", kDebugZoomOff, kDebugZoomCount, DebugZoomLabels);
 }
 
-void Display::Resize(uint32_t width, uint32_t height)
-{
-    g_CommandManager.IdleGPU();
 
-    g_DisplayWidth = width;
-    g_DisplayHeight = height;
-
-    DEBUGPRINT("Changing display resolution to %ux%u", width, height);
-
-    g_PreDisplayBuffer.Create(L"PreDisplay Buffer", width, height, 1, SwapChainFormat);
-
-    for (uint32_t i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
-        g_DisplayPlane[i].Destroy();
-
-    ASSERT(s_SwapChain1 != nullptr);
-    EXECUTE_ASSERT(S_OK == s_SwapChain1->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, width, height, SwapChainFormat, 0));
-
-    for (uint32_t i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
-    {
-        CComPtr<ID3D12Resource> DisplayPlane;
-        EXECUTE_ASSERT(S_OK == s_SwapChain1->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane)));
-        g_DisplayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
-    }
-
-    g_CurrentBuffer = 0;
-
-    g_CommandManager.IdleGPU();
-
-    ResizeDisplayDependentBuffers(g_NativeWidth, g_NativeHeight);
-}
 
 // Initialize the DirectX resources required to run.
 void Display::Initialize(void)
@@ -252,7 +223,7 @@ void Display::Initialize(void)
 
     EXECUTE_ASSERT(S_OK == dxgiFactory->CreateSwapChainForHwnd(
         g_CommandManager.GetCommandQueue(),
-      D3D12Public::g_hWnd,
+      D3D12Engine::g_hWnd,
         &swapChainDesc,
         &fsSwapChainDesc,
         nullptr,
@@ -281,8 +252,8 @@ void Display::Initialize(void)
     for (uint32_t i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
     {
         CComPtr<ID3D12Resource> DisplayPlane;
-        EXECUTE_ASSERT(S_OK == s_SwapChain1->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane)));
-        g_DisplayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
+        //EXECUTE_ASSERT(S_OK == s_SwapChain1->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane)));
+        //g_DisplayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
     }
     
     s_PresentRS.Reset(4, 2);
@@ -335,7 +306,7 @@ void Display::Initialize(void)
     SetNativeResolution();
 
     g_PreDisplayBuffer.Create(L"PreDisplay Buffer", g_DisplayWidth, g_DisplayHeight, 1, SwapChainFormat);
-    ImageScaling::Initialize(DXGI_FORMAT_R8G8B8A8_UNORM);// g_PreDisplayBuffer.GetFormat());
+    ImageScaling::Initialize(DXGI_FORMAT_R10G10B10A2_UNORM);// g_PreDisplayBuffer.GetFormat());
 }
 
 void Display::Shutdown( void )
@@ -349,7 +320,7 @@ void Display::Shutdown( void )
     g_PreDisplayBuffer.Destroy();
 }
 
-void D3D12Public::PreparePresentHDR(void)
+void D3D12Engine::PreparePresentHDR(void)
 {
     GraphicsContext& Context = GraphicsContext::Begin(L"Present");
 
@@ -403,7 +374,7 @@ void D3D12Public::PreparePresentHDR(void)
     Context.Finish();
 }
 
-void D3D12Public::CompositeOverlays( GraphicsContext& Context )
+void D3D12Engine::CompositeOverlays( GraphicsContext& Context )
 {
     // Now blend (or write) the UI overlay
     Context.SetRootSignature(s_PresentRS);
@@ -414,7 +385,7 @@ void D3D12Public::CompositeOverlays( GraphicsContext& Context )
     Context.Draw(3);
 }
 
-void D3D12Public::PreparePresentSDR(void)
+void D3D12Engine::PreparePresentSDR(void)
 {
     GraphicsContext& Context = GraphicsContext::Begin(L"Present");
 
@@ -533,17 +504,17 @@ void Display::Present(void)
     SetDisplayResolution();
 }
 
-uint64_t D3D12Public::GetFrameCount(void)
+uint64_t D3D12Engine::GetFrameCount(void)
 {
     return s_FrameIndex;
 }
 
-float D3D12Public::GetFrameTime(void)
+float D3D12Engine::GetFrameTime(void)
 {
     return s_FrameTime;
 }
 
-float D3D12Public::GetFrameRate(void)
+float D3D12Engine::GetFrameRate(void)
 {
     return s_FrameTime == 0.0f ? 0.0f : 1.0f / s_FrameTime;
 }

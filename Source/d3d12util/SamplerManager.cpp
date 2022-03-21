@@ -19,7 +19,7 @@
 #include <map>
 
 using namespace std;
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 namespace
 {

@@ -20,7 +20,7 @@
 #include <mutex>
 #include "DX12Helper.h"
 //using Math::IsAligned;
-//using namespace D3D12Public;
+//using namespace D3D12Engine;
 //using Microsoft::WRL::CComPtr;
 using namespace std;
 
@@ -148,7 +148,7 @@ void GraphicsPSO::Finalize()
      // removed for test project
         ASSERT(m_PSODesc.DepthStencilState.DepthEnable != (m_PSODesc.DSVFormat == DXGI_FORMAT_UNKNOWN));
 
-        EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateGraphicsPipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO)));
+        EXECUTE_ASSERT(S_OK == D3D12Engine::g_Device->CreateGraphicsPipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO)));
         s_GraphicsPSOHashMap[HashCode].Attach(m_PSO);
         m_PSO->SetName(m_Name);
     }
@@ -187,7 +187,7 @@ void ComputePSO::Finalize()
 
     if (firstCompile)
     {
-        EXECUTE_ASSERT(S_OK == D3D12Public::g_Device->CreateComputePipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO)) );
+        EXECUTE_ASSERT(S_OK == D3D12Engine::g_Device->CreateComputePipelineState(&m_PSODesc, IID_PPV_ARGS(&m_PSO)) );
         s_ComputePSOHashMap[HashCode].Attach(m_PSO);
         m_PSO->SetName(m_Name);
     }

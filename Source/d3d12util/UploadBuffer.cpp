@@ -15,7 +15,7 @@
 #include "UploadBuffer.h"
 #include "DX12Helper.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 void UploadBuffer::Create( const std::wstring& name, size_t BufferSize )
 {

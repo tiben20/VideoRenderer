@@ -16,7 +16,7 @@
 #include "RootSignature.h"
 #include "DX12Helper.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 
 void CommandSignature::Finalize( const RootSignature* RootSignature )
 {

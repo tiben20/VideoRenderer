@@ -18,7 +18,7 @@
 #include "EsramAllocator.h"
 //#include "TemporalEffects.h"
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     DepthBuffer g_SceneDepthBuffer;
     ColorBuffer g_SceneColorBuffer;
@@ -87,7 +87,7 @@ namespace D3D12Public
 #define HDR_MOTION_FORMAT DXGI_FORMAT_R16G16B16A16_FLOAT
 #define DSV_FORMAT DXGI_FORMAT_D32_FLOAT
 
-void D3D12Public::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t bufferHeight )
+void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t bufferHeight )
 {
     GraphicsContext& InitContext = GraphicsContext::Begin();
 
@@ -230,14 +230,14 @@ void D3D12Public::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
     InitContext.Finish();
 }
 
-void D3D12Public::ResizeDisplayDependentBuffers(uint32_t NativeWidth, uint32_t NativeHeight)
+void D3D12Engine::ResizeDisplayDependentBuffers(uint32_t NativeWidth, uint32_t NativeHeight)
 {
     (NativeWidth);
     g_OverlayBuffer.Create( L"UI Overlay", g_DisplayWidth, g_DisplayHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM );
     g_HorizontalBuffer.Create( L"Bicubic Intermediate", g_DisplayWidth, NativeHeight, 1, DefaultHdrColorFormat );
 }
 
-void D3D12Public::DestroyRenderingBuffers()
+void D3D12Engine::DestroyRenderingBuffers()
 {
     g_SceneDepthBuffer.Destroy();
     g_SceneColorBuffer.Destroy();

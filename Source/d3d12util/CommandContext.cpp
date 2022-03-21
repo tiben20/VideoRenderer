@@ -72,12 +72,12 @@ void CommandContext::DestroyAllContexts(void)
 {
     LinearAllocator::DestroyAll();
     DynamicDescriptorHeap::DestroyAll();
-    D3D12Public::g_ContextManager.DestroyAllContexts();
+    D3D12Engine::g_ContextManager.DestroyAllContexts();
 }
 
 CommandContext& CommandContext::Begin( const std::wstring ID )
 {
-    CommandContext* NewContext = D3D12Public::g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    CommandContext* NewContext = D3D12Engine::g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_DIRECT);
     NewContext->SetID(ID);
     //if (ID.length() > 0)
     //  assert(0);//EngineProfiling::BeginBlock(ID, NewContext);
@@ -86,7 +86,7 @@ CommandContext& CommandContext::Begin( const std::wstring ID )
 
 ComputeContext& ComputeContext::Begin(const std::wstring& ID, bool Async)
 {
-    ComputeContext& NewContext = D3D12Public::g_ContextManager.AllocateContext(
+    ComputeContext& NewContext = D3D12Engine::g_ContextManager.AllocateContext(
         Async ? D3D12_COMMAND_LIST_TYPE_COMPUTE : D3D12_COMMAND_LIST_TYPE_DIRECT)->GetComputeContext();
     NewContext.SetID(ID);
     if (ID.length() > 0)
@@ -100,10 +100,10 @@ uint64_t CommandContext::Flush(bool WaitForCompletion)
 
     ASSERT(m_CurrentAllocator != nullptr);
 
-    uint64_t FenceValue = D3D12Public::g_CommandManager.GetQueue(m_Type).ExecuteCommandList(m_CommandList);
+    uint64_t FenceValue = D3D12Engine::g_CommandManager.GetQueue(m_Type).ExecuteCommandList(m_CommandList);
 
     if (WaitForCompletion)
-      D3D12Public::g_CommandManager.WaitForFence(FenceValue);
+      D3D12Engine::g_CommandManager.WaitForFence(FenceValue);
 
     //
     // Reset the command list and restore previous state
@@ -140,7 +140,7 @@ uint64_t CommandContext::Finish( bool WaitForCompletion )
 
     ASSERT(m_CurrentAllocator != nullptr);
 
-    CommandQueue& Queue = D3D12Public::g_CommandManager.GetQueue(m_Type);
+    CommandQueue& Queue = D3D12Engine::g_CommandManager.GetQueue(m_Type);
 
     uint64_t FenceValue = Queue.ExecuteCommandList(m_CommandList);
     Queue.DiscardAllocator(FenceValue, m_CurrentAllocator);
@@ -152,9 +152,9 @@ uint64_t CommandContext::Finish( bool WaitForCompletion )
     m_DynamicSamplerDescriptorHeap.CleanupUsedHeaps(FenceValue);
 
     if (WaitForCompletion)
-      D3D12Public::g_CommandManager.WaitForFence(FenceValue);
+      D3D12Engine::g_CommandManager.WaitForFence(FenceValue);
 
-    D3D12Public::g_ContextManager.FreeContext(this);
+    D3D12Engine::g_ContextManager.FreeContext(this);
 
     return FenceValue;
 }
@@ -185,7 +185,7 @@ CommandContext::~CommandContext( void )
 
 void CommandContext::Initialize(void)
 {
-  D3D12Public::g_CommandManager.CreateNewCommandList(m_Type, &m_CommandList, &m_CurrentAllocator);
+  D3D12Engine::g_CommandManager.CreateNewCommandList(m_Type, &m_CommandList, &m_CurrentAllocator);
 }
 
 void CommandContext::Reset( void )
@@ -193,7 +193,7 @@ void CommandContext::Reset( void )
     // We only call Reset() on previously freed contexts.  The command list persists, but we must
     // request a new allocator.
     ASSERT(m_CommandList != nullptr && m_CurrentAllocator == nullptr);
-    m_CurrentAllocator = D3D12Public::g_CommandManager.GetQueue(m_Type).RequestAllocator();
+    m_CurrentAllocator = D3D12Engine::g_CommandManager.GetQueue(m_Type).RequestAllocator();
     m_CommandList->Reset(m_CurrentAllocator, nullptr);
 
     m_CurGraphicsRootSignature = nullptr;
@@ -611,7 +611,7 @@ uint32_t CommandContext::ReadbackTexture(ReadbackBuffer& DstBuffer, PixelBuffer&
 
     // The footprint may depend on the device of the resource, but we assume there is only one device.
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
-    D3D12Public::g_Device->GetCopyableFootprints(&SrcBuffer.GetResource()->GetDesc(), 0, 1, 0,
+    D3D12Engine::g_Device->GetCopyableFootprints(&SrcBuffer.GetResource()->GetDesc(), 0, 1, 0,
         &PlacedFootprint, nullptr, nullptr, &CopySize);
 
     DstBuffer.Create(L"Readback", (uint32_t)CopySize, 1);

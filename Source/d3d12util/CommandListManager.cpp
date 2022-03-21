@@ -150,14 +150,14 @@ bool CommandQueue::IsFenceComplete(uint64_t FenceValue)
     return FenceValue <= m_LastCompletedFenceValue;
 }
 
-namespace D3D12Public
+namespace D3D12Engine
 {
     extern CommandListManager g_CommandManager;
 }
 
 void CommandQueue::StallForFence(uint64_t FenceValue)
 {
-    CommandQueue& Producer = D3D12Public::g_CommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(FenceValue >> 56));
+    CommandQueue& Producer = D3D12Engine::g_CommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(FenceValue >> 56));
     m_CommandQueue->Wait(Producer.m_pFence, FenceValue);
 }
 
@@ -187,7 +187,7 @@ void CommandQueue::WaitForFence(uint64_t FenceValue)
 
 void CommandListManager::WaitForFence(uint64_t FenceValue)
 {
-    CommandQueue& Producer = D3D12Public::g_CommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(FenceValue >> 56));
+    CommandQueue& Producer = D3D12Engine::g_CommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(FenceValue >> 56));
     Producer.WaitForFence(FenceValue);
 }
 

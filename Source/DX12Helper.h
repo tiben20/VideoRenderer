@@ -32,7 +32,7 @@ class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;
 class ColorBuffer;
-namespace D3D12Public
+namespace D3D12Engine
 {
 	extern ID3D12Device* g_Device;
 	extern CommandListManager g_CommandManager;

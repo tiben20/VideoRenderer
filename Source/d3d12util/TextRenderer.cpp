@@ -32,7 +32,7 @@
 #include <malloc.h>
 #include "Utils/util.h"
 
-using namespace D3D12Public;
+using namespace D3D12Engine;
 using namespace Math;
 using namespace std;
 
@@ -205,9 +205,9 @@ void TextRenderer::Initialize( void )
     };
 
     s_TextPSO[0].SetRootSignature(s_RootSignature);
-    s_TextPSO[0].SetRasterizerState(D3D12Public::RasterizerTwoSided);
-    s_TextPSO[0].SetBlendState(D3D12Public::BlendPreMultiplied);
-    s_TextPSO[0].SetDepthStencilState(D3D12Public::DepthStateDisabled);
+    s_TextPSO[0].SetRasterizerState(D3D12Engine::RasterizerTwoSided);
+    s_TextPSO[0].SetBlendState(D3D12Engine::BlendPreMultiplied);
+    s_TextPSO[0].SetDepthStencilState(D3D12Engine::DepthStateDisabled);
     s_TextPSO[0].SetInputLayout(_countof(vertElem), vertElem);
     s_TextPSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
     s_TextPSO[0].SetVertexShader( g_pTextVS, sizeof(g_pTextVS) );
