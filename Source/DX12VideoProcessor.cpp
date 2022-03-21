@@ -181,23 +181,17 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	D3D12Engine::g_CommandManager.IdleGPU();
 	CommandContext::DestroyAllContexts();
 	D3D12Engine::g_CommandManager.Shutdown();
-	
 	PSO::DestroyAll();
 	RootSignature::DestroyAll();
 	DescriptorAllocator::DestroyAll();
-
 	D3D12Engine::DestroyCommonState();
 	D3D12Engine::DestroyRenderingBuffers();
 	TextRenderer::Shutdown();
 	ReleaseSwapChain();
 	g_Device->Release();
 	g_hWnd = nullptr;
-	
 	m_pDXGIAdapter.Release();
 	m_pDXGIFactory2.Release();
-	
-	
-	
 	m_pDXGIFactory1.Release();
 	
 }
