@@ -58,9 +58,6 @@ namespace D3D12Engine
     ColorBuffer g_DoFPrefilter;
     ColorBuffer g_DoFBlurColor[2];
     ColorBuffer g_DoFBlurAlpha[2];
-    StructuredBuffer g_DoFWorkQueue;
-    StructuredBuffer g_DoFFastQueue;
-    StructuredBuffer g_DoFFixupQueue;
 
     ColorBuffer g_MotionPrepBuffer;
     ColorBuffer g_LumaBuffer;
@@ -73,12 +70,7 @@ namespace D3D12Engine
     ColorBuffer g_aBloomUAV4[2];	// 80x48   (1/24)
     ColorBuffer g_aBloomUAV5[2];	// 40x24   (1/48)
     ColorBuffer g_LumaLR;
-    ByteAddressBuffer g_Histogram;
-    ByteAddressBuffer g_FXAAWorkQueue;
-    TypedBuffer g_FXAAColorQueue(DXGI_FORMAT_R11G11B10_FLOAT);
 
-    // For testing GenerateMipMaps()
-    ColorBuffer g_GenMipsBuffer;
     DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
     //DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R11G11B10_FLOAT;
 }
@@ -163,9 +155,6 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
                     g_DoFBlurColor[1].Create(L"DoF Blur Color", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R11G11B10_FLOAT, esram );
                     g_DoFBlurAlpha[0].Create(L"DoF FG Alpha", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM, esram );
                     g_DoFBlurAlpha[1].Create(L"DoF FG Alpha", bufferWidth1, bufferHeight1, 1, DXGI_FORMAT_R8_UNORM, esram );
-                    g_DoFWorkQueue.Create(L"DoF Work Queue", bufferWidth4 * bufferHeight4, 4, esram );
-                    g_DoFFastQueue.Create(L"DoF Fast Queue", bufferWidth4 * bufferHeight4, 4, esram );
-                    g_DoFFixupQueue.Create(L"DoF Fixup Queue", bufferWidth4 * bufferHeight4, 4, esram );
                 esram.PopStack();	// End depth of field
 
                 g_TemporalColor[0].Create( L"Temporal Color 0", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT);
@@ -187,7 +176,7 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
 
             // This is useful for storing per-pixel weights such as motion strength or pixel luminance
             g_LumaBuffer.Create( L"Luminance", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R8_UNORM, esram );
-            g_Histogram.Create( L"Histogram", 256, 4, esram );
+            
 
             // Divisible by 128 so that after dividing by 16, we still have multiples of 8x8 tiles.  The bloom
             // dimensions must be at least 1/4 native resolution to avoid undersampling.
@@ -210,17 +199,7 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
                 g_aBloomUAV5[1].Create( L"Bloom Buffer 5b", kBloomWidth/16, kBloomHeight/16, 1, DefaultHdrColorFormat, esram );
             esram.PopStack();	// End tone mapping
 
-            esram.PushStack();	// Begin antialiasing
-                const uint32_t kFXAAWorkSize = bufferWidth * bufferHeight / 4 + 128;
-                g_FXAAWorkQueue.Create( L"FXAA Work Queue", kFXAAWorkSize, sizeof(uint32_t), esram );
-                g_FXAAColorQueue.Create( L"FXAA Color Queue", kFXAAWorkSize, sizeof(uint32_t), esram );
-            esram.PopStack();	// End antialiasing
-
         esram.PopStack();	// End post processing
-
-        esram.PushStack(); // GenerateMipMaps() test
-            g_GenMipsBuffer.Create(L"GenMips", bufferWidth, bufferHeight, 0, DXGI_FORMAT_R11G11B10_FLOAT, esram );
-        esram.PopStack();
 
         g_OverlayBuffer.Create( L"UI Overlay", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM, esram );
         g_HorizontalBuffer.Create( L"Bicubic Intermediate", bufferWidth, bufferHeight, 1, DefaultHdrColorFormat, esram );
@@ -274,9 +253,6 @@ void D3D12Engine::DestroyRenderingBuffers()
     g_DoFBlurColor[1].Destroy();
     g_DoFBlurAlpha[0].Destroy();
     g_DoFBlurAlpha[1].Destroy();
-    g_DoFWorkQueue.Destroy();
-    g_DoFFastQueue.Destroy();
-    g_DoFFixupQueue.Destroy();
 
     g_MotionPrepBuffer.Destroy();
     g_LumaBuffer.Destroy();
@@ -295,9 +271,4 @@ void D3D12Engine::DestroyRenderingBuffers()
     g_aBloomUAV5[0].Destroy();
     g_aBloomUAV5[1].Destroy();
     g_LumaLR.Destroy();
-    g_Histogram.Destroy();
-    g_FXAAWorkQueue.Destroy();
-    g_FXAAColorQueue.Destroy();
-
-    g_GenMipsBuffer.Destroy();
 }
