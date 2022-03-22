@@ -50,7 +50,7 @@ float3 main(float4 Pos : SV_Position, float2 UV : TexCoord0) : SV_Target0
 #ifdef LANCZOS_VERTICAL
     // Transform to display settings
     Result = RemoveDisplayProfile(Result, LDR_COLOR_FORMAT);
-    Result = ApplyDisplayProfile(Result, DISPLAY_PLANE_FORMAT);
+    Result = ApplyDisplayProfile(Result, COLOR_FORMAT_LINEAR);
 #endif
 
     return Result;
