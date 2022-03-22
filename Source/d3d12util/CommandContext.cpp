@@ -21,18 +21,23 @@
 #include "UploadBuffer.h"
 #include "ReadbackBuffer.h"
 #include "DX12Helper.h"
-#pragma warning(push)
-#pragma warning(disable:4100) // unreferenced formal parameters in PIXCopyEventArguments() (WinPixEventRuntime.1.0.200127001)
-//#include <pix3.h>
-#pragma warning(pop)
+
 
 
 
 
 void ContextManager::DestroyAllContexts(void)
 {
-    for (uint32_t i = 0; i < 4; ++i)
-        sm_ContextPool[i].clear();
+  for (uint32_t i = 0; i < 4; ++i)
+    sm_ContextPool[i].clear();
+  for (uint32_t i = 0; i < 4; ++i)
+  {
+    if (!sm_AvailableContexts->empty())
+    {
+      while (!sm_AvailableContexts->empty())
+        sm_AvailableContexts[i].pop();
+    }
+  }
 }
 
 CommandContext* ContextManager::AllocateContext(D3D12_COMMAND_LIST_TYPE Type)

@@ -18,6 +18,7 @@ CommandAllocatorPool::CommandAllocatorPool(D3D12_COMMAND_LIST_TYPE Type) :
     m_cCommandListType(Type),
     m_Device(nullptr)
 {
+  assert(m_ReadyAllocators.empty());
 }
 
 CommandAllocatorPool::~CommandAllocatorPool()
@@ -27,7 +28,7 @@ CommandAllocatorPool::~CommandAllocatorPool()
 
 void CommandAllocatorPool::Create(ID3D12Device * pDevice)
 {
-    m_Device = pDevice;
+  m_Device = pDevice;
 }
 
 void CommandAllocatorPool::Shutdown()
@@ -36,6 +37,14 @@ void CommandAllocatorPool::Shutdown()
         m_AllocatorPool[i]->Release();
 
     m_AllocatorPool.clear();
+    ID3D12CommandAllocator* pAllocator = nullptr;
+    while (m_ReadyAllocators.size())
+    {
+      pAllocator = m_ReadyAllocators.front().second;
+      pAllocator->Release();
+      m_ReadyAllocators.pop();
+    }
+    
 }
 
 ID3D12CommandAllocator * CommandAllocatorPool::RequestAllocator(uint64_t CompletedFenceValue)

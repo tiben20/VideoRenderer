@@ -155,15 +155,16 @@ void D3D12Engine::InitializeCommonState(void)
     alphaBlend.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
     BlendPreMultiplied = alphaBlend;
 
-    DispatchIndirectCommandSignature[0].Dispatch();
-    DispatchIndirectCommandSignature.Finalize();
+    //might need them for rendering with normal pictures but right now it make it crash on recreate
+    //DispatchIndirectCommandSignature[0].Dispatch();
+    //DispatchIndirectCommandSignature.Finalize();
 
-    DrawIndirectCommandSignature[0].Draw();
-    DrawIndirectCommandSignature.Finalize();
+    //DrawIndirectCommandSignature[0].Draw();
+    //DrawIndirectCommandSignature.Finalize();
 }
 
 void D3D12Engine::DestroyCommonState(void)
 {
-    DispatchIndirectCommandSignature.Destroy();
-    DrawIndirectCommandSignature.Destroy();
+    //DispatchIndirectCommandSignature.Destroy();
+    //DrawIndirectCommandSignature.Destroy();
 }

@@ -184,16 +184,31 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	PSO::DestroyAll();
 	RootSignature::DestroyAll();
 	DescriptorAllocator::DestroyAll();
+	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	//g_CommandManager = new CommandListManager();
+	
+	
 	D3D12Engine::DestroyCommonState();
 	D3D12Engine::DestroyRenderingBuffers();
+	m_pPlaneResource[0].Destroy();
+	m_pPlaneResource[1].Destroy();
+	m_pResizeResource.Destroy();
 	TextRenderer::Shutdown();
 	ReleaseSwapChain();
-	g_Device->Release();
+	
+	
 	g_hWnd = nullptr;
+	m_pD3DDebug.Release();
+	m_pD3DDebug1.Release();
 	m_pDXGIAdapter.Release();
 	m_pDXGIFactory2.Release();
 	m_pDXGIFactory1.Release();
-	
+	ReleaseDevice();
+	MH_RemoveHook(SetWindowPos);
+	MH_RemoveHook(SetWindowLongA);
 }
 
 
@@ -285,111 +300,20 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	D3D12Engine::InitializeRenderingBuffers(1280,528);
 	TextRenderer::Initialize();
 	ImageScaling::Initialize(m_SwapChainFmt);
-
-	m_VideoPSO = GraphicsPSO(L"Renderer: Default PSO"); // Not finalized.  Used as a template.
-	BilinearUpsamplePS2 = GraphicsPSO(L"Image Scaling: Bilinear Upsample PSO");
-																											//m_pScalingResource.Create(L"Scaling Resource", m_srcRect.Width(), m_srcRect.Height(), 1, DXGI_FORMAT_R10G10B10A2_UNORM);
-	//ImageScaling::Initialize(m_pScalingResource.GetFormat());
-	SamplerDesc VideoSamplerDesc[2];
-	VideoSamplerDesc[0] = {};
-	VideoSamplerDesc[0].Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-	VideoSamplerDesc[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-	VideoSamplerDesc[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-	VideoSamplerDesc[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-	VideoSamplerDesc[0].ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS; // NEVER
-	VideoSamplerDesc[0].SetBorderColor({ 255.0f,1.0f ,1.0f ,1.0f });
-	VideoSamplerDesc[0].MinLOD = 0;
-	VideoSamplerDesc[0].MaxLOD = D3D12_FLOAT32_MAX;
-	VideoSamplerDesc[1] = VideoSamplerDesc[0];
-	VideoSamplerDesc[1].Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 	
-	
-	//add lienear and dither only have point right now
+	SetShaderConvertColorParams();
 
-	//D3D12_DESCRIPTOR_RANGE_TYPE_SRV-> shader-resource views
-	//UAV is Specifies a range of unordered-access views (UAVs).
-	//D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER is speciefies range of samplers
-	//D3D12_DESCRIPTOR_RANGE_TYPE_CBV   Specifies a range of constant-buffer views (CBVs).
-
-		//m_RootSig.Reset(4, 3);
-		//m_RootSig.InitStaticSampler(0, VideoSamplerDesc[0]);
-		//m_RootSig.InitStaticSampler(1, VideoSamplerDesc[1]);
-		//m_RootSig.InitStaticSampler(2, VideoSamplerDesc[2]);
-
-
-		m_RootSig.Reset(4, 2);
-		#if 0
-		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-		m_RootSig[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
-		m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-		m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-#else
-		m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-		m_RootSig[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
-		m_RootSig[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-		m_RootSig[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-#endif
-		m_RootSig.InitStaticSampler(0, VideoSamplerDesc[0], D3D12_SHADER_VISIBILITY_PIXEL);
-		m_RootSig.InitStaticSampler(1, VideoSamplerDesc[1], D3D12_SHADER_VISIBILITY_PIXEL);
-		m_RootSig.Finalize(L"Present");
-		D3D12_RASTERIZER_DESC rast = {};
-		rast.FillMode = D3D12_FILL_MODE_SOLID;
-		rast.CullMode = D3D12_CULL_MODE_BACK;
-		rast.FrontCounterClockwise = TRUE;
-		rast.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
-		rast.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-		rast.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-		rast.DepthClipEnable = TRUE;
-		rast.MultisampleEnable = FALSE;
-		rast.AntialiasedLineEnable = FALSE;
-		rast.ForcedSampleCount = 0;
-		rast.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-		D3D12_BLEND_DESC blend = {};
-		blend.AlphaToCoverageEnable = FALSE;
-		blend.IndependentBlendEnable = FALSE;
-		//blend.RenderTarget[0].LogicOp = D3D12_LOGIC_OP_COPY
-		blend.RenderTarget[0].BlendEnable = FALSE;
-		blend.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_COLOR;
-		blend.RenderTarget[0].DestBlend = D3D12_BLEND_DEST_COLOR;
-		blend.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-		blend.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_SRC_COLOR;
-		blend.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
-		blend.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		blend.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-		/*
-		blend.RenderTarget[0].BlendEnable = TRUE;
-		blend.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-		blend.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-		blend.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA; // keep source intact
-		blend.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA; // RGB colors + inverse alpha (255 is full opaque)
-		blend.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		blend.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE; // keep source intact
-		blend.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO; // discard
-		blend.RenderTarget[0].LogicOpEnable = FALSE;
-		blend.RenderTarget[0].LogicOp = D3D12_LOGIC_OP_NOOP;
-		*/
-
-		
-		//m_RootSig[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 0, 1, D3D12_SHADER_VISIBILITY_VERTEX);
-		//m_RootSig[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-		//m_RootSig.Finalize(L"RootSig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-
-		static D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-		{
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,  0,  0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,     0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-		};
-
-		SetShaderConvertColorParams();
-
-		return S_OK;
+	return S_OK;
 	
 }
 
 HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
-
+	
+	//if (!m_pFilter->m_bValidBuffer)
+		//assert(0);
+	if (m_pFilter->m_filterState == State_Stopped)
+		assert(0);
 	DXGI_SWAP_CHAIN_DESC desc2;
 	if (!m_pDXGISwapChain1)
 		Reset();
@@ -683,9 +607,6 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 	if (!VerifyMediaType(pmt)) {
 		return FALSE;
 	}
-
-	ReleaseVP();
-
 	auto FmtParams = GetFmtConvParams(pmt);
 	m_srcParams = FmtParams;
 	bool disableD3D11VP = false;
@@ -1085,13 +1006,18 @@ bool CDX12VideoProcessor::Initialized()
   return false;
 }
 
-void CDX12VideoProcessor::ReleaseVP()
-{
-}
-
 void CDX12VideoProcessor::ReleaseDevice()
 {
 	DLog(L"CDX11VideoProcessor::ReleaseDevice()");
+	
+	m_pVertexBuffer.Destroy();
+	m_pIndexBuffer.Destroy();
+	m_pViewpointShaderConstant.Destroy();
+	m_pPixelShaderConstants.Destroy();
+	m_pVertexHeap.Release();
+	g_Device = nullptr;
+	
+	
 }
 
 void CDX12VideoProcessor::ReleaseSwapChain()

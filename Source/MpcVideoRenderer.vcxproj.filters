@@ -204,9 +204,6 @@
     <ClCompile Include="d3d12util\GraphicsCommon.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\SamplerManager.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\Utility.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClCompile>
@@ -221,6 +218,9 @@
     </ClCompile>
     <ClCompile Include="d3d12util\EngineTuning.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\SamplerManager.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -437,9 +437,6 @@
     <ClInclude Include="d3d12util\GraphicsCommon.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\SamplerManager.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\Utility.h">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClInclude>
@@ -457,6 +454,9 @@
     </ClInclude>
     <ClInclude Include="d3d12util\EngineTuning.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\SamplerManager.h">
+      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

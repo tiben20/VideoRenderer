@@ -20,7 +20,6 @@
 
 namespace D3D12Engine
 {
-    DepthBuffer g_SceneDepthBuffer;
     ColorBuffer g_SceneColorBuffer;
     ColorBuffer g_SceneNormalBuffer;
     ColorBuffer g_PostEffectsBuffer;
@@ -64,11 +63,6 @@ namespace D3D12Engine
     ColorBuffer g_TemporalColor[2];
     ColorBuffer g_TemporalMinBound;
     ColorBuffer g_TemporalMaxBound;
-    ColorBuffer g_aBloomUAV1[2];	// 640x384 (1/3)
-    ColorBuffer g_aBloomUAV2[2];	// 320x192 (1/6)  
-    ColorBuffer g_aBloomUAV3[2];	// 160x96  (1/12)
-    ColorBuffer g_aBloomUAV4[2];	// 80x48   (1/24)
-    ColorBuffer g_aBloomUAV5[2];	// 40x24   (1/48)
     ColorBuffer g_LumaLR;
 
     DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
@@ -103,7 +97,6 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
         g_SceneColorBuffer.Create( L"Main Color Buffer", bufferWidth, bufferHeight, 1, DefaultHdrColorFormat, esram );
         g_SceneNormalBuffer.Create( L"Normals Buffer", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R16G16B16A16_FLOAT, esram );
         g_VelocityBuffer.Create( L"Motion Vectors", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R32_UINT );
-        g_PostEffectsBuffer.Create( L"Post Effects Buffer", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R32_UINT );
 
         esram.PushStack();	// Render HDR image
 
@@ -113,7 +106,7 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
             g_MinMaxDepth16.Create(L"MinMaxDepth 16x16", bufferWidth4, bufferHeight4, 1, DXGI_FORMAT_R32_UINT, esram );
             g_MinMaxDepth32.Create(L"MinMaxDepth 32x32", bufferWidth5, bufferHeight5, 1, DXGI_FORMAT_R32_UINT, esram );
 
-            g_SceneDepthBuffer.Create( L"Scene Depth Buffer", bufferWidth, bufferHeight, DSV_FORMAT, esram );
+            
 
             esram.PushStack(); // Begin opaque geometry
 
@@ -176,28 +169,6 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
 
             // This is useful for storing per-pixel weights such as motion strength or pixel luminance
             g_LumaBuffer.Create( L"Luminance", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R8_UNORM, esram );
-            
-
-            // Divisible by 128 so that after dividing by 16, we still have multiples of 8x8 tiles.  The bloom
-            // dimensions must be at least 1/4 native resolution to avoid undersampling.
-            //uint32_t kBloomWidth = bufferWidth > 2560 ? Math::AlignUp(bufferWidth / 4, 128) : 640;
-            //uint32_t kBloomHeight = bufferHeight > 1440 ? Math::AlignUp(bufferHeight / 4, 128) : 384;
-            uint32_t kBloomWidth = bufferWidth > 2560 ? 1280 : 640;
-            uint32_t kBloomHeight = bufferHeight > 1440 ? 768 : 384;
-
-            esram.PushStack();	// Begin bloom and tone mapping
-                g_LumaLR.Create( L"Luma Buffer", kBloomWidth, kBloomHeight, 1, DXGI_FORMAT_R8_UINT, esram );
-                g_aBloomUAV1[0].Create( L"Bloom Buffer 1a", kBloomWidth,    kBloomHeight,    1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV1[1].Create( L"Bloom Buffer 1b", kBloomWidth,    kBloomHeight,    1, DefaultHdrColorFormat, esram);
-                g_aBloomUAV2[0].Create( L"Bloom Buffer 2a", kBloomWidth/2,  kBloomHeight/2,  1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV2[1].Create( L"Bloom Buffer 2b", kBloomWidth/2,  kBloomHeight/2,  1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV3[0].Create( L"Bloom Buffer 3a", kBloomWidth/4,  kBloomHeight/4,  1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV3[1].Create( L"Bloom Buffer 3b", kBloomWidth/4,  kBloomHeight/4,  1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV4[0].Create( L"Bloom Buffer 4a", kBloomWidth/8,  kBloomHeight/8,  1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV4[1].Create( L"Bloom Buffer 4b", kBloomWidth/8,  kBloomHeight/8,  1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV5[0].Create( L"Bloom Buffer 5a", kBloomWidth/16, kBloomHeight/16, 1, DefaultHdrColorFormat, esram );
-                g_aBloomUAV5[1].Create( L"Bloom Buffer 5b", kBloomWidth/16, kBloomHeight/16, 1, DefaultHdrColorFormat, esram );
-            esram.PopStack();	// End tone mapping
 
         esram.PopStack();	// End post processing
 
@@ -211,64 +182,53 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
 
 void D3D12Engine::DestroyRenderingBuffers()
 {
-    g_SceneDepthBuffer.Destroy();
-    g_SceneColorBuffer.Destroy();
-    g_SceneNormalBuffer.Destroy();
-    g_VelocityBuffer.Destroy();
-    g_OverlayBuffer.Destroy();
-    g_HorizontalBuffer.Destroy();
-    g_PostEffectsBuffer.Destroy();
+    
+    g_SceneColorBuffer.DestroyBuffer();
+    g_SceneNormalBuffer.DestroyBuffer();
+    g_VelocityBuffer.DestroyBuffer();
+    g_OverlayBuffer.DestroyBuffer();
+    g_HorizontalBuffer.DestroyBuffer();
 
-    g_SSAOFullScreen.Destroy();
-    g_LinearDepth[0].Destroy();
-    g_LinearDepth[1].Destroy();
-    g_MinMaxDepth8.Destroy();
-    g_MinMaxDepth16.Destroy();
-    g_MinMaxDepth32.Destroy();
-    g_DepthDownsize1.Destroy();
-    g_DepthDownsize2.Destroy();
-    g_DepthDownsize3.Destroy();
-    g_DepthDownsize4.Destroy();
-    g_DepthTiled1.Destroy();
-    g_DepthTiled2.Destroy();
-    g_DepthTiled3.Destroy();
-    g_DepthTiled4.Destroy();
-    g_AOMerged1.Destroy();
-    g_AOMerged2.Destroy();
-    g_AOMerged3.Destroy();
-    g_AOMerged4.Destroy();
-    g_AOSmooth1.Destroy();
-    g_AOSmooth2.Destroy();
-    g_AOSmooth3.Destroy();
-    g_AOHighQuality1.Destroy();
-    g_AOHighQuality2.Destroy();
-    g_AOHighQuality3.Destroy();
-    g_AOHighQuality4.Destroy();
+    g_SSAOFullScreen.DestroyBuffer();
+    g_LinearDepth[0].DestroyBuffer();
+    g_LinearDepth[1].DestroyBuffer();
+    g_MinMaxDepth8.DestroyBuffer();
+    g_MinMaxDepth16.DestroyBuffer();
+    g_MinMaxDepth32.DestroyBuffer();
+    g_DepthDownsize1.DestroyBuffer();
+    g_DepthDownsize2.DestroyBuffer();
+    g_DepthDownsize3.DestroyBuffer();
+    g_DepthDownsize4.DestroyBuffer();
+    g_DepthTiled1.DestroyBuffer();
+    g_DepthTiled2.DestroyBuffer();
+    g_DepthTiled3.DestroyBuffer();
+    g_DepthTiled4.DestroyBuffer();
+    g_AOMerged1.DestroyBuffer();
+    g_AOMerged2.DestroyBuffer();
+    g_AOMerged3.DestroyBuffer();
+    g_AOMerged4.DestroyBuffer();
+    g_AOSmooth1.DestroyBuffer();
+    g_AOSmooth2.DestroyBuffer();
+    g_AOSmooth3.DestroyBuffer();
+    g_AOHighQuality1.DestroyBuffer();
+    g_AOHighQuality2.DestroyBuffer();
+    g_AOHighQuality3.DestroyBuffer();
+    g_AOHighQuality4.DestroyBuffer();
 
-    g_DoFTileClass[0].Destroy();
-    g_DoFTileClass[1].Destroy();
-    g_DoFPresortBuffer.Destroy();
-    g_DoFPrefilter.Destroy();
-    g_DoFBlurColor[0].Destroy();
-    g_DoFBlurColor[1].Destroy();
-    g_DoFBlurAlpha[0].Destroy();
-    g_DoFBlurAlpha[1].Destroy();
+    g_DoFTileClass[0].DestroyBuffer();
+    g_DoFTileClass[1].DestroyBuffer();
+    g_DoFPresortBuffer.DestroyBuffer();
+    g_DoFPrefilter.DestroyBuffer();
+    g_DoFBlurColor[0].DestroyBuffer();
+    g_DoFBlurColor[1].DestroyBuffer();
+    g_DoFBlurAlpha[0].DestroyBuffer();
+    g_DoFBlurAlpha[1].DestroyBuffer();
 
-    g_MotionPrepBuffer.Destroy();
-    g_LumaBuffer.Destroy();
-    g_TemporalColor[0].Destroy();
-    g_TemporalColor[1].Destroy();
-    g_TemporalMinBound.Destroy();
-    g_TemporalMaxBound.Destroy();
-    g_aBloomUAV1[0].Destroy();
-    g_aBloomUAV1[1].Destroy();
-    g_aBloomUAV2[0].Destroy();
-    g_aBloomUAV2[1].Destroy();
-    g_aBloomUAV3[0].Destroy();
-    g_aBloomUAV3[1].Destroy();
-    g_aBloomUAV4[0].Destroy();
-    g_aBloomUAV4[1].Destroy();
-    g_aBloomUAV5[0].Destroy();
-    g_aBloomUAV5[1].Destroy();
-    g_LumaLR.Destroy();
+    g_MotionPrepBuffer.DestroyBuffer();
+    g_LumaBuffer.DestroyBuffer();
+    g_TemporalColor[0].DestroyBuffer();
+    g_TemporalColor[1].DestroyBuffer();
+    g_TemporalMinBound.DestroyBuffer();
+    g_TemporalMaxBound.DestroyBuffer();
+    g_LumaLR.DestroyBuffer();
 }

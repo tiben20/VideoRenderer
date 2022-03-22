@@ -36,7 +36,7 @@ void CommandQueue::Shutdown()
         return;
 
     m_AllocatorPool.Shutdown();
-
+    
     CloseHandle(m_FenceEventHandle);
 
     m_pFence->Release();
@@ -57,6 +57,8 @@ CommandListManager::CommandListManager() :
 CommandListManager::~CommandListManager()
 {
     Shutdown();
+    
+
 }
 
 void CommandListManager::Shutdown()

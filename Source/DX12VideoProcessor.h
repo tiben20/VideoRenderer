@@ -78,14 +78,6 @@ private:
 	CD3D12VP m_D3D12VP;
 	const wchar_t* m_strCorrection = nullptr;
 
-	/*d3d12engine*/
-	std::vector<GraphicsPSO> sm_PSOs;
-	RootSignature m_RootSig;
-
-	GraphicsPSO m_VideoPSO; //video pso
-	GraphicsPSO BilinearUpsamplePS2;
-
-
 	typedef struct {
 		FLOAT Colorspace[4 * 3];
 		FLOAT Opacity;
@@ -95,14 +87,6 @@ private:
 		FLOAT padding[48]; // 256 bytes alignment
 	} PS_CONSTANT_BUFFER;
 	PS_CONSTANT_BUFFER* m_sShaderConstants;
-
-	typedef struct {
-		FLOAT View[4 * 4];
-		FLOAT Zoom[4 * 4];
-		FLOAT Projection[4 * 4];
-		FLOAT padding[16]; // 256 bytes alignment
-	} VS_PROJECTION_CONST;
-	VS_PROJECTION_CONST* m_sVertexConstants;
 
 	//ByteAddressBuffer m_pVideoQuadVertex;
 	//ByteAddressBuffer m_pVideoIndexBuffer;
@@ -114,11 +98,7 @@ private:
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	D3D12_DESCRIPTOR_HEAP_DESC m_pVertexHeapDesc;//m_cbvSrvHeap
 	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
-	
 
-
-	DescriptorHeap m_pQuadHeap;
-	DescriptorHandle m_pQuadHeapHandle;
 	bool resetquad = false;
 	ID3D12Resource* SwapChainBuffer[3];
 	ColorBuffer SwapChainBufferColor[3];
@@ -164,7 +144,6 @@ public:
 
 	bool Initialized();
 private:
-	void ReleaseVP();
 	void ReleaseDevice();
 	void ReleaseSwapChain();
 	void SetupQuad();

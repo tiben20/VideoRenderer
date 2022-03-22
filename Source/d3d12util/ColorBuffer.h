@@ -30,7 +30,16 @@ public:
         for (int i = 0; i < _countof(m_UAVHandle); ++i)
             m_UAVHandle[i].ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     }
-
+    
+    void DestroyBuffer()
+    {
+      //clear the value in case we use public buffer
+      m_RTVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+      m_SRVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+      for (int i = 0; i < _countof(m_UAVHandle); ++i)
+        m_UAVHandle[i].ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+      Destroy();
+    }
     // Create a color buffer from a swap chain buffer.  Unordered access is restricted.
     void CreateFromSwapChain( const std::wstring& Name, ID3D12Resource* BaseResource );
 
@@ -72,6 +81,7 @@ public:
 
     Color GetClearColor(void) const { return m_ClearColor; }
 
+    
 protected:
 
     D3D12_RESOURCE_FLAGS CombineResourceFlags( void ) const
