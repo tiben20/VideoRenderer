@@ -231,6 +231,12 @@ void TextRenderer::Initialize( void )
 void TextRenderer::Shutdown( void )
 {
     LoadedFonts.clear();
+    s_RootSignature.Free();
+    s_TextPSO[0].FreePSO();
+    s_TextPSO[1].FreePSO();
+    s_ShadowPSO[0].FreePSO();
+    s_ShadowPSO[1].FreePSO();
+
 }
 
 TextContext::TextContext( GraphicsContext& CmdContext, float ViewWidth, float ViewHeight )

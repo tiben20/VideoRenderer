@@ -153,21 +153,6 @@ namespace ImageScaling
           Context.SetViewportAndScissor(0, 0, 1024, 768);
           Context.Draw(3);
         }
-
-        // Magnify without stretching
-        /*if (DebugZoom != kDebugZoomOff)
-        {
-          Context.SetPipelineState(MagnifyPixelsPS);
-          Context.TransitionResource(g_PreDisplayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-          Context.TransitionResource(g_DisplayPlane[g_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-          Context.SetRenderTarget(g_DisplayPlane[g_CurrentBuffer].GetRTV());
-          Context.SetDynamicDescriptor(0, 0, g_PreDisplayBuffer.GetSRV());
-          Context.SetViewportAndScissor(0, 0, g_DisplayWidth, g_DisplayHeight);
-          Context.SetConstants(1, 1.0f / ((int)DebugZoom + 1.0f));
-          Context.Draw(3);
-        }*/
-
-        //CompositeOverlays(Context);
       }
 
 
@@ -375,6 +360,39 @@ namespace ImageScaling
             Context.Draw(3);
         }
     }
+}
+
+void ImageScaling::FreeImageScaling()
+{
+  /*We need to reset them to 0 if we dont the root signature is not the same when we start a new video*/
+  s_PresentRS.Free();
+  s_PresentRSColor.Free();
+  ColorConvertNV12PS.FreePSO();
+  SharpeningUpsamplePS.FreePSO();
+  BicubicHorizontalUpsamplePS.FreePSO();
+  BicubicVerticalUpsamplePS.FreePSO();
+  BilinearUpsamplePS.FreePSO();
+  LanczosHorizontalPS.FreePSO();
+  LanczosVerticalPS.FreePSO();
+  for (int i = 0; i < kNumCSModes; i++)
+  {
+    LanczosCS[i].FreePSO();
+    BicubicCS[i].FreePSO();
+  }
+  //not sure if we need to touch those
+  /*NumVar BicubicUpsampleWeight("Graphics/Display/Image Scaling/Bicubic Filter Weight", -0.5f, -1.0f, -0.25f, 0.25f);
+  NumVar SharpeningSpread("Graphics/Display/Image Scaling/Sharpness Sample Spread", 1.0f, 0.7f, 2.0f, 0.1f);
+  NumVar SharpeningRotation("Graphics/Display/Image Scaling/Sharpness Sample Rotation", 45.0f, 0.0f, 90.0f, 15.0f);
+  NumVar SharpeningStrength("Graphics/Display/Image Scaling/Sharpness Strength", 0.10f, 0.0f, 1.0f, 0.01f);
+  BoolVar ForcePixelShader("Graphics/Display/Image Scaling/Prefer Pixel Shader", false);*/
+  s_BlendUIPSO.FreePSO();
+  s_BlendUIHDRPSO.FreePSO();
+  PresentSDRPS.FreePSO();
+  PresentHDRPS.FreePSO();
+  CompositeSDRPS.FreePSO();
+  ScaleAndCompositeSDRPS.FreePSO();
+  CompositeHDRPS.FreePSO();
+  ScaleAndCompositeHDRPS.FreePSO();
 }
 
 void ImageScaling::Initialize(DXGI_FORMAT DestFormat )

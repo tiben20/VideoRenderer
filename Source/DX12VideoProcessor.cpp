@@ -184,6 +184,7 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	PSO::DestroyAll();
 	RootSignature::DestroyAll();
 	DescriptorAllocator::DestroyAll();
+	ImageScaling::FreeImageScaling();
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -193,9 +194,9 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	
 	D3D12Engine::DestroyCommonState();
 	D3D12Engine::DestroyRenderingBuffers();
-	m_pPlaneResource[0].Destroy();
-	m_pPlaneResource[1].Destroy();
-	m_pResizeResource.Destroy();
+	m_pPlaneResource[0].DestroyBuffer();
+	m_pPlaneResource[1].DestroyBuffer();
+	m_pResizeResource.DestroyBuffer();
 	TextRenderer::Shutdown();
 	ReleaseSwapChain();
 	

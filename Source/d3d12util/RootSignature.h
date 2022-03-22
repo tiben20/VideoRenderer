@@ -121,8 +121,27 @@ public:
         Reset(NumRootParams, NumStaticSamplers);
     }
 
-    ~RootSignature()
+    ~RootSignature() { }
+
+    void Free()
     {
+      m_NumParameters = 0;
+      m_Finalized = FALSE;
+      m_NumParameters = 0;
+      m_NumSamplers = 0;
+      m_NumInitializedStaticSamplers = 0;
+      m_DescriptorTableBitMap = 0;
+      m_SamplerTableBitMap = 0;
+      int i = 0;
+      for (i = 0; i < 16; i++) 
+        m_DescriptorTableSize[i] = 0;
+      m_ParamArray.release();
+      m_SamplerArray.release();
+      m_Signature->Release();
+      m_Signature = nullptr;
+      //m_ParamArray.std::unique_ptr<RootParameter[]> m_ParamArray;
+      //std::unique_ptr<D3D12_STATIC_SAMPLER_DESC[]> m_SamplerArray;
+      //ID3D12RootSignature* m_Signature;
     }
 
     static void DestroyAll(void);

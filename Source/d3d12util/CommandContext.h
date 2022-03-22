@@ -91,6 +91,7 @@ private:
 
 public:
 
+  void FreeContext();
     ~CommandContext(void);
 
     static void DestroyAllContexts(void);
@@ -323,8 +324,8 @@ inline void GraphicsContext::SetRootSignature( const RootSignature& RootSig )
 {
     if (RootSig.GetSignature() == m_CurGraphicsRootSignature)
         return;
-
-    m_CommandList->SetGraphicsRootSignature(m_CurGraphicsRootSignature = RootSig.GetSignature());
+    m_CurGraphicsRootSignature = RootSig.GetSignature();
+    m_CommandList->SetGraphicsRootSignature(m_CurGraphicsRootSignature);
 
     m_DynamicViewDescriptorHeap.ParseGraphicsRootSignature(RootSig);
     m_DynamicSamplerDescriptorHeap.ParseGraphicsRootSignature(RootSig);

@@ -44,7 +44,6 @@ public:
     }
 
     ID3D12PipelineState* GetPipelineStateObject( void ) const { return m_PSO; }
-
 protected:
 
     const wchar_t* m_Name;
@@ -89,7 +88,7 @@ public:
 
     // Perform validation and compute a hash value for fast state block comparisons
     void Finalize();
-
+    void FreePSO();
 private:
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC m_PSODesc;
@@ -108,7 +107,7 @@ public:
     void SetComputeShader( const D3D12_SHADER_BYTECODE& Binary ) { m_PSODesc.CS = Binary; }
 
     void Finalize();
-
+    void FreePSO();
 private:
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC m_PSODesc;

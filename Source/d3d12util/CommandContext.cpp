@@ -40,6 +40,8 @@ void ContextManager::DestroyAllContexts(void)
   }
 }
 
+
+
 CommandContext* ContextManager::AllocateContext(D3D12_COMMAND_LIST_TYPE Type)
 {
     std::lock_guard<std::mutex> LockGuard(sm_ContextAllocationMutex);
@@ -182,8 +184,15 @@ CommandContext::CommandContext(D3D12_COMMAND_LIST_TYPE Type) :
     m_NumBarriersToFlush = 0;
 }
 
+void CommandContext::FreeContext()
+{
+  m_CpuLinearAllocator.ResetToZero();
+  m_GpuLinearAllocator.ResetToZero();
+}
+
 CommandContext::~CommandContext( void )
 {
+  FreeContext();
     if (m_CommandList != nullptr)
         m_CommandList->Release();
 }

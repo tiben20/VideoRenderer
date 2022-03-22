@@ -36,6 +36,20 @@ public:
     {
         sm_DescriptorHeapPool[0].clear();
         sm_DescriptorHeapPool[1].clear();
+        ID3D12DescriptorHeap* heap;
+        while (sm_RetiredDescriptorHeaps->size())
+        {
+          heap = sm_RetiredDescriptorHeaps->front().second;
+          heap = nullptr;
+          sm_RetiredDescriptorHeaps->pop();
+        }
+        while (sm_AvailableDescriptorHeaps->size())
+        {
+          heap = sm_AvailableDescriptorHeaps->front();
+          heap = nullptr;
+          sm_AvailableDescriptorHeaps->pop();
+        }
+          
     }
 
     void CleanupUsedHeaps( uint64_t fenceValue );

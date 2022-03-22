@@ -33,7 +33,6 @@ void PSO::DestroyAll(void)
     s_ComputePSOHashMap.clear();
 }
 
-
 GraphicsPSO::GraphicsPSO(const wchar_t* Name)
     : PSO(Name)
 {
@@ -42,8 +41,21 @@ GraphicsPSO::GraphicsPSO(const wchar_t* Name)
     m_PSODesc.SampleMask = 0xFFFFFFFFu;
     m_PSODesc.SampleDesc.Count = 1;
     m_PSODesc.InputLayout.NumElements = 0;
+    m_PSO = nullptr;
 }
 
+void GraphicsPSO::FreePSO()
+{
+  //set everything to 0 except the name because we will reuse it
+ 
+  ZeroMemory(&m_PSODesc, sizeof(m_PSODesc));
+  m_PSODesc.NodeMask = 1;
+  m_PSODesc.SampleMask = 0xFFFFFFFFu;
+  m_PSODesc.SampleDesc.Count = 1;
+  m_PSODesc.InputLayout.NumElements = 0;
+  m_RootSignature = nullptr;
+  m_PSO = nullptr;
+}
 void GraphicsPSO::SetBlendState( const D3D12_BLEND_DESC& BlendDesc )
 {
     m_PSODesc.BlendState = BlendDesc;
@@ -204,4 +216,12 @@ ComputePSO::ComputePSO(const wchar_t* Name)
 {
     ZeroMemory(&m_PSODesc, sizeof(m_PSODesc));
     m_PSODesc.NodeMask = 1;
+}
+
+void ComputePSO::FreePSO()
+{
+  ZeroMemory(&m_PSODesc, sizeof(m_PSODesc));
+  m_PSODesc.NodeMask = 1;
+  m_RootSignature = nullptr;
+  m_PSO = nullptr;
 }

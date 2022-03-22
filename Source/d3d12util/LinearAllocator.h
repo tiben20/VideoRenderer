@@ -111,7 +111,15 @@ public:
     // "large" pages.
     void FreeLargePages( uint64_t FenceID, const std::vector<LinearAllocationPage*>& Pages );
 
-    void Destroy( void ) { m_PagePool.clear(); }
+    void Destroy( void ) 
+    {
+      m_PagePool.clear();
+      while (m_AvailablePages.size())
+        m_AvailablePages.pop();
+      while (m_RetiredPages.size())
+        m_RetiredPages.pop();
+      
+    }
 
 private:
 
@@ -135,6 +143,12 @@ public:
         m_PageSize = (Type == kGpuExclusive ? kGpuAllocatorPageSize : kCpuAllocatorPageSize);
     }
 
+    void ResetToZero()
+    {
+      m_PageSize = (m_AllocationType == kGpuExclusive ? kGpuAllocatorPageSize : kCpuAllocatorPageSize);
+      m_CurOffset = ~(size_t)0;
+      m_CurPage = nullptr;
+    }
     DynAlloc Allocate( size_t SizeInBytes, size_t Alignment = DEFAULT_ALIGN );
 
     void CleanupUsedPages( uint64_t FenceID );
