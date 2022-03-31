@@ -195,9 +195,6 @@
     <ClCompile Include="d3d12util\RootSignature.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\TextRenderer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\Texture.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClCompile>
@@ -216,13 +213,16 @@
     <ClCompile Include="d3d12util\Color.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\EngineTuning.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\SamplerManager.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClCompile>
     <ClCompile Include="d3d12util\GeometryRenderer.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\TextRenderer.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\EngineTuning.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
@@ -428,9 +428,6 @@
     <ClInclude Include="d3d12util\RootSignature.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\TextRenderer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\VectorMath.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
@@ -455,13 +452,16 @@
     <ClInclude Include="d3d12util\Hash.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\EngineTuning.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\SamplerManager.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\GeometryRenderer.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\TextRenderer.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\EngineTuning.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -639,6 +639,12 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\GeometryVS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d11\ps_font.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d11\vs_simple.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -29,11 +29,6 @@
 #include "BufferManager.h"
 #include "d3d12util/CompiledShaders/GeometryPS.h"
 #include "d3d12util/CompiledShaders/GeometryVS.h"
-#include <map>
-#include <string>
-#include <cstdio>
-#include <memory>
-#include <malloc.h>
 
 using namespace D3D12Engine;
 using namespace Math;
@@ -44,6 +39,10 @@ namespace GeometryRenderer
   RootSignature s_RootSignature;
   // handler sd and hd format 0: R8G8B8A8_UNORM   1: R11G11B10_FLOAT
   GraphicsPSO s_RectanglePSO[2] = { { L"Geometry Renderer: R8G8B8A8_UNORM PSO" },{ L"Geometry Renderer: R11G11B10_FLOAT PSO" } };
+  GraphicsPSO s_DotsPSO[2] = { { L"Geometry Renderer: R8G8B8A8_UNORM PSO" },{ L"Geometry Renderer: R11G11B10_FLOAT PSO" } };
+  GraphicsPSO s_PolylinePSO[2] = { { L"Geometry Renderer: R8G8B8A8_UNORM PSO" },{ L"Geometry Renderer: R11G11B10_FLOAT PSO" } };
+  //GraphicsPSO s_LinesPSO[2] = { { L"Geometry Renderer: R8G8B8A8_UNORM PSO" },{ L"Geometry Renderer: R11G11B10_FLOAT PSO" } };
+  
 }
 
 void GeometryRenderer::Initialize(void)
@@ -72,13 +71,46 @@ void GeometryRenderer::Initialize(void)
   s_RectanglePSO[1] = s_RectanglePSO[0];
   s_RectanglePSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
   s_RectanglePSO[1].Finalize();
+
+
+  s_DotsPSO[0].SetRootSignature(s_RootSignature);
+  s_DotsPSO[0].SetRasterizerState(D3D12Engine::RasterizerDefaultCw);
+  s_DotsPSO[0].SetBlendState(D3D12Engine::BlendDisable);
+  s_DotsPSO[0].SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+  s_DotsPSO[0].SetInputLayout(_countof(vertElem), vertElem);
+  s_DotsPSO[0].SetSampleMask(0xFFFFFFFF);
+  s_DotsPSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
+  s_DotsPSO[0].SetVertexShader(g_pGeometryVS, sizeof(g_pGeometryVS));
+  s_DotsPSO[0].SetPixelShader(g_pGeometryPS, sizeof(g_pGeometryPS));
+  s_DotsPSO[0].SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_DotsPSO[0].Finalize();
+  s_DotsPSO[1] = s_DotsPSO[0];
+  s_DotsPSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_DotsPSO[1].Finalize();
+
+  
+  s_PolylinePSO[0] = s_DotsPSO[0];
+  s_PolylinePSO[1] = s_DotsPSO[1];
+  s_PolylinePSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
+  s_PolylinePSO[1].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE);
+  s_PolylinePSO[0].Finalize();
+  s_PolylinePSO[1].Finalize();
+
+
 }
 
 void GeometryRenderer::Shutdown(void)
 {
   s_RootSignature.Free();
-  s_RectanglePSO[0].FreePSO();
-  s_RectanglePSO[1].FreePSO();
+#define FREEPSO(a)\
+  a[0].FreePSO();\
+  a[1].FreePSO();
+  FREEPSO(s_RectanglePSO);
+  FREEPSO(s_PolylinePSO);
+  //FREEPSO(s_LinesPSO);
+  FREEPSO(s_DotsPSO);
+  //s_RectanglePSO[0].FreePSO();
+  //s_RectanglePSO[1].FreePSO();
 }
 
 GeometryContext::GeometryContext(GraphicsContext& CmdContext)
@@ -125,6 +157,28 @@ HRESULT GeometryContext::SetupVertex(const float x1, const float y1, const float
   return S_OK;
 }
 
+void GeometryContext::DrawQuadrilateral(const SIZE& rtSize)
+{
+  
+  m_Context.SetRootSignature(GeometryRenderer::s_RootSignature);
+  m_Context.SetPipelineState(GeometryRenderer::s_RectanglePSO[0]);
+  m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+  D3D12_VIEWPORT VP;
+  VP.TopLeftX = 0;
+  VP.TopLeftY = 0;
+  VP.Width = rtSize.cx;
+  VP.Height = rtSize.cy;
+  VP.MinDepth = 0.0f;
+  VP.MaxDepth = 1.0f;
+  m_Context.SetViewport(VP);
+  m_Context.SetDynamicVB(0, 4, sizeof(POINTVERTEX12), m_Vertices);
+
+  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+  m_Context.Draw(4, 0);
+  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+}
+
 void GeometryContext::DrawRectangle(const RECT& rect, const SIZE& rtSize, const D3DCOLOR color)
 {
   const float left = (float)(rect.left * 2) / rtSize.cx - 1;
@@ -149,4 +203,58 @@ void GeometryContext::DrawRectangle(const RECT& rect, const SIZE& rtSize, const 
   m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
   m_Context.Draw(4,0);
   m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+}
+
+void GeometryContext::DrawLine(GraphLine line)
+{
+  if (line.linesize <= 0)
+    return;
+  std::vector<POINTVERTEX12> verts;
+  verts.resize(line.linesize);
+  DirectX::XMFLOAT4 colorRGBAf = D3DCOLOR12toXMFLOAT4(line.linecolor);
+  auto pos = verts.size();
+  for (int i = 0; i < 2; i++)
+  {
+    const float x = (float)((line.linepoints[i]).x * 2) / line.linertsize.cx - 1;
+    const float y = 1 - (float)((line.linepoints[i]).y * 2) / line.linertsize.cy;
+
+    verts[i] = { {x, y, 0.f}, colorRGBAf };
+  }
+  m_Context.SetRootSignature(GeometryRenderer::s_RootSignature);
+  m_Context.SetPipelineState(GeometryRenderer::s_PolylinePSO[0]);
+  m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
+  m_Context.SetDynamicVB(0, verts.size(), sizeof(POINTVERTEX12), verts.data());
+  //m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
+  m_Context.Draw(verts.size());
+
+}
+
+void GeometryContext::DrawGFPoints(int Xstart, int Xstep, int Yaxis, int Yscale, int* Ydata, UINT Yoffset, const UINT size, const D3DCOLOR color, SIZE& newRTSize)
+{
+  if (size <= 0)
+    return;
+  std::vector<POINTVERTEX12> verts;
+  DirectX::XMFLOAT4 colorRGBAf = D3DCOLOR12toXMFLOAT4(color);
+
+  auto pos = verts.size();
+  verts.resize(pos + size);
+
+  while (pos < verts.size()) {
+    const float x = (float)(Xstart * 2) / newRTSize.cx - 1;
+    const float y = (float(Ydata[Yoffset++] * Yscale) / 10000 - Yaxis) * 2 / newRTSize.cy + 1;
+
+    verts[pos++] = { {x, y, 0.f}, colorRGBAf };
+    Xstart += Xstep;
+    if (Yoffset == size) {
+      Yoffset = 0;
+    }
+  }
+  m_Context.SetRootSignature(GeometryRenderer::s_RootSignature);
+  m_Context.SetPipelineState(GeometryRenderer::s_PolylinePSO[0]);
+  m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
+  m_Context.SetDynamicVB(0, verts.size(), sizeof(POINTVERTEX12), verts.data());
+  //m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
+  m_Context.Draw(verts.size());
+
+
 }

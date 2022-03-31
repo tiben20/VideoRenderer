@@ -90,69 +90,6 @@ private:
 
 VariableGroup VariableGroup::sm_RootGroup;
 
-//=====================================================================================================================
-// VariableGroup implementation
-
-void VariableGroup::Display( TextContext& Text, float leftMargin, EngineVar* highlightedTweak )
-{
-    Text.SetLeftMargin(leftMargin);
-    Text.SetCursorX(leftMargin);
-
-    for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter)
-    {
-        
-        if (iter->second == highlightedTweak)
-        {
-            Text.SetColor( Color(1.0f, 1.0f, 0.25f) );
-            float temp1 = Text.GetCursorY() - EngineTuning::s_ScrollBottomTrigger;
-            float temp2 = Text.GetCursorY() - EngineTuning::s_ScrollTopTrigger;
-            if (temp1 > 0.0f)
-            {
-                EngineTuning::s_ScrollOffset += 0.2f * temp1; 
-            }
-            else if (temp2 < 0.0f)
-            {
-                EngineTuning::s_ScrollOffset = max(0.0f, EngineTuning::s_ScrollOffset + 0.2f * temp2);
-            }
-        }
-        else
-            Text.SetColor( Color(1.0f, 1.0f, 1.0f) );
-
-        VariableGroup* subGroup = dynamic_cast<VariableGroup*>(iter->second);
-        if (subGroup != nullptr)
-        {
-
-            if (subGroup->IsExpanded())
-            {
-                Text.DrawString("- ");
-            }
-            else
-            {
-                Text.DrawString("+ ");				
-            }
-            Text.DrawString(iter->first);
-            Text.DrawString("/...\n");
-
-            if (subGroup->IsExpanded())
-            {
-                subGroup->Display(Text, leftMargin + 30.0f, highlightedTweak);
-                Text.SetLeftMargin(leftMargin);
-                Text.SetCursorX(leftMargin);
-            }
-            
-        }
-        else
-        {
-            
-            iter->second->DisplayValue(Text);
-            Text.SetCursorX(leftMargin + 200.0f);
-            Text.DrawString(iter->first);
-            Text.NewLine();
-        }
-        
-    }
-}
-
 void VariableGroup::SaveToFile( FILE* file, int fileMargin )
 {
     for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter)
@@ -298,11 +235,6 @@ BoolVar::BoolVar( const std::string& path, bool val, ActionCallback pfnCallback 
     m_Flag = val;
 }
 
-void BoolVar::DisplayValue( TextContext& Text ) const
-{
-    Text.DrawFormattedString("[%c]", m_Flag ? 'X' : '-');
-}
-
 std::string BoolVar::ToString( void ) const
 {
     return m_Flag ? "on" : "off";
@@ -332,11 +264,6 @@ NumVar::NumVar( const std::string& path, float val, float minVal, float maxVal, 
     m_MaxValue = maxVal;
     m_Value = Clamp(val);
     m_StepSize = stepSize;
-}
-
-void NumVar::DisplayValue( TextContext& Text ) const
-{
-    Text.DrawFormattedString("%-11f", m_Value);
 }
 
 std::string NumVar::ToString( void ) const
@@ -377,11 +304,6 @@ ExpVar::operator float() const
     return exp2f(m_Value);
 }
 
-void ExpVar::DisplayValue( TextContext& Text ) const
-{
-    Text.DrawFormattedString("%-11f", (float)*this);
-}
-
 std::string ExpVar::ToString( void ) const
 {
     char buf[128];
@@ -407,11 +329,6 @@ IntVar::IntVar( const std::string& path, int32_t val, int32_t minVal, int32_t ma
     m_MaxValue = maxVal;
     m_Value = Clamp(val);
     m_StepSize = stepSize;
-}
-
-void IntVar::DisplayValue( TextContext& Text ) const
-{
-    Text.DrawFormattedString("%-11d", m_Value);
 }
 
 std::string IntVar::ToString( void ) const
@@ -440,10 +357,6 @@ EnumVar::EnumVar( const std::string& path, int32_t initialVal, int32_t listLengt
     m_Value = Clamp(initialVal);
 }
 
-void EnumVar::DisplayValue( TextContext& Text ) const
-{
-    Text.DrawString(m_EnumLabels[m_Value]);
-}
 
 std::string EnumVar::ToString( void ) const
 {
@@ -477,11 +390,6 @@ DynamicEnumVar::DynamicEnumVar( const std::string& path, ActionCallback pfnCallb
 {
     m_EnumCount = 0;
     m_Value = 0;
-}
-
-void DynamicEnumVar::DisplayValue( TextContext& Text ) const
-{
-    Text.DrawString(m_EnumLabels[m_Value]);
 }
 
 std::string DynamicEnumVar::ToString( void ) const
@@ -520,15 +428,6 @@ CallbackTrigger::CallbackTrigger( const std::string& path, std::function<void (v
     m_Callback = callback;
     m_Arguments = args;
     m_BangDisplay = 0;
-}
-
-void CallbackTrigger::DisplayValue( TextContext& Text ) const
-{
-    static const char s_animation[] = { '-', '\\', '|', '/' };
-    Text.DrawFormattedString("[%c]", s_animation[(m_BangDisplay >> 3) & 3]);
-
-    if (m_BangDisplay > 0)
-        --m_BangDisplay;
 }
 
 void CallbackTrigger::SetValue(FILE* file, const std::string& setting) 

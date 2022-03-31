@@ -32,7 +32,6 @@ public:
     virtual void Decrement( void ) { m_ActionCallback(ActionType::Decrement); }	// DPad Left
     virtual void Bang( void ) { m_ActionCallback(ActionType::Bang); }		// A Button
 
-    virtual void DisplayValue( TextContext& ) const {}
     virtual std::string ToString( void ) const { return ""; }
     virtual void SetValue( FILE* file, const std::string& setting) = 0; //set value read from file
 
@@ -76,7 +75,6 @@ public:
     virtual void Decrement( void ) override { m_Flag = false; EngineVar::Decrement(); }
     virtual void Bang( void ) override { m_Flag = !m_Flag;  EngineVar::Bang(); }
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual std::string ToString( void ) const override;
     virtual void SetValue( FILE* file, const std::string& setting) override;
 
@@ -94,7 +92,6 @@ public:
     virtual void Increment( void ) override { m_Value = Clamp(m_Value + m_StepSize); EngineVar::Increment(); }
     virtual void Decrement( void ) override { m_Value = Clamp(m_Value - m_StepSize); EngineVar::Decrement(); }
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual std::string ToString( void ) const override;
     virtual void SetValue( FILE* file, const std::string& setting)  override;
 
@@ -114,7 +111,6 @@ public:
     ExpVar& operator=( float val );	// m_Value = log2(val)
     operator float() const;			// returns exp2(m_Value)
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual std::string ToString( void ) const override;
     virtual void SetValue( FILE* file, const std::string& setting ) override;
 
@@ -130,7 +126,6 @@ public:
     virtual void Increment( void ) override { m_Value = Clamp(m_Value + m_StepSize); EngineVar::Increment(); }
     virtual void Decrement( void ) override { m_Value = Clamp(m_Value - m_StepSize); EngineVar::Decrement(); }
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual std::string ToString( void ) const override;
     virtual void SetValue( FILE* file, const std::string& setting ) override;
 
@@ -153,7 +148,6 @@ public:
     virtual void Increment( void ) override { m_Value = (m_Value + 1) % m_EnumLength; EngineVar::Increment(); }
     virtual void Decrement( void ) override { m_Value = (m_Value + m_EnumLength - 1) % m_EnumLength; EngineVar::Decrement(); }
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual std::string ToString( void ) const override;
     virtual void SetValue( FILE* file, const std::string& setting ) override;
 
@@ -177,7 +171,6 @@ public:
     virtual void Increment( void ) override { m_Value = (m_Value + 1) % m_EnumCount; EngineVar::Increment(); }
     virtual void Decrement( void ) override { m_Value = (m_Value + m_EnumCount - 1) % m_EnumCount; EngineVar::Decrement(); }
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual std::string ToString( void ) const override;
     virtual void SetValue( FILE* file, const std::string& setting ) override;
 
@@ -198,7 +191,6 @@ public:
 
     virtual void Bang( void ) override { m_Callback(m_Arguments); m_BangDisplay = 64; }
 
-    virtual void DisplayValue( TextContext& Text ) const override;
     virtual void SetValue( FILE* file, const std::string& setting ) override;
 
 private:

@@ -40,8 +40,8 @@
 #include "dxgi1_6.h"
 
 #include "d3d12util/BufferManager.h"
+
 #include "d3d12util/TextRenderer.h"
-#include "d3d12util/GeometryRenderer.h"
 #include "d3d12util/EsramAllocator.h"
 #include "d3d12util/math/Common.h"
 
@@ -305,6 +305,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	D3D12Engine::InitializeRenderingBuffers(1280,528);
 	TextRenderer::Initialize();
 	GeometryRenderer::Initialize();
+	
 	ImageScaling::Initialize(m_SwapChainFmt);
 	
 	SetShaderConvertColorParams();
@@ -412,7 +413,7 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	/*draw the text*/
 	if (m_bShowStats)
 	{
-		Display(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
+		DrawStats(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
 	}
 
 	
@@ -1061,6 +1062,39 @@ bool CDX12VideoProcessor::HandleHDRToggle()
 
 void CDX12VideoProcessor::SetGraphSize()
 {
+	if (!m_windowRect.IsRectEmpty()) {
+		SIZE rtSize = m_windowRect.Size();
+
+		CalcStatsFont();
+		if (S_OK == TextRenderer::LoadFont(L"Consolas", m_StatsFontH, 0)) {
+			SIZE charSize = TextRenderer::GetMaxCharMetric();
+			m_StatsRect.right = m_StatsRect.left + 60 * charSize.cx + 5 + 3;
+			m_StatsRect.bottom = m_StatsRect.top + 18 * charSize.cy + 5 + 3;
+		}
+		m_StatsBackground.graphrect = m_StatsRect;
+		m_StatsBackground.graphcolor = D3DCOLOR_ARGB(80, 0, 0, 0);
+		CalcGraphParams();
+		m_Underlay.graphrect = m_GraphRect;
+		m_Underlay.graphcolor = D3DCOLOR_ARGB(80, 0, 0, 0);
+		//TODO
+		//m_Lines.ClearPoints(rtSize);
+		POINT points[2];
+		const int linestep = 20 * m_Yscale;
+		GraphLine lne;
+		m_Lines.clear();
+		for (int y = m_GraphRect.top + (m_Yaxis - m_GraphRect.top) % (linestep); y < m_GraphRect.bottom; y += linestep) {
+			lne.linertsize = rtSize;
+			lne.linepoints[0] = { m_GraphRect.left,  y };
+			lne.linepoints[1] = { m_GraphRect.right, y };
+			lne.linecolor = (y == m_Yaxis) ? D3DCOLOR_XRGB(150, 150, 255) : D3DCOLOR_XRGB(100, 100, 255);
+			lne.linesize = 2;
+			m_Lines.push_back(lne);
+			//TODO
+			//m_Lines.AddPoints(points, std::size(points), (y == m_Yaxis) ? D3DCOLOR_XRGB(150, 150, 255) : D3DCOLOR_XRGB(100, 100, 255));
+		}
+		//TODO
+		//m_Lines.UpdateVertexBuffer();
+	}
 }
 
 BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
@@ -1162,25 +1196,21 @@ void CDX12VideoProcessor::SetShaderConvertColorParams()
 
 
 
-void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, float w, float h)
+void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, float w, float h)
 {
 	//Switch to the overlay buffer
 	Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 	Context.ClearColor(g_OverlayBuffer);
 	Context.SetRenderTarget(g_OverlayBuffer.GetRTV());
-	Context.SetViewportAndScissor(0, 0, 400.0f, 250.0f);
+	Context.SetViewportAndScissor(0, 0, g_OverlayBuffer.GetWidth(), g_OverlayBuffer.GetHeight());
 
 	GeometryContext BackgroundWindow(Context);
 	BackgroundWindow.Begin();
 	SIZE rtSize = m_windowRect.Size();
 	BackgroundWindow.DrawRectangle(m_StatsRect,rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
-	//BackgroundWindow.SetColor(Color(255.0f, 255.0f, 255.0f, 1.0f));
-	//BackgroundWindow.SetOpacity(0.4f);
-	//BackgroundWindow.seto
-
-	//BackgroundWindow.DrawRectangle(Color(255.0f, 0.1f, 0.1f, 1.0f),0.1f);
-
 	BackgroundWindow.End();
+	
+	//L"Consolas", m_StatsFontH, 0
 
 	std::wstring str;
 	str.reserve(700);
@@ -1220,19 +1250,39 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 		m_RenderStats.presentticks * 1000 / GetPreciseTicksPerSecondI());
 	str += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
 	
-	TextContext Text(Context);
-	//Text.SetFont(L"Comic Sans MS", 24.0f);
-	Context.SetViewportAndScissor(0, 0, w,h);
-	//we only support ttf SDF font and it needs to be a square texture not one made on the width
-	Text.SetFont(L"Comic Sans MS", 24.0f);
-	Text.Begin();
-	Text.EnableDropShadow(true);
-	Text.SetTextSize(24.0f);
-	Text.SetColor(Color(255.0f, 1.0f, 1.0f,1.0f));
-	Text.DrawString(str.c_str());
+	//load font will return immediatly if already loaded
+	TextRenderer::LoadFont(L"Consolas", m_StatsFontH, 0);
+	FontContext textRenderer(Context);
+
+	textRenderer.Begin();
+	textRenderer.DrawTextW(rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor,str.c_str());
+
+	textRenderer.End();
+
+
+	GeometryContext SyncGraph(Context);
 	
-	Text.End();
-	Context.SetScissor(0, 0, w, h);
+	if (CheckGraphPlacement()) {
+		SyncGraph.Begin();
+		SyncGraph.DrawRectangle(m_Underlay.graphrect, rtSize, m_Underlay.graphcolor);
+		//TODO add lines
+		for (std::vector<GraphLine>::iterator it = m_Lines.begin(); it != m_Lines.end(); it++)
+			SyncGraph.DrawLine(*it);
+		SyncGraph.DrawGFPoints(m_GraphRect.left, m_Xstep, m_Yaxis, m_Yscale,
+			m_Syncs.Data(), m_Syncs.OldestIndex(), m_Syncs.Size(), D3DCOLOR_XRGB(100, 200, 100), rtSize);
+
+		SyncGraph.End();
+		/*m_Underlay.Draw(pRenderTargetView, rtSize);
+
+		m_Lines.Draw();
+
+		m_SyncLine.ClearPoints(rtSize);
+		m_SyncLine.AddGFPoints(m_GraphRect.left, m_Xstep, m_Yaxis, m_Yscale,
+			m_Syncs.Data(), m_Syncs.OldestIndex(), m_Syncs.Size(), D3DCOLOR_XRGB(100, 200, 100));
+		m_SyncLine.UpdateVertexBuffer();
+		m_SyncLine.Draw();*/
+	}
+
 }
 
 HRESULT CDX12VideoProcessor::Render(int field)
@@ -1292,7 +1342,7 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 			D3D12Engine::g_CommandManager.IdleGPU();
 		}
 	}
-	
+	SetGraphSize();
 	resetquad = true;
 	return S_OK;
 }

@@ -36,11 +36,14 @@
 #include "d3d12util/CommandContext.h"
 #include "d3d12util/uploadbuffer.h"
 #include "d3d12util/ImageScaling.h"
+#include "d3d12util/GeometryRenderer.h"
 #define TEST_SHADER 0
 
 
 
 class CVideoRendererInputPin;
+
+
 
 class CDX12VideoProcessor
 	: public CVideoProcessor
@@ -104,7 +107,12 @@ private:
 	ColorBuffer SwapChainBufferColor[3];
 	ColorBuffer m_pResizeResource;// same format as back buffer,will have the plane rendered onto
 	ColorBuffer m_pPlaneResource[2];//Those surface are for copy texture from nv12 to rgb
-
+	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_ARGB(255, 255, 255, 255);
+	
+	GraphRectangle m_StatsBackground;
+	GraphRectangle m_Rect3D;
+	GraphRectangle m_Underlay;
+	std::vector<GraphLine> m_Lines;
 	int p_CurrentBuffer = 0;
 
 	typedef struct  {
@@ -196,7 +204,7 @@ private:
 	bool m_PSConvColorData = false;
 	HRESULT ProcessSample(IMediaSample* pSample) override;
 	/*Draw the stats*/
-	void Display(GraphicsContext& Context, float x, float y, float w, float h);
+	void DrawStats(GraphicsContext& Context, float x, float y, float w, float h);
 
 	HRESULT FillBlack() override;
 

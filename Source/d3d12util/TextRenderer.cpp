@@ -1,19 +1,25 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
+/*
+* (C) 2022 Ti-BEN
+*
+* This file is part of MPC-BE.
+*
+* MPC-BE is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* MPC-BE is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 
 #include "stdafx.h"
 #include "TextRenderer.h"
-#include "FileUtility.h"
 #include "Texture.h"
 
 #include "GraphicsCommon.h"
@@ -21,16 +27,32 @@
 #include "PipelineState.h"
 #include "RootSignature.h"
 #include "BufferManager.h"
-#include "d3d12util/CompiledShaders/TextVS.h"
-#include "d3d12util/CompiledShaders/TextAntialiasPS.h"
-#include "d3d12util/CompiledShaders/TextShadowPS.h"
-#include "consola24.h"
-#include <map>
-#include <string>
-#include <cstdio>
-#include <memory>
-#include <malloc.h>
-#include "Utils/util.h"
+#include "Helper.h"
+#include "D3DUtil/FontBitmap.h"
+#include "d3d12util/CompiledShaders/ps_font.h"
+#include "d3d12util/CompiledShaders/vs_simple.h"
+#define MAX_NUM_VERTS 400*6
+
+struct Font12Vertex {
+  DirectX::XMFLOAT3 Pos;
+  DirectX::XMFLOAT2 Tex;
+};
+
+struct PixelBufferType12
+{
+  DirectX::XMFLOAT4 pixelColor;
+};
+
+inline auto Char2Index12(WCHAR ch)
+{
+  if (ch >= 0x0020 && ch <= 0x007F) {
+    return ch - 32;
+  }
+  if (ch >= 0x00A0 && ch <= 0x00BF) {
+    return ch - 64;
+  }
+  return 0x007F - 32;
+}
 
 using namespace D3D12Engine;
 using namespace Math;
@@ -38,513 +60,321 @@ using namespace std;
 
 namespace TextRenderer
 {
-    class Font
-    {
-    public:
-        Font()
-        {
-            m_NormalizeXCoord = 0.0f;
-            m_NormalizeYCoord = 0.0f;
-            m_FontLineSpacing = 0.0f;
-            m_AntialiasRange = 0.0f;
-            m_FontHeight = 0;
-            m_BorderSize = 0;
-            m_TextureWidth = 0;
-            m_TextureHeight = 0;
+  RootSignature s_RootSignature;
+  // handler sd and hd format 0: R8G8B8A8_UNORM   1: R11G11B10_FLOAT
+  GraphicsPSO s_FontPSO[2] = { { L"Geometry Renderer: R8G8B8A8_UNORM PSO" },{ L"Geometry Renderer: R11G11B10_FLOAT PSO" } };
+
+  // Font properties
+  std::wstring m_strFontName;
+  UINT m_fontHeight = 0;
+  UINT m_fontFlags = 0;
+
+  WCHAR m_Characters[128];
+  FloatRect m_fTexCoords[128] = {};
+  SIZE m_MaxCharMetric = {};
+
+  D3DCOLOR m_Color = D3DCOLOR_XRGB(255, 255, 255);
+
+  //Textures
+  UINT  m_uTexWidth = 0;
+  UINT  m_uTexHeight = 0;
+  Texture m_pTexture;
+  
+}
+
+void TextRenderer::Initialize(void)
+{
+  s_RootSignature.Reset(2,1);
+  D3D12_SAMPLER_DESC SampDesc = {};
+  SampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+  SampDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+  SampDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+  SampDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+  SampDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+  SampDesc.MinLOD = 0;
+  SampDesc.MaxLOD = D3D12_FLOAT32_MAX;
+  
+  s_RootSignature.InitStaticSampler(0, SampDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+  s_RootSignature[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
+  s_RootSignature[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
+  s_RootSignature.Finalize(L"TextRenderer", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+  D3D12_INPUT_ELEMENT_DESC vertElem[] =
+  {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA , 0 }
+  };
+  //sdr
+  s_FontPSO[0].SetRootSignature(s_RootSignature);
+  s_FontPSO[0].SetRasterizerState(D3D12Engine::RasterizerDefaultCw);
+  s_FontPSO[0].SetBlendState(D3D12Engine::BlendFont);
+  s_FontPSO[0].SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+  s_FontPSO[0].SetInputLayout(_countof(vertElem),vertElem);
+  s_FontPSO[0].SetSampleMask(0xFFFFFFFF);
+  s_FontPSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+  s_FontPSO[0].SetVertexShader(g_pvs_simple, sizeof(g_pvs_simple));
+  s_FontPSO[0].SetPixelShader(g_pps_font, sizeof(g_pps_font));
+  s_FontPSO[0].SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_FontPSO[0].Finalize();
+  //hdr
+  s_FontPSO[1] = s_FontPSO[0];
+  s_FontPSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_FontPSO[1].Finalize();
+
+  // initialize the character array
+  UINT idx = 0;
+  for (WCHAR ch = 0x0020; ch < 0x007F; ch++) {
+    m_Characters[idx++] = ch;
+  }
+  m_Characters[idx++] = 0x25CA; // U+25CA Lozenge
+  for (WCHAR ch = 0x00A0; ch <= 0x00BF; ch++) {
+    m_Characters[idx++] = ch;
+  }
+  ASSERT(idx == std::size(m_Characters));
+
+}
+
+SIZE TextRenderer::GetMaxCharMetric()
+{
+  return m_MaxCharMetric;
+}
+HRESULT TextRenderer::LoadFont(const WCHAR* strFontName, const UINT fontHeight, const UINT fontFlags)
+{
+  if (fontHeight == m_fontHeight && fontFlags == m_fontFlags && m_strFontName.compare(strFontName) == 0) {
+    return S_FALSE;
+  }
+  m_strFontName = strFontName;
+  m_fontHeight = fontHeight;
+  m_fontFlags = fontFlags;
+
+  CFontBitmap fontBitmap;
+
+  HRESULT hr = fontBitmap.Initialize(m_strFontName.c_str(), m_fontHeight, 0, m_Characters, std::size(m_Characters));
+  if (FAILED(hr)) {
+    return hr;
+  }
+
+  m_MaxCharMetric = fontBitmap.GetMaxCharMetric();
+  m_uTexWidth = fontBitmap.GetWidth();
+  m_uTexHeight = fontBitmap.GetHeight();
+  EXECUTE_ASSERT(S_OK == fontBitmap.GetFloatCoords((FloatRect*)&m_fTexCoords, std::size(m_Characters)));
+
+  BYTE* pData = nullptr;
+  UINT uPitch = 0;
+  hr = fontBitmap.Lock(&pData, uPitch);
+  if (FAILED(hr)) {
+    return hr;
+  }
+
+  m_pTexture.Create2D(m_uTexWidth*4, m_uTexWidth, m_uTexHeight, DXGI_FORMAT_B8G8R8A8_UNORM, pData);
+  return S_OK;
+}
+
+void TextRenderer::Shutdown(void)
+{
+  s_RootSignature.Free();
+  s_FontPSO[0].FreePSO();
+  s_FontPSO[1].FreePSO();
+  m_pTexture.Destroy();
+  m_fontHeight = 0;
+}
+
+FontContext::FontContext(GraphicsContext& CmdContext)
+  : m_Context(CmdContext)
+{
+  m_HDR = FALSE;
+}
+
+void FontContext::Begin(bool EnableHDR)
+{
+  m_HDR = (BOOL)EnableHDR;
+
+  m_Context.SetRootSignature(TextRenderer::s_RootSignature);
+  m_Context.SetPipelineState(TextRenderer::s_FontPSO[m_HDR]);
+  m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+
+void FontContext::End(void)
+{
+}
+
+inline DirectX::XMFLOAT4 D3D12COLORtoXMFLOAT4(const D3DCOLOR color)
+{
+  return DirectX::XMFLOAT4{
+    (float)((color & 0x00FF0000) >> 16) / 255,
+    (float)((color & 0x0000FF00) >> 8) / 255,
+    (float)(color & 0x000000FF) / 255,
+    (float)((color & 0xFF000000) >> 24) / 255,
+  };
+}
+
+void FontContext::DrawText(const SIZE& rtSize, float sx, float sy, D3DCOLOR color, const WCHAR* strText)
+{
+  HRESULT hr = S_OK;
+  UINT Stride = sizeof(Font12Vertex);
+  UINT Offset = 0;
+
+  if (color != TextRenderer::m_Color) {
+    TextRenderer::m_Color = color;
+    DirectX::XMFLOAT4 colorRGBAf = D3D12COLORtoXMFLOAT4(TextRenderer::m_Color);
+    //m_pDeviceContext->UpdateSubresource(m_pPixelBuffer, 0, nullptr, &colorRGBAf, 0, 0);
+  }
+  m_Context.SetRootSignature(TextRenderer::s_RootSignature);
+  m_Context.SetPipelineState(TextRenderer::s_FontPSO[0]);
+  m_Context.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+  m_Context.SetRenderTarget(g_OverlayBuffer.GetRTV());
+
+  D3D12_VIEWPORT VP;
+  VP.TopLeftX = 0;
+  VP.TopLeftY = 0;
+  VP.Width = rtSize.cx;
+  VP.Height = rtSize.cy;
+  VP.MinDepth = 0.0f;
+  VP.MaxDepth = 1.0f;
+
+  m_Context.SetViewport(VP);
+
+  const float fStartX = (float)(sx * 2) / rtSize.cx - 1;
+  const float fLineHeight = (TextRenderer::m_fTexCoords[0].bottom - TextRenderer::m_fTexCoords[0].top) * TextRenderer::m_uTexHeight * 2 / rtSize.cy;
+  float drawX = fStartX;
+  float drawY = (float)(-sy * 2) / rtSize.cy + 1;
+  std::vector<Font12Vertex> m_vertices;
+
+  CONSTANT_BUFFER_COLOR colorconstant;
+  D3DCOLOR colll = D3DCOLOR_ARGB(255, 255, 255, 255);
+  colorconstant.col = D3D12COLORtoXMFLOAT4(colll);
+
+  while (*strText) {
+    const WCHAR c = *strText++;
+
+    if (c == '\n') {
+      drawX = fStartX;
+      drawY -= fLineHeight;
+      continue;
+    }
+
+    const auto tex = TextRenderer::m_fTexCoords[Char2Index12(c)];
+
+    const float Width = (tex.right - tex.left) * TextRenderer::m_uTexWidth * 2 / rtSize.cx;
+    const float Height = (tex.bottom - tex.top) * TextRenderer::m_uTexHeight * 2 / rtSize.cy;
+
+    if (c != 0x0020 && c != 0x00A0) { // Space and No-Break Space
+      const float left = drawX;
+      const float right = drawX + Width;
+      const float top = drawY;
+      const float bottom = drawY - Height;
+      m_vertices.push_back({ {left,  top,    0.0f}, {tex.left,  tex.top} });
+      m_vertices.push_back({ {right, bottom, 0.0f}, {tex.right, tex.bottom} });
+      m_vertices.push_back({ {left,  bottom, 0.0f}, {tex.left,  tex.bottom} });
+      m_vertices.push_back({ {left,  top,    0.0f}, {tex.left,  tex.top} });
+      m_vertices.push_back({ {right, top,    0.0f}, {tex.right, tex.top} });
+      m_vertices.push_back({ {right, bottom, 0.0f}, {tex.right, tex.bottom} });
+      //nVertices += 6;
+
+      if (m_vertices.size() > (MAX_NUM_VERTS - 6)) {
+        m_Context.TransitionResource(TextRenderer::m_pTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+
+        m_Context.SetDynamicDescriptor(0, 0, TextRenderer::m_pTexture.GetSRV());
+        m_Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_BUFFER_COLOR), &colorconstant);
+
+        m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
+        m_Context.Draw(m_vertices.size());
+        m_vertices.clear();
+        
+        // Unlock, render, and relock the vertex buffer
+        //m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+        //m_pDeviceContext->Draw(nVertices, 0);
+
+        //hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        //pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
+        //nVertices = 0;
+      }
+    }
+
+    drawX += Width;
+  }
+
+
+  m_Context.TransitionResource(TextRenderer::m_pTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+  
+  
+  m_Context.SetDynamicDescriptor(0, 0, TextRenderer::m_pTexture.GetSRV());
+  m_Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_BUFFER_COLOR), &colorconstant);
+
+  m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
+  m_Context.Draw(m_vertices.size());
+  //m_pDeviceContext->PSSetShaderResources(0, 1, &m_pShaderResource);
+  //m_pDeviceContext->IASetInputLayout(m_pInputLayout);
+  //m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
+  //m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+  //m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
+  //m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_pPixelBuffer);
+  //m_pDeviceContext->PSSetSamplers(0, 1, &m_pSamplerState);
+  //m_pDeviceContext->OMSetBlendState(m_pBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+  //m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+  //m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
+
+  // Adjust for character spacing
+  
+#if 0
+  D3D11_MAPPED_SUBRESOURCE mappedResource;
+  hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+  if (S_OK == hr) {
+    Font11Vertex* pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
+    UINT nVertices = 0;
+
+    while (*strText) {
+      const WCHAR c = *strText++;
+
+      if (c == '\n') {
+        drawX = fStartX;
+        drawY -= fLineHeight;
+        continue;
+      }
+
+      const auto tex = m_fTexCoords[Char2Index(c)];
+
+      const float Width = (tex.right - tex.left) * m_uTexWidth * 2 / rtSize.cx;
+      const float Height = (tex.bottom - tex.top) * m_uTexHeight * 2 / rtSize.cy;
+
+      if (c != 0x0020 && c != 0x00A0) { // Space and No-Break Space
+        const float left = drawX;
+        const float right = drawX + Width;
+        const float top = drawY;
+        const float bottom = drawY - Height;
+
+        *pVertices++ = { {left,  top,    0.0f}, {tex.left,  tex.top} };
+        *pVertices++ = { {right, bottom, 0.0f}, {tex.right, tex.bottom} };
+        *pVertices++ = { {left,  bottom, 0.0f}, {tex.left,  tex.bottom} };
+        *pVertices++ = { {left,  top,    0.0f}, {tex.left,  tex.top} };
+        *pVertices++ = { {right, top,    0.0f}, {tex.right, tex.top} };
+        *pVertices++ = { {right, bottom, 0.0f}, {tex.right, tex.bottom} };
+        nVertices += 6;
+
+        if (nVertices > (MAX_NUM_VERTICES - 6)) {
+          // Unlock, render, and relock the vertex buffer
+          m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+          m_pDeviceContext->Draw(nVertices, 0);
+
+          hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+          pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
+          nVertices = 0;
         }
+      }
 
-        ~Font()
-        {
-            m_Dictionary.clear();
-        }
-
-        void LoadFromBinary( const wchar_t* fontName, const uint8_t* pBinary, const size_t binarySize )
-        {
-            (fontName);
-
-            // We should at least use this to assert that we have a complete file
-            (binarySize);
-
-            struct FontHeader
-            {
-                char FileDescriptor[8];		// "SDFFONT\0"
-                uint8_t  majorVersion;		// '1'
-                uint8_t  minorVersion;		// '0'
-                uint16_t borderSize;		// Pixel empty space border width
-                uint16_t textureWidth;		// Width of texture buffer
-                uint16_t textureHeight;		// Height of texture buffer
-                uint16_t fontHeight;		// Font height in 12.4
-                uint16_t advanceY;			// Line height in 12.4
-                uint16_t numGlyphs;			// Glyph count in texture
-                uint16_t searchDist;		// Range of search space 12.4
-            };
-
-            FontHeader* header = (FontHeader*)pBinary;
-            m_NormalizeXCoord = 1.0f / (header->textureWidth * 16);
-            m_NormalizeYCoord = 1.0f / (header->textureHeight * 16);
-            m_FontHeight = header->fontHeight;
-            m_FontLineSpacing = (float)header->advanceY / (float)header->fontHeight;
-            m_BorderSize = header->borderSize * 16;
-            m_AntialiasRange = (float)header->searchDist / header->fontHeight;
-            uint16_t textureWidth = header->textureWidth;
-            uint16_t textureHeight = header->textureHeight;
-            uint16_t NumGlyphs = header->numGlyphs;
-
-            const wchar_t* wcharList = (wchar_t*)(pBinary + sizeof(FontHeader));
-            const Glyph* glyphData = (Glyph*)(wcharList + NumGlyphs);
-            const void* texelData = glyphData + NumGlyphs;
-
-            for (uint16_t i = 0; i < NumGlyphs; ++i)
-                m_Dictionary[wcharList[i]] = glyphData[i];
-
-            m_Texture.Create2D( textureWidth, textureWidth, textureHeight, DXGI_FORMAT_R8_SNORM, texelData );
-
-            //DLog( L"Loaded SDF font:  %ls (ver. %d.%d)", fontName, header->majorVersion, header->minorVersion);
-        }
-
-        bool Load( const wstring& fileName )
-        {
-            Utility::ByteArray ba = Utility::ReadFileHelper(fileName );
-
-            if (ba->size() == 0)
-            {
-                ERROR( "Cannot open file %ls", fileName.c_str() );
-                return false;
-            }
-
-            LoadFromBinary( fileName.c_str(), ba->data(), ba->size() );
-
-            return true;
-        }
-
-        // Each character has an XY start offset, a width, and they all share the same height
-        struct Glyph
-        {
-            uint16_t x, y, w;
-            int16_t bearing;
-            uint16_t advance;
-        };
-
-        const Glyph* GetGlyph( wchar_t ch ) const
-        {
-            auto it = m_Dictionary.find( ch );
-            return it == m_Dictionary.end() ? nullptr : &it->second;
-        }
-
-        // Get the texel height of the font in 12.4 fixed point
-        uint16_t GetHeight( void ) const { return m_FontHeight; }
-
-        // Get the size of the border in 12.4 fixed point
-        uint16_t GetBorderSize( void ) const { return m_BorderSize; }
-
-        // Get the line advance height given a certain font size
-        float GetVerticalSpacing( float size ) const { return size * m_FontLineSpacing; }
-
-        // Get the texture object
-        const Texture& GetTexture( void ) const { return m_Texture; }
-
-        float GetXNormalizationFactor() const { return m_NormalizeXCoord; }
-        float GetYNormalizationFactor() const { return m_NormalizeYCoord; }
-
-        // Get the range in terms of height values centered on the midline that represents a pixel
-        // in screen space (according to the specified font size.)
-        // The pixel alpha should range from 0 to 1 over the height range 0.5 +/- 0.5 * aaRange.
-        float GetAntialiasRange( float size ) const { return Max( 1.0f, size * m_AntialiasRange ); }
-
-    private:
-        float m_NormalizeXCoord;
-        float m_NormalizeYCoord;
-        float m_FontLineSpacing;
-        float m_AntialiasRange;
-        uint16_t m_FontHeight;
-        uint16_t m_BorderSize;
-        uint16_t m_TextureWidth;
-        uint16_t m_TextureHeight;
-        Texture m_Texture;
-        map<wchar_t, Glyph> m_Dictionary;
-    };
-
-    map< wstring, unique_ptr<Font> > LoadedFonts;
-
-    const Font* GetOrLoadFont(const wstring& filename)
-    {
-        auto fontIter = LoadedFonts.find( filename );
-        if (fontIter != LoadedFonts.end())
-            return fontIter->second.get();
-
-        Font* newFont = new Font();
-        if (filename == L"default")
-            newFont->LoadFromBinary(L"default", g_pconsola24, sizeof(g_pconsola24));
-        else
-            newFont->Load(L"Fonts/" + filename + L".fnt");
-        LoadedFonts[filename].reset(newFont);
-        return newFont;
+      drawX += Width;
     }
-
-    RootSignature s_RootSignature;
-    GraphicsPSO s_TextPSO[2] = { {L"Text Render: Text R8G8B8A8_UNORM PSO"}, { L"Text Render: Text R11G11B10_FLOAT PSO" } };	// 0: R8G8B8A8_UNORM   1: R11G11B10_FLOAT
-    GraphicsPSO s_ShadowPSO[2] = { { L"Text Render: Shadow R8G8B8A8_UNORM PSO" },{ L"Text Render: Shadow R11G11B10_FLOAT PSO" } };		// 0: R8G8B8A8_UNORM   1: R11G11B10_FLOAT
-
-
-} // namespace TextRenderer
-
-void TextRenderer::Initialize( void )
-{
-    s_RootSignature.Reset(3, 1);
-    s_RootSignature.InitStaticSampler(0, SamplerLinearClampDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-    s_RootSignature[0].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
-    s_RootSignature[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
-    s_RootSignature[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1, D3D12_SHADER_VISIBILITY_PIXEL);
-    s_RootSignature.Finalize(L"TextRenderer", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-    // The glyph vertex description.  One vertex will correspond to a single character.
-    D3D12_INPUT_ELEMENT_DESC vertElem[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT     , 0, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R16G16B16A16_UINT, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
-    };
-
-    s_TextPSO[0].SetRootSignature(s_RootSignature);
-    s_TextPSO[0].SetRasterizerState(D3D12Engine::RasterizerTwoSided);
-    s_TextPSO[0].SetBlendState(D3D12Engine::BlendPreMultiplied);
-    s_TextPSO[0].SetDepthStencilState(D3D12Engine::DepthStateDisabled);
-    s_TextPSO[0].SetInputLayout(_countof(vertElem), vertElem);
-    s_TextPSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-    s_TextPSO[0].SetVertexShader( g_pTextVS, sizeof(g_pTextVS) );
-    s_TextPSO[0].SetPixelShader( g_pTextAntialiasPS, sizeof(g_pTextAntialiasPS) );
-    s_TextPSO[0].SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
-    s_TextPSO[0].Finalize();
-
-    s_TextPSO[1] = s_TextPSO[0];
-    s_TextPSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
-    s_TextPSO[1].Finalize();
-
-    s_ShadowPSO[0] = s_TextPSO[0];
-    s_ShadowPSO[0].SetPixelShader(g_pTextShadowPS, sizeof(g_pTextShadowPS) );
-    s_ShadowPSO[0].Finalize();
-
-    s_ShadowPSO[1] = s_ShadowPSO[0];
-    s_ShadowPSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
-    s_ShadowPSO[1].Finalize();
-}
-
-void TextRenderer::Shutdown( void )
-{
-    LoadedFonts.clear();
-    s_RootSignature.Free();
-    s_TextPSO[0].FreePSO();
-    s_TextPSO[1].FreePSO();
-    s_ShadowPSO[0].FreePSO();
-    s_ShadowPSO[1].FreePSO();
-
-}
-
-TextContext::TextContext( GraphicsContext& CmdContext, float ViewWidth, float ViewHeight )
-    : m_Context(CmdContext)
-{
-    m_HDR = FALSE;
-    m_CurrentFont = nullptr;
-    m_ViewWidth = ViewWidth;
-    m_ViewHeight = ViewHeight;
-
-    // Transform from text view space to clip space.
-    const float vpX = 0.0f;
-    const float vpY = 0.0f;
-    const float twoDivW = 2.0f / ViewWidth;
-    const float twoDivH = 2.0f / ViewHeight;
-    m_VSParams.ViewportTransform = Vector4(twoDivW, -twoDivH, -vpX * twoDivW - 1.0f, vpY * twoDivH + 1.0f);
-
-    // The font texture dimensions are still unknown
-    m_VSParams.NormalizeX = 1.0f;
-    m_VSParams.NormalizeY = 1.0f;
-
-    ResetSettings();
-}
-
-void TextContext::ResetSettings( void )
-{
-    m_EnableShadow = true;
-    ResetCursor(0.0f, 0.0f);
-    m_ShadowOffsetX = 0.05f;
-    m_ShadowOffsetY = 0.05f;
-    m_PSParams.ShadowHardness = 0.5f;
-    m_PSParams.ShadowOpacity = 1.0f;
-    m_PSParams.TextColor = Color(1.0f, 1.0f, 1.0f, 1.0f);
-
-    m_VSConstantBufferIsStale = true;
-    m_PSConstantBufferIsStale = true;
-    m_TextureIsStale = true;
-
-    SetFont( L"default", 24.0f );
-}
-
-void  TextContext::SetLeftMargin( float x ) { m_LeftMargin = x; }
-void  TextContext::SetCursorX( float x ) { m_TextPosX = x; }
-void  TextContext::SetCursorY( float y ) { m_TextPosY = y; }
-void  TextContext::NewLine( void ) { m_TextPosX = m_LeftMargin; m_TextPosY += m_LineHeight; }
-float TextContext::GetLeftMargin( void ) { return m_LeftMargin; }
-float TextContext::GetCursorX( void ) { return m_TextPosX; }
-float TextContext::GetCursorY( void ) { return m_TextPosY; }
-
-
-void TextContext::ResetCursor(float x, float y)
-{
-    m_LeftMargin = x;
-    m_TextPosX = x;
-    m_TextPosY = y;
-}
-
-void TextContext::EnableDropShadow(bool enable)
-{
-    if (m_EnableShadow == enable)
-        return;
-
-    m_EnableShadow = enable;
-
-    m_Context.SetPipelineState( m_EnableShadow ? TextRenderer::s_ShadowPSO[m_HDR] : TextRenderer::s_TextPSO[m_HDR] );
-}
-
-void TextContext::SetShadowOffset(float xPercent, float yPercent)
-{
-    m_ShadowOffsetX = xPercent;
-    m_ShadowOffsetY = yPercent;
-    m_PSParams.ShadowOffsetX = m_CurrentFont->GetHeight() * m_ShadowOffsetX * m_VSParams.NormalizeX;
-    m_PSParams.ShadowOffsetY = m_CurrentFont->GetHeight() * m_ShadowOffsetY * m_VSParams.NormalizeY;
-    m_PSConstantBufferIsStale = true;
-}
-
-void TextContext::SetShadowParams(float opacity, float width)
-{
-    m_PSParams.ShadowHardness = 1.0f / width;
-    m_PSParams.ShadowOpacity = opacity;
-    m_PSConstantBufferIsStale = true;
-}
-
-void TextContext::SetColor( Color c )
-{
-    m_PSParams.TextColor = c;
-    m_PSConstantBufferIsStale = true;
-}
-
-float TextContext::GetVerticalSpacing( void )
-{
-    return m_LineHeight;
-}
-
-void TextContext::Begin( bool EnableHDR )
-{
-    ResetSettings();
-
-    m_HDR = (BOOL)EnableHDR;
-
-    m_Context.SetRootSignature(TextRenderer::s_RootSignature);
-    m_Context.SetPipelineState(TextRenderer::s_ShadowPSO[m_HDR]);
-    m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-}
-
-void TextContext::SetFont( const wstring& fontName, float size )
-{
-    // If that font is already set or doesn't exist, return.
-    const TextRenderer::Font* NextFont = TextRenderer::GetOrLoadFont( fontName );
-    if (NextFont == m_CurrentFont || NextFont == nullptr)
-    {
-        if (size > 0.0f)
-            SetTextSize(size);
-
-        return;
+    m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+    if (nVertices > 0) {
+      m_pDeviceContext->Draw(nVertices, 0);
     }
+  }
+#endif
+  
 
-    m_CurrentFont = NextFont;
-
-    // Check to see if a new size was specified
-    if (size > 0.0f)
-        m_VSParams.TextSize = size;
-
-    // Update constants directly tied to the font or the font size
-    m_LineHeight = NextFont->GetVerticalSpacing( m_VSParams.TextSize );
-    m_VSParams.NormalizeX = m_CurrentFont->GetXNormalizationFactor();
-    m_VSParams.NormalizeY = m_CurrentFont->GetYNormalizationFactor();
-    m_VSParams.Scale = m_VSParams.TextSize / m_CurrentFont->GetHeight();
-    m_VSParams.DstBorder = m_CurrentFont->GetBorderSize() * m_VSParams.Scale;
-    m_VSParams.SrcBorder = m_CurrentFont->GetBorderSize();
-    m_PSParams.ShadowOffsetX = m_CurrentFont->GetHeight() * m_ShadowOffsetX * m_VSParams.NormalizeX;
-    m_PSParams.ShadowOffsetY = m_CurrentFont->GetHeight() * m_ShadowOffsetY * m_VSParams.NormalizeY;
-    m_PSParams.HeightRange = m_CurrentFont->GetAntialiasRange( m_VSParams.TextSize );
-    m_VSConstantBufferIsStale = true;
-    m_PSConstantBufferIsStale = true;
-    m_TextureIsStale = true;
-}
-
-void TextContext::SetTextSize( float size )
-{
-    if (m_VSParams.TextSize == size)
-        return;
-
-    m_VSParams.TextSize = size;
-    m_VSConstantBufferIsStale = true;
-
-    if (m_CurrentFont != nullptr)
-    {
-        m_PSParams.HeightRange = m_CurrentFont->GetAntialiasRange( m_VSParams.TextSize );
-        m_VSParams.Scale = m_VSParams.TextSize / m_CurrentFont->GetHeight();
-        m_VSParams.DstBorder = m_CurrentFont->GetBorderSize() * m_VSParams.Scale;
-        m_PSConstantBufferIsStale = true;
-        m_LineHeight = m_CurrentFont->GetVerticalSpacing( size );
-    }
-    else
-        m_LineHeight = 0.0f;
-}
-
-void TextContext::SetViewSize( float ViewWidth, float ViewHeight )
-{
-    m_ViewWidth = ViewWidth;
-    m_ViewHeight = ViewHeight;
-
-    const float vpX = 0.0f;
-    const float vpY = 0.0f;
-    const float twoDivW = 2.0f / ViewWidth;
-    const float twoDivH = 2.0f / ViewHeight;
-
-    // Essentially transform from screen coordinates to to clip space with W = 1.
-    m_VSParams.ViewportTransform = Vector4(twoDivW, -twoDivH, -vpX * twoDivW - 1.0f, vpY * twoDivH + 1.0f);
-    m_VSConstantBufferIsStale = true;
-}
-
-void TextContext::End( void )
-{
-    m_VSConstantBufferIsStale = true;
-    m_PSConstantBufferIsStale = true;
-    m_TextureIsStale = true;
-}
-
-void TextContext::SetRenderState( void )
-{
-    WARN_ONCE_IF(nullptr == m_CurrentFont, "Attempted to draw text without a font");
-
-    if (m_VSConstantBufferIsStale)
-    {
-        m_Context.SetDynamicConstantBufferView(0, sizeof(m_VSParams), &m_VSParams);
-        m_VSConstantBufferIsStale = false;
-    }
-
-    if (m_PSConstantBufferIsStale)
-    {
-        m_Context.SetDynamicConstantBufferView(1, sizeof(m_PSParams), &m_PSParams);
-        m_PSConstantBufferIsStale = false;
-    }
-
-    if (m_TextureIsStale)
-    {
-        m_Context.SetDynamicDescriptors(2, 0, 1, &m_CurrentFont->GetTexture().GetSRV());
-        m_TextureIsStale = false;
-    }
-}
-
-// These are made with templates to handle char and wchar_t simultaneously.
-UINT TextContext::FillVertexBuffer( TextVert volatile* verts, const char* str, size_t stride, size_t slen )
-{
-    UINT charsDrawn = 0;
-
-    const float UVtoPixel = m_VSParams.Scale;
-
-    float curX = m_TextPosX;
-    float curY = m_TextPosY;
-
-    const uint16_t texelHeight = m_CurrentFont->GetHeight();
-
-    const char* iter = str;
-    for (size_t i = 0; i < slen; ++i)
-    {
-        wchar_t wc = (stride == 2 ? *(wchar_t*)iter : *iter);
-        iter += stride;
-
-        // Terminate on null character (this really shouldn't happen with string or wstring)
-        if (wc == L'\0')
-            break;
-
-        // Handle newlines by inserting a carriage return and line feed
-        if (wc == L'\n')
-        {
-            curX = m_LeftMargin;
-            curY += m_LineHeight;
-            continue;
-        }
-
-        const TextRenderer::Font::Glyph* gi = m_CurrentFont->GetGlyph(wc);
-
-        // Ignore missing characters
-        if (nullptr == gi)
-            continue;
-
-        verts->X = curX + (float)gi->bearing * UVtoPixel;
-        verts->Y = curY;
-        verts->U = gi->x;
-        verts->V = gi->y;
-        verts->W = gi->w;
-        verts->H = texelHeight;
-        ++verts;
-
-        // Advance the cursor position
-        curX += (float)gi->advance * UVtoPixel;
-        ++charsDrawn;
-    }
-
-    m_TextPosX = curX;
-    m_TextPosY = curY;
-
-    return charsDrawn;
-}
-
-void TextContext::DrawString( const std::wstring& str )
-{
-    SetRenderState();
-
-    void* stackMem = _malloca((str.size() + 1) * 16);
-    TextVert* vbPtr = Math::AlignUp((TextVert*)stackMem, 16);
-    UINT primCount = FillVertexBuffer(vbPtr, (char*)str.c_str(), 2, str.size());
-
-    if (primCount > 0)
-    {
-        m_Context.SetDynamicVB(0, primCount, sizeof(TextVert), vbPtr);
-        m_Context.DrawInstanced( 4, primCount );
-    }
-
-    _freea(stackMem);
-}
-
-void TextContext::DrawString( const std::string& str )
-{
-    SetRenderState();
-
-    void* stackMem = _malloca((str.size() + 1) * 16);
-    TextVert* vbPtr = Math::AlignUp((TextVert*)stackMem, 16);
-    UINT primCount = FillVertexBuffer(vbPtr, (char*)str.c_str(), 1, str.size());
-
-    if (primCount > 0)
-    {
-        m_Context.SetDynamicVB(0, primCount, sizeof(TextVert), vbPtr);
-        m_Context.DrawInstanced( 4, primCount );
-    }
-
-    _freea(stackMem);
-}
-
-void TextContext::DrawFormattedString( const wchar_t* format, ... )
-{
-    wchar_t buffer[256];
-    va_list ap;
-    va_start(ap, format);
-    vswprintf( buffer, 256, format, ap );
-    va_end(ap);
-    DrawString( wstring(buffer) );
-}
-
-void TextContext::DrawFormattedString( const char* format, ... )
-{
-    char buffer[256];
-    va_list ap;
-    va_start(ap, format);
-    vsprintf_s( buffer, 256, format, ap );
-    va_end(ap);
-    DrawString( string(buffer) );
 }

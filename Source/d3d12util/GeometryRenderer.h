@@ -39,6 +39,20 @@ __declspec(align(16)) struct POINTVERTEX12 {
   DirectX::XMFLOAT4 Color;
 };
 
+struct GraphRectangle
+{
+  D3DCOLOR graphcolor;
+  RECT graphrect;
+};
+
+struct GraphLine
+{
+  POINT linepoints[2];
+  D3DCOLOR linecolor;
+  UINT linesize;
+  SIZE linertsize;
+};
+
 class GeometryContext
 {
 public:
@@ -53,9 +67,10 @@ public:
   // Begin and end drawing commands
   void Begin(bool EnableHDR = false);
   void End(void);
-
+  void DrawQuadrilateral(const SIZE& rtSize);
   void DrawRectangle(const RECT& rect, const SIZE& rtSize, const D3DCOLOR color);
-
+  void DrawLine(GraphLine line);
+  void DrawGFPoints(int Xstart, int Xstep, int Yaxis, int Yscale, int* Ydata, UINT Yoffset, const UINT size, const D3DCOLOR color, SIZE& newRTSize);
 protected:
   bool m_bAlphaBlend = false;
   POINTVERTEX12 m_Vertices[4] = {};
