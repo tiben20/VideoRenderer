@@ -15,6 +15,7 @@
 #include "FileUtility.h"
 #include <fstream>
 #include <mutex>
+
 //#include <zlib.h> // From NuGet package 
 
 using namespace std;
@@ -25,14 +26,52 @@ namespace Utility
     ByteArray NullFile = make_shared<vector<BYTE> > (vector<BYTE>() );
 
 
+    bool replaceslash(std::wstring& str, const std::wstring& from, const std::wstring& to) {
+      size_t start_pos = str.find(from);
+      if (start_pos == std::wstring::npos)
+        return false;
+      str.replace(start_pos, from.length(), to);
+      return true;
+    }
+    std::wstring thisDllDirPath()
+    {
+      std::wstring thisPath = L"";
+      WCHAR path[MAX_PATH];
+      HMODULE hm;
+      if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        (LPWSTR)&thisDllDirPath, &hm))
+      {
+        GetModuleFileNameW(hm, path, MAX_PATH);
+        PathRemoveFileSpecW(path);
+        thisPath = std::wstring(path);
+        if (!thisPath.empty() && thisPath.at(thisPath.size() - 1) != '\\')
+          thisPath += L"\\";
+      }
+      return thisPath;
+    }
 ByteArray ReadFileHelper(const wstring& fileName)
 {
     struct _stat64 fileStat;
-    int fileExists = _wstat64(fileName.c_str(), &fileStat);
+    std::wstring thefile;
+    thefile = fileName;
+    int fileExists = _wstat64(thefile.c_str(), &fileStat);
+    
+    if (fileExists == -1)
+    {
+      thefile = thisDllDirPath();
+      
+      thefile.append(fileName);
+      replaceslash(thefile,L"/", L"\\");
+      fileExists = _wstat64(thefile.c_str(), &fileStat);
+
+
+    }
+    
     if (fileExists == -1)
         return NullFile;
 
-    ifstream file( fileName, ios::in | ios::binary );
+    ifstream file(thefile, ios::in | ios::binary );
     if (!file)
         return NullFile;
 

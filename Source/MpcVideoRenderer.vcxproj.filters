@@ -222,6 +222,9 @@
     <ClCompile Include="d3d12util\SamplerManager.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClCompile>
+    <ClCompile Include="d3d12util\GeometryRenderer.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -458,6 +461,9 @@
     <ClInclude Include="d3d12util\SamplerManager.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
+    <ClInclude Include="d3d12util\GeometryRenderer.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MpcVideoRenderer.rc">
@@ -627,6 +633,12 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\GenerateMipsLinearCS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GeometryPS.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="d3d12util\shaders\GeometryVS.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
   </ItemGroup>

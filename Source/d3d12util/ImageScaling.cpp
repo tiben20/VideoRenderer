@@ -108,7 +108,7 @@ namespace ImageScaling
         0.7071f / g_NativeWidth, 0.7071f / g_NativeHeight);
       Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
       Context.SetRenderTarget(renderTarget.GetRTV());
-      Context.SetViewportAndScissor(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
+      Context.SetViewport(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
       Context.Draw(3);
     }
 
@@ -133,7 +133,7 @@ namespace ImageScaling
         Context.SetConstants(1, 0.7071f / renderTarget.GetWidth(), 0.7071f / renderTarget.GetHeight());
         Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
         Context.SetRenderTarget(renderTarget.GetRTV());
-        Context.SetViewportAndScissor(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
+        Context.SetViewport(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
         Context.Draw(3);
       }
       else
@@ -150,7 +150,7 @@ namespace ImageScaling
           Context.SetPipelineState(PresentSDRPS);
           Context.TransitionResource(Dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
           Context.SetRenderTarget(Dest.GetRTV());
-          Context.SetViewportAndScissor(0, 0, 1024, 768);
+          Context.SetViewport(0, 0, renderrect.Width(), renderrect.Height());
           Context.Draw(3);
         }
       }

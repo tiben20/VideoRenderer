@@ -18,29 +18,27 @@
 *
 */
 
-#include "PresentRS.hlsli"
 
 struct VS_INPUT
 {
-float3 position     : POSITION;
-float2 uv           : TEXCOORD;
+    float4 position : POSITION;
+    float4 color : COLOR;
 };
+
+//struct VS_INPUT
+//{
+//    float4 position : POSITION;
+//    float2 Tex : TEXCOORD;
+//};
 
 struct VS_OUTPUT
 {
-  float4 Pos : SV_POSITION;    // Upper-left and lower-right coordinates in clip space
-  float2 Tex : TEXCOORD0;        // Upper-left and lower-right normalized UVs
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
 };
 
-//[RootSignature(Present_RootSig)]
-VS_OUTPUT main( VS_INPUT input, uint VertID : SV_VertexID)
+VS_OUTPUT main(VS_INPUT input)
 {
-  VS_OUTPUT output;
-  // position w is always 1 for video a video have no depth
-  output.Pos = float4(input.position, 1);
-  output.Tex = float3(input.uv, 0);
-  return output;
-    // Texture coordinates range [0, 2], but only [0, 1] appears on screen.
-    //Tex = float2(uint2(VertID, VertID << 1) & 2);
-    //Pos = float4(lerp(float2(-1, 1), float2(1, -1), Tex), 0, 1);
+    return input;
+
 }

@@ -65,6 +65,8 @@ namespace D3D12Engine
     ColorBuffer g_TemporalMaxBound;
     ColorBuffer g_LumaLR;
 
+    ByteAddressBuffer g_GeometryBuffer;
+
     DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
     //DXGI_FORMAT DefaultHdrColorFormat = DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R11G11B10_FLOAT;
 }
@@ -170,13 +172,14 @@ void D3D12Engine::InitializeRenderingBuffers( uint32_t bufferWidth, uint32_t buf
             // This is useful for storing per-pixel weights such as motion strength or pixel luminance
             g_LumaBuffer.Create( L"Luminance", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R8_UNORM, esram );
 
+            
         esram.PopStack();	// End post processing
 
         g_OverlayBuffer.Create( L"UI Overlay", bufferWidth, bufferHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM, esram );
         g_HorizontalBuffer.Create( L"Bicubic Intermediate", bufferWidth, bufferHeight, 1, DefaultHdrColorFormat, esram );
 
     esram.PopStack(); // End final image
-
+    
     InitContext.Finish();
 }
 

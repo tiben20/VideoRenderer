@@ -30,7 +30,7 @@
 #include "resource.h"
 #include "VideoRenderer.h"
 #include "../Include/Version.h"
-#include "d3d10.h"
+
 #include "../Include/ID3DVideoMemoryConfiguration.h"
 #include "Shaders.h"
 #include "Utils/CPUInfo.h"
@@ -39,12 +39,9 @@
 #include <fstream>
 #include "dxgi1_6.h"
 
-
-
 #include "d3d12util/BufferManager.h"
-
 #include "d3d12util/TextRenderer.h"
-
+#include "d3d12util/GeometryRenderer.h"
 #include "d3d12util/EsramAllocator.h"
 #include "d3d12util/math/Common.h"
 
@@ -161,12 +158,19 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 				DisplayConfig_t displayConfig = {};
 				if (GetDisplayConfig(desc.DeviceName, displayConfig)) {
 					m_hdrModeStartState[desc.DeviceName] = displayConfig.advancedColor.advancedColorEnabled;
+					DXGI_ADAPTER_DESC dxgiAdapterDesc = {};
+					hr = pDXGIAdapter->GetDesc(&dxgiAdapterDesc);
+					if (SUCCEEDED(hr)) {
+						m_VendorId = dxgiAdapterDesc.VendorId;
+						m_strAdapterDescription = fmt::format(L"{} ({:04X}:{:04X})", dxgiAdapterDesc.Description, dxgiAdapterDesc.VendorId, dxgiAdapterDesc.DeviceId);
+						DLog(L"Graphics DXGI adapter: {}", m_strAdapterDescription);
+					}
 				}
 			}
 
 			pDXGIOutput.Release();
 		}
-
+		
 		pDXGIAdapter.Release();
 	}
 	for (int xx = 0; xx < 3; xx++)
@@ -185,12 +189,11 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	RootSignature::DestroyAll();
 	DescriptorAllocator::DestroyAll();
 	ImageScaling::FreeImageScaling();
+	/*Need this to have correct heap if we dont entirely close the module*/
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	//g_CommandManager = new CommandListManager();
-	
 	
 	D3D12Engine::DestroyCommonState();
 	D3D12Engine::DestroyRenderingBuffers();
@@ -198,6 +201,7 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	m_pPlaneResource[1].DestroyBuffer();
 	m_pResizeResource.DestroyBuffer();
 	TextRenderer::Shutdown();
+	GeometryRenderer::Shutdown();
 	ReleaseSwapChain();
 	
 	
@@ -300,6 +304,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	D3D12Engine::InitializeCommonState();
 	D3D12Engine::InitializeRenderingBuffers(1280,528);
 	TextRenderer::Initialize();
+	GeometryRenderer::Initialize();
 	ImageScaling::Initialize(m_SwapChainFmt);
 	
 	SetShaderConvertColorParams();
@@ -315,6 +320,8 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 		//assert(0);
 	if (m_pFilter->m_filterState == State_Stopped)
 		assert(0);
+	
+	
 	DXGI_SWAP_CHAIN_DESC desc2;
 	if (!m_pDXGISwapChain1)
 		Reset();
@@ -337,6 +344,9 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 	m_rtStart = rtStart;
 	CRefTime rtClock(rtStart);
+
+	if (m_pFilter->m_filterState == State_Paused)
+		return S_OK;
 	D3D12_RESOURCE_DESC desc = {};
 	CComQIPtr<ID3D12Resource> pD3D12Resource;
 	if (CComQIPtr<IMediaSampleD3D12> pMSD3D12 = pSample)
@@ -355,6 +365,7 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 		0, 2, 0, layoutplane, rows_plane, pitch_plane, &RequiredSize);
 	EsramAllocator esram;
 	
+	//we can't use the format from the footprint its always a typeless format which can't be handled by the copy
 	if (desc.Format != DXGI_FORMAT_P010 && m_pPlaneResource[0].GetWidth() == 0)// DXGI_FORMAT_NV12
 	{
 		m_pPlaneResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R8_UNORM);
@@ -397,10 +408,12 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	
 	pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
 	ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar);
-	pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
+	pVideoContext.SetViewport(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
 	/*draw the text*/
 	if (m_bShowStats)
+	{
 		Display(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
+	}
 
 	
 	ImageScaling::Upscale(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, (ImageScaling::eScalingFilter)m_iUpscaling, m_videoRect);
@@ -735,7 +748,11 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 
 
 	m_srcVideoTransferFunction = m_srcExFmt.VideoTransferFunction;
-	
+	m_srcWidth = origW;
+	m_srcHeight = origH;
+	m_iSrcFromGPU = 12;/* this will add D3D12 in the stats*/
+	//we dont use the video processor yet but at least set the src height and width
+
 #ifdef TODO
 	// D3D11 Video Processor
 	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN && !(m_VendorId == PCIV_NVIDIA && FmtParams.CSType == CS_RGB)) {
@@ -1151,12 +1168,25 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 	Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 	Context.ClearColor(g_OverlayBuffer);
 	Context.SetRenderTarget(g_OverlayBuffer.GetRTV());
-	Context.SetViewportAndScissor(0, 0, g_OverlayBuffer.GetWidth(), g_OverlayBuffer.GetHeight());
+	Context.SetViewportAndScissor(0, 0, 400.0f, 250.0f);
+
+	GeometryContext BackgroundWindow(Context);
+	BackgroundWindow.Begin();
+	SIZE rtSize = m_windowRect.Size();
+	BackgroundWindow.DrawRectangle(m_StatsRect,rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
+	//BackgroundWindow.SetColor(Color(255.0f, 255.0f, 255.0f, 1.0f));
+	//BackgroundWindow.SetOpacity(0.4f);
+	//BackgroundWindow.seto
+
+	//BackgroundWindow.DrawRectangle(Color(255.0f, 0.1f, 0.1f, 1.0f),0.1f);
+
+	BackgroundWindow.End();
+
 	std::wstring str;
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
-	//str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
+	str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
 	wchar_t frametype = 'p';//(m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
 	str += fmt::format(
 		L"\nFrame rate    : {:7.3f}{},{:7.3f}",
@@ -1191,6 +1221,9 @@ void CDX12VideoProcessor::Display(GraphicsContext& Context, float x, float y, fl
 	str += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
 	
 	TextContext Text(Context);
+	//Text.SetFont(L"Comic Sans MS", 24.0f);
+	Context.SetViewportAndScissor(0, 0, w,h);
+	//we only support ttf SDF font and it needs to be a square texture not one made on the width
 	Text.SetFont(L"Comic Sans MS", 24.0f);
 	Text.Begin();
 	Text.EnableDropShadow(true);
@@ -1311,6 +1344,7 @@ HRESULT CDX12VideoProcessor::Reset()
 		SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", SwapChainBuffer[i]);
 	}
 
+		
 	dxgiFactory.Release();
 	DXGI_SWAP_CHAIN_DESC desc2;
 	m_pDXGISwapChain1->GetDesc(&desc2);

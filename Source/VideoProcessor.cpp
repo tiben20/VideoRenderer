@@ -146,6 +146,9 @@ void CVideoProcessor::UpdateStatsInputFmt()
 	else if (m_iSrcFromGPU == 11) {
 		m_strStatsInputFmt.append(L"D3D11_");
 	}
+	else if (m_iSrcFromGPU == 12) {
+		m_strStatsInputFmt.append(L"D3D12_");
+	}
 	m_strStatsInputFmt.append(m_srcParams.str);
 
 	if (m_srcWidth != m_srcRectWidth || m_srcHeight != m_srcRectHeight) {
