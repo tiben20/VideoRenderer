@@ -83,6 +83,139 @@ namespace ImageScaling
     GraphicsPSO CompositeHDRPS(L"Core: CompositeHDR");
     GraphicsPSO ScaleAndCompositeHDRPS(L"Core: ScaleAndCompositeHDR");
 
+    void ImageScaling::Initialize(DXGI_FORMAT DestFormat)
+    {
+      /* Rendering and present PSOs*/
+      s_PresentRS.Reset(4, 2);
+      s_PresentRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+      s_PresentRS[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
+      s_PresentRS[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+      s_PresentRS[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+      s_PresentRS.InitStaticSampler(0, SamplerLinearClampDesc);
+      s_PresentRS.InitStaticSampler(1, SamplerPointClampDesc);
+      s_PresentRS.Finalize(L"Present");
+
+      s_PresentRSColor.Reset(4, 2);
+      s_PresentRSColor[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+      s_PresentRSColor[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
+      s_PresentRSColor[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+      s_PresentRSColor[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+      s_PresentRSColor.InitStaticSampler(0, SamplerLinearClampDesc);
+      s_PresentRSColor.InitStaticSampler(1, SamplerPointClampDesc);
+      s_PresentRSColor.Finalize(L"Present");
+
+      s_BlendUIPSO.SetRootSignature(s_PresentRS);
+      s_BlendUIPSO.SetRasterizerState(RasterizerTwoSided);
+      s_BlendUIPSO.SetBlendState(BlendPreMultiplied);
+      s_BlendUIPSO.SetDepthStencilState(DepthStateDisabled);
+      s_BlendUIPSO.SetSampleMask(0xFFFFFFFF);
+      s_BlendUIPSO.SetInputLayout(0, nullptr);
+      s_BlendUIPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+      s_BlendUIPSO.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+      s_BlendUIPSO.SetPixelShader(g_pBufferCopyPS, sizeof(g_pBufferCopyPS));
+      s_BlendUIPSO.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
+      s_BlendUIPSO.Finalize();
+
+      s_BlendUIHDRPSO = s_BlendUIPSO;
+      s_BlendUIHDRPSO.SetPixelShader(g_pBlendUIHDRPS, sizeof(g_pBlendUIHDRPS));
+      s_BlendUIHDRPSO.Finalize();
+
+#define CreatePSO( ObjName, ShaderByteCode ) \
+    ObjName = s_BlendUIPSO; \
+    ObjName.SetBlendState( BlendDisable ); \
+    ObjName.SetPixelShader(ShaderByteCode, sizeof(ShaderByteCode) ); \
+    ObjName.Finalize();
+
+      CreatePSO(PresentSDRPS, g_pPresentSDRPS);
+      CreatePSO(CompositeSDRPS, g_pCompositeSDRPS);
+      CreatePSO(ScaleAndCompositeSDRPS, g_pScaleAndCompositeSDRPS);
+      CreatePSO(CompositeHDRPS, g_pCompositeHDRPS);
+      CreatePSO(ScaleAndCompositeHDRPS, g_pScaleAndCompositeHDRPS);
+
+      PresentHDRPS = PresentSDRPS;
+      PresentHDRPS.SetPixelShader(g_pPresentHDRPS, sizeof(g_pPresentHDRPS));
+      DXGI_FORMAT SwapChainFormats[2] = { DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM };
+      PresentHDRPS.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
+      PresentHDRPS.Finalize();
+
+      ColorConvertNV12PS.SetRootSignature(s_PresentRSColor);
+      //BilinearUpsamplePS2.SetRasterizerState(D3D12Engine::RasterizerDefault);
+      ColorConvertNV12PS.SetRasterizerState(D3D12Engine::RasterizerDefault);
+      ColorConvertNV12PS.SetBlendState(D3D12Engine::BlendDisable);
+      //BilinearUpsamplePS2.SetBlendState(D3D12Engine::BlendDisable);
+      ColorConvertNV12PS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+      ColorConvertNV12PS.SetSampleMask(0xFFFFFFFF);
+      ColorConvertNV12PS.SetInputLayout(0, nullptr);
+      ColorConvertNV12PS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+      ColorConvertNV12PS.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+      ColorConvertNV12PS.SetPixelShader(g_pColorConvertNV12PS, sizeof(g_pColorConvertNV12PS));
+      ColorConvertNV12PS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
+      ColorConvertNV12PS.Finalize();
+      /*Scaling*/
+      BilinearUpsamplePS.SetRootSignature(s_PresentRS);
+      BilinearUpsamplePS.SetRasterizerState(RasterizerTwoSided);
+      BilinearUpsamplePS.SetBlendState(BlendDisable);
+      BilinearUpsamplePS.SetDepthStencilState(DepthStateDisabled);
+      BilinearUpsamplePS.SetSampleMask(0xFFFFFFFF);
+      BilinearUpsamplePS.SetInputLayout(0, nullptr);
+      BilinearUpsamplePS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+      BilinearUpsamplePS.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+      BilinearUpsamplePS.SetPixelShader(g_pBilinearUpsamplePS, sizeof(g_pBilinearUpsamplePS));
+      BilinearUpsamplePS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
+      BilinearUpsamplePS.Finalize();
+
+      BicubicHorizontalUpsamplePS = BilinearUpsamplePS;
+      BicubicHorizontalUpsamplePS.SetPixelShader(g_pBicubicHorizontalUpsamplePS, sizeof(g_pBicubicHorizontalUpsamplePS));
+      BicubicHorizontalUpsamplePS.SetRenderTargetFormat(g_HorizontalBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+      BicubicHorizontalUpsamplePS.Finalize();
+
+      BicubicVerticalUpsamplePS = BilinearUpsamplePS;
+      BicubicVerticalUpsamplePS.SetPixelShader(g_pBicubicVerticalUpsamplePS, sizeof(g_pBicubicVerticalUpsamplePS));
+      BicubicVerticalUpsamplePS.Finalize();
+
+      BicubicCS[kDefaultCS].SetRootSignature(s_PresentRS);
+      BicubicCS[kDefaultCS].SetComputeShader(g_pBicubicUpsampleCS, sizeof(g_pBicubicUpsampleCS));
+      BicubicCS[kDefaultCS].Finalize();
+      BicubicCS[kFast16CS].SetRootSignature(s_PresentRS);
+      BicubicCS[kFast16CS].SetComputeShader(g_pBicubicUpsampleFast16CS, sizeof(g_pBicubicUpsampleFast16CS));
+      BicubicCS[kFast16CS].Finalize();
+      BicubicCS[kFast24CS].SetRootSignature(s_PresentRS);
+      BicubicCS[kFast24CS].SetComputeShader(g_pBicubicUpsampleFast24CS, sizeof(g_pBicubicUpsampleFast24CS));
+      BicubicCS[kFast24CS].Finalize();
+      BicubicCS[kFast32CS].SetRootSignature(s_PresentRS);
+      BicubicCS[kFast32CS].SetComputeShader(g_pBicubicUpsampleFast32CS, sizeof(g_pBicubicUpsampleFast32CS));
+      BicubicCS[kFast32CS].Finalize();
+
+      SharpeningUpsamplePS = BilinearUpsamplePS;
+      SharpeningUpsamplePS.SetPixelShader(g_pSharpeningUpsamplePS, sizeof(g_pSharpeningUpsamplePS));
+      SharpeningUpsamplePS.Finalize();
+
+      LanczosHorizontalPS = BicubicHorizontalUpsamplePS;
+      LanczosHorizontalPS.SetPixelShader(g_pLanczosHorizontalPS, sizeof(g_pLanczosHorizontalPS));
+      LanczosHorizontalPS.Finalize();
+
+      LanczosVerticalPS = BilinearUpsamplePS;
+      LanczosVerticalPS.SetPixelShader(g_pLanczosVerticalPS, sizeof(g_pLanczosVerticalPS));
+      LanczosVerticalPS.Finalize();
+
+      LanczosCS[kDefaultCS].SetRootSignature(s_PresentRS);
+      LanczosCS[kDefaultCS].SetComputeShader(g_pLanczosCS, sizeof(g_pLanczosCS));
+      LanczosCS[kDefaultCS].Finalize();
+
+      LanczosCS[kFast16CS].SetRootSignature(s_PresentRS);
+      LanczosCS[kFast16CS].SetComputeShader(g_pLanczosFast16CS, sizeof(g_pLanczosFast16CS));
+      LanczosCS[kFast16CS].Finalize();
+
+      LanczosCS[kFast24CS].SetRootSignature(s_PresentRS);
+      LanczosCS[kFast24CS].SetComputeShader(g_pLanczosFast24CS, sizeof(g_pLanczosFast24CS));
+      LanczosCS[kFast24CS].Finalize();
+
+      LanczosCS[kFast32CS].SetRootSignature(s_PresentRS);
+      LanczosCS[kFast32CS].SetComputeShader(g_pLanczosFast32CS, sizeof(g_pLanczosFast32CS));
+      LanczosCS[kFast32CS].Finalize();
+
+    }
+
     void ImageScaling::PreparePresentHDR(GraphicsContext& Context,ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect)
     {
 
@@ -395,138 +528,7 @@ void ImageScaling::FreeImageScaling()
   ScaleAndCompositeHDRPS.FreePSO();
 }
 
-void ImageScaling::Initialize(DXGI_FORMAT DestFormat )
-{
-  /* Rendering and present PSOs*/
-  s_PresentRS.Reset(4, 2);
-  s_PresentRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-  s_PresentRS[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
-  s_PresentRS[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-  s_PresentRS[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-  s_PresentRS.InitStaticSampler(0, SamplerLinearClampDesc);
-  s_PresentRS.InitStaticSampler(1, SamplerPointClampDesc);
-  s_PresentRS.Finalize(L"Present");
 
-  s_PresentRSColor.Reset(4, 2);
-  s_PresentRSColor[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-  s_PresentRSColor[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
-  s_PresentRSColor[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-  s_PresentRSColor[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-  s_PresentRSColor.InitStaticSampler(0, SamplerLinearClampDesc);
-  s_PresentRSColor.InitStaticSampler(1, SamplerPointClampDesc);
-  s_PresentRSColor.Finalize(L"Present");
-
-  s_BlendUIPSO.SetRootSignature(s_PresentRS);
-  s_BlendUIPSO.SetRasterizerState(RasterizerTwoSided);
-  s_BlendUIPSO.SetBlendState(BlendPreMultiplied);
-  s_BlendUIPSO.SetDepthStencilState(DepthStateDisabled);
-  s_BlendUIPSO.SetSampleMask(0xFFFFFFFF);
-  s_BlendUIPSO.SetInputLayout(0, nullptr);
-  s_BlendUIPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-  s_BlendUIPSO.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
-  s_BlendUIPSO.SetPixelShader(g_pBufferCopyPS, sizeof(g_pBufferCopyPS));
-  s_BlendUIPSO.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
-  s_BlendUIPSO.Finalize();
-
-  s_BlendUIHDRPSO = s_BlendUIPSO;
-  s_BlendUIHDRPSO.SetPixelShader(g_pBlendUIHDRPS, sizeof(g_pBlendUIHDRPS));
-  s_BlendUIHDRPSO.Finalize();
-
-#define CreatePSO( ObjName, ShaderByteCode ) \
-    ObjName = s_BlendUIPSO; \
-    ObjName.SetBlendState( BlendDisable ); \
-    ObjName.SetPixelShader(ShaderByteCode, sizeof(ShaderByteCode) ); \
-    ObjName.Finalize();
-
-  CreatePSO(PresentSDRPS, g_pPresentSDRPS);
-  CreatePSO(CompositeSDRPS, g_pCompositeSDRPS);
-  CreatePSO(ScaleAndCompositeSDRPS, g_pScaleAndCompositeSDRPS);
-  CreatePSO(CompositeHDRPS, g_pCompositeHDRPS);
-  CreatePSO(ScaleAndCompositeHDRPS, g_pScaleAndCompositeHDRPS);
-
-  PresentHDRPS = PresentSDRPS;
-  PresentHDRPS.SetPixelShader(g_pPresentHDRPS, sizeof(g_pPresentHDRPS));
-  DXGI_FORMAT SwapChainFormats[2] = { DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM };
-  PresentHDRPS.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
-  PresentHDRPS.Finalize();
-
-  ColorConvertNV12PS.SetRootSignature(s_PresentRSColor);
-  //BilinearUpsamplePS2.SetRasterizerState(D3D12Engine::RasterizerDefault);
-  ColorConvertNV12PS.SetRasterizerState(D3D12Engine::RasterizerDefault);
-  ColorConvertNV12PS.SetBlendState(D3D12Engine::BlendDisable);
-  //BilinearUpsamplePS2.SetBlendState(D3D12Engine::BlendDisable);
-  ColorConvertNV12PS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
-  ColorConvertNV12PS.SetSampleMask(0xFFFFFFFF);
-  ColorConvertNV12PS.SetInputLayout(0, nullptr);
-  ColorConvertNV12PS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-  ColorConvertNV12PS.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
-  ColorConvertNV12PS.SetPixelShader(g_pColorConvertNV12PS, sizeof(g_pColorConvertNV12PS));
-  ColorConvertNV12PS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
-  ColorConvertNV12PS.Finalize();
-  /*Scaling*/
-    BilinearUpsamplePS.SetRootSignature(s_PresentRS);
-    BilinearUpsamplePS.SetRasterizerState( RasterizerTwoSided );
-    BilinearUpsamplePS.SetBlendState( BlendDisable );
-    BilinearUpsamplePS.SetDepthStencilState( DepthStateDisabled );
-    BilinearUpsamplePS.SetSampleMask(0xFFFFFFFF);
-    BilinearUpsamplePS.SetInputLayout(0, nullptr);
-    BilinearUpsamplePS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-    BilinearUpsamplePS.SetVertexShader( g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS) );
-    BilinearUpsamplePS.SetPixelShader( g_pBilinearUpsamplePS, sizeof(g_pBilinearUpsamplePS) );
-    BilinearUpsamplePS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
-    BilinearUpsamplePS.Finalize();
-
-    BicubicHorizontalUpsamplePS = BilinearUpsamplePS;
-    BicubicHorizontalUpsamplePS.SetPixelShader(g_pBicubicHorizontalUpsamplePS, sizeof(g_pBicubicHorizontalUpsamplePS) );
-    BicubicHorizontalUpsamplePS.SetRenderTargetFormat(g_HorizontalBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
-    BicubicHorizontalUpsamplePS.Finalize();
-
-    BicubicVerticalUpsamplePS = BilinearUpsamplePS;
-    BicubicVerticalUpsamplePS.SetPixelShader(g_pBicubicVerticalUpsamplePS, sizeof(g_pBicubicVerticalUpsamplePS) );
-    BicubicVerticalUpsamplePS.Finalize();
-
-    BicubicCS[kDefaultCS].SetRootSignature(s_PresentRS);
-    BicubicCS[kDefaultCS].SetComputeShader(g_pBicubicUpsampleCS, sizeof(g_pBicubicUpsampleCS));
-    BicubicCS[kDefaultCS].Finalize();
-    BicubicCS[kFast16CS].SetRootSignature(s_PresentRS);
-    BicubicCS[kFast16CS].SetComputeShader(g_pBicubicUpsampleFast16CS, sizeof(g_pBicubicUpsampleFast16CS));
-    BicubicCS[kFast16CS].Finalize();
-    BicubicCS[kFast24CS].SetRootSignature(s_PresentRS);
-    BicubicCS[kFast24CS].SetComputeShader(g_pBicubicUpsampleFast24CS, sizeof(g_pBicubicUpsampleFast24CS));
-    BicubicCS[kFast24CS].Finalize();
-    BicubicCS[kFast32CS].SetRootSignature(s_PresentRS);
-    BicubicCS[kFast32CS].SetComputeShader(g_pBicubicUpsampleFast32CS, sizeof(g_pBicubicUpsampleFast32CS));
-    BicubicCS[kFast32CS].Finalize();
-
-    SharpeningUpsamplePS = BilinearUpsamplePS;
-    SharpeningUpsamplePS.SetPixelShader(g_pSharpeningUpsamplePS, sizeof(g_pSharpeningUpsamplePS) );
-    SharpeningUpsamplePS.Finalize();
-
-    LanczosHorizontalPS = BicubicHorizontalUpsamplePS;
-    LanczosHorizontalPS.SetPixelShader(g_pLanczosHorizontalPS, sizeof(g_pLanczosHorizontalPS) );
-    LanczosHorizontalPS.Finalize();
-
-    LanczosVerticalPS = BilinearUpsamplePS;
-    LanczosVerticalPS.SetPixelShader(g_pLanczosVerticalPS, sizeof(g_pLanczosVerticalPS) );
-    LanczosVerticalPS.Finalize();
-
-    LanczosCS[kDefaultCS].SetRootSignature(s_PresentRS);
-    LanczosCS[kDefaultCS].SetComputeShader(g_pLanczosCS, sizeof(g_pLanczosCS));
-    LanczosCS[kDefaultCS].Finalize();
-
-    LanczosCS[kFast16CS].SetRootSignature(s_PresentRS);
-    LanczosCS[kFast16CS].SetComputeShader(g_pLanczosFast16CS, sizeof(g_pLanczosFast16CS));
-    LanczosCS[kFast16CS].Finalize();
-
-    LanczosCS[kFast24CS].SetRootSignature(s_PresentRS);
-    LanczosCS[kFast24CS].SetComputeShader(g_pLanczosFast24CS, sizeof(g_pLanczosFast24CS));
-    LanczosCS[kFast24CS].Finalize();
-
-    LanczosCS[kFast32CS].SetRootSignature(s_PresentRS);
-    LanczosCS[kFast32CS].SetComputeShader(g_pLanczosFast32CS, sizeof(g_pLanczosFast32CS));
-    LanczosCS[kFast32CS].Finalize();
-
-}
 
 void ImageScaling::SetPipelineBilinear(GraphicsContext& Context)
 {

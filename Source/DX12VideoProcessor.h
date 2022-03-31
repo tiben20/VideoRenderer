@@ -70,6 +70,9 @@ private:
 	CComPtr<IDXGIOutput>    m_pDXGIOutput;
 	CComPtr<IDXGIFactory1> m_pDXGIFactory1;
 	
+	//video prop
+	D3D12_VIDEO_FIELD_TYPE m_SampleFormat;
+
 	/*d3d9 subpic*/
 	CComPtr<IDirect3DSurface9>        m_pSurface9SubPic;
 	CComPtr<ID3D12Resource>           m_pTextureSubPic;
@@ -80,7 +83,8 @@ private:
 	// D3D12 Video Processor
 	CD3D12VP m_D3D12VP;
 	const wchar_t* m_strCorrection = nullptr;
-
+	//Instead of dynamycally recreating the shaders we use a constant buffer
+	//TODO dont update it when it didn't change
 	typedef struct {
 		FLOAT Colorspace[4 * 3];
 		FLOAT Opacity;
@@ -106,9 +110,14 @@ private:
 	ID3D12Resource* SwapChainBuffer[3];
 	ColorBuffer SwapChainBufferColor[3];
 	ColorBuffer m_pResizeResource;// same format as back buffer,will have the plane rendered onto
+	ColorBuffer m_pVideoOutputResource;// same format as back buffer,will have the plane rendered onto
 	ColorBuffer m_pPlaneResource[2];//Those surface are for copy texture from nv12 to rgb
 	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_ARGB(255, 255, 255, 255);
+	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+
 	
+
 	GraphRectangle m_StatsBackground;
 	GraphRectangle m_Rect3D;
 	GraphRectangle m_Underlay;
@@ -150,6 +159,11 @@ public:
 	HRESULT AddPreScaleShader(const std::wstring& name, const std::string& srcCode) override;
 	HRESULT AddPostScaleShader(const std::wstring& name, const std::string& srcCode) override;
 
+	HRESULT InitializeTexVP(const FmtConvParams_t& params, const UINT width, const UINT height);
+	void UpdateFrameProperties() {
+		m_srcPitch = m_srcWidth * m_srcParams.Packsize;
+		m_srcLines = m_srcHeight * m_srcParams.PitchCoeff / 2;
+	}
 	bool Initialized();
 private:
 	void ReleaseDevice();
@@ -202,8 +216,13 @@ private:
 	CONSTANT_BUFFER_VAR m_pBufferVar;
 
 	bool m_PSConvColorData = false;
+
+	HRESULT Process(const CRect& srcRect, const CRect& dstRect, const bool second);
+
 	HRESULT ProcessSample(IMediaSample* pSample) override;
-	/*Draw the stats*/
+	HRESULT CopySample(IMediaSample* pSample);
+
+	/*Drawing graphs*/
 	void DrawStats(GraphicsContext& Context, float x, float y, float w, float h);
 
 	HRESULT FillBlack() override;

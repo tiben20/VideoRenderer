@@ -33,7 +33,7 @@ struct VS_OUTPUT
 };
 
 //[RootSignature(Present_RootSig)]
-VS_OUTPUT main( VS_INPUT input, uint VertID : SV_VertexID)
+VS_OUTPUT main( VS_INPUT input)
 {
   VS_OUTPUT output;
   // position w is always 1 for video a video have no depth
