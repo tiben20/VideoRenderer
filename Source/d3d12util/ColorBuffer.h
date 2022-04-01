@@ -47,6 +47,9 @@ public:
       m_SRVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
       for (int i = 0; i < _countof(m_UAVHandle); ++i)
         m_UAVHandle[i].ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+      m_Width = 0;
+      m_Height = 0;
+      m_Format = DXGI_FORMAT_UNKNOWN;
       Destroy();
     }
     // Create a color buffer from a swap chain buffer.  Unordered access is restricted.

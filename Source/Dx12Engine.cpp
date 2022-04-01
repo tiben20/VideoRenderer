@@ -142,6 +142,7 @@ namespace D3D12Engine
 		m_pDXGIFactory2.Release();
 		m_pDXGIFactory1.Release();
 		m_pDXGIOutput.Release();
+		p_CurrentBuffer = 0;
 
 	}
 
@@ -433,17 +434,20 @@ namespace D3D12Engine
 
 	void D3D12Engine::Upscale(GraphicsContext& Context, ImageScaling::eScalingFilter tech, CRect destRect)
 	{
+		Context.SetViewportAndScissor(g_windowRect.left, g_windowRect.top, g_windowRect.Width(), g_windowRect.Height());
 		ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pResizeResource, tech, destRect);
 		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 		
 		ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, g_videoRect);
+		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	}
 
 	void D3D12Engine::PresentBackBuffer(GraphicsContext& Context)
 	{
+		Context.SetViewportAndScissor(g_windowRect.left, g_windowRect.top, g_windowRect.Width(), g_windowRect.Height());
 		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 		ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, g_videoRect);
-
+		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	}
 
 	void D3D12Engine::WaitForVBlank()
@@ -456,6 +460,7 @@ namespace D3D12Engine
 
 	void D3D12Engine::Present()
 	{
+		
 		m_pDXGISwapChain1->Present(1, 0);
 		p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
 	
