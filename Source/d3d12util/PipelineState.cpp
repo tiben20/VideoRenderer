@@ -28,7 +28,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 //using Math::IsAligned;
 //using namespace D3D12Engine;
 //using Microsoft::WRL::CComPtr;

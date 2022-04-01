@@ -26,7 +26,7 @@
 #include <strmif.h>
 #include <map>
 #include "IVideoRenderer.h"
-#include "dx12helper.h"
+#include "DX12Engine.h"
 #include "D3D12VP.h"
 #include "DX9Device.h"
 #include "VideoProcessor.h"
@@ -51,25 +51,13 @@ class CDX12VideoProcessor
 {
 private:
 	friend class CVideoRendererInputPin;
+
 	
-
-
-	CComPtr<ID3D12Debug>    m_pD3DDebug;
-	CComPtr<ID3D12Debug1>   m_pD3DDebug1;
-
 	void GetHardwareAdapter(
 		IDXGIFactory1* pFactory,
 		IDXGIAdapter1** ppAdapter,
 		bool requestHighPerformanceAdapter = false);
 
-//Dxgi device and swapchain
-	CComPtr<IDXGIAdapter> m_pDXGIAdapter;
-	CComPtr<IDXGIFactory2>   m_pDXGIFactory2;
-	CComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
-	CComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
-	CComPtr<IDXGIOutput>    m_pDXGIOutput;
-	CComPtr<IDXGIFactory1> m_pDXGIFactory1;
-	
 	//video prop
 	D3D12_VIDEO_FIELD_TYPE m_SampleFormat;
 
@@ -107,15 +95,10 @@ private:
 	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
 
 	bool resetquad = false;
-//Swapchain
-	int p_CurrentBuffer = 0;
-	ID3D12Resource* SwapChainBuffer[3];
-	ColorBuffer SwapChainBufferColor[3];
-	ColorBuffer m_pResizeResource;// same format as back buffer,will have the plane rendered onto
-	ColorBuffer m_pVideoOutputResource;// same format as back buffer,will have the plane rendered onto
-	ColorBuffer m_pPlaneResource[2];//Those surface are for copy texture from nv12 to rgb
+
+	
 	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_ARGB(255, 255, 255, 255);
-	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+	
 
 	//Graph rendering
 	GraphRectangle m_StatsBackground;
@@ -145,48 +128,39 @@ public:
 //CVideoProcessor
 	int Type() override { return VP_DX12; }
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
-	BOOL VerifyMediaType(const CMediaType* pmt) override;
-	BOOL InitMediaType(const CMediaType* pmt) override;
-	void Configure(const Settings_t& config) override;
 	HRESULT Render(int field) override;
-	void SetRotation(int value) override;
-
-	void Flush() override;
-
-	void ClearPreScaleShaders() override;
-	void ClearPostScaleShaders() override;
-
 	HRESULT AddPreScaleShader(const std::wstring& name, const std::string& srcCode) override;
 	HRESULT AddPostScaleShader(const std::wstring& name, const std::string& srcCode) override;
 
+	BOOL VerifyMediaType(const CMediaType* pmt) override;
+	BOOL InitMediaType(const CMediaType* pmt) override;
+
+	void Configure(const Settings_t& config) override;
+	void SetRotation(int value) override;
+	void Flush() override;
+	void ClearPreScaleShaders() override;
+	void ClearPostScaleShaders() override;
+
+	
+	bool Initialized();
+
 	HRESULT InitializeTexVP(const FmtConvParams_t& params, const UINT width, const UINT height);
+
 	void UpdateFrameProperties() {
 		m_srcPitch = m_srcWidth * m_srcParams.Packsize;
 		m_srcLines = m_srcHeight * m_srcParams.PitchCoeff / 2;
 	}
-	bool Initialized();
+	
 private:
 	void ReleaseDevice();
-	void ReleaseSwapChain();
-	void SetupQuad();
-	void UpdateQuad();
+	
 
 	bool HandleHDRToggle();
 
-	bool Preferred10BitOutput() {
-		return m_bitsPerChannelSupport >= 10 && (m_InternalTexFmt == DXGI_FORMAT_R10G10B10A2_UNORM || m_InternalTexFmt == DXGI_FORMAT_R16G16B16A16_FLOAT);
-	}
-	//Variables
-	bool m_bIsFullscreen = false;
+	
 
-	bool m_bHdrPassthroughSupport = false;
-	bool m_bHdrDisplaySwitching = false; // switching HDR display in progress
-	bool m_bHdrDisplayModeEnabled = false;
-	bool m_bHdrAllowSwitchDisplay = true;
-	UINT m_srcVideoTransferFunction = 0; // need a description or rename
 
-	std::map<std::wstring, BOOL> m_hdrModeSavedState;
-	std::map<std::wstring, BOOL> m_hdrModeStartState;
+	
 
 	struct HDRMetadata {
 		DXGI_HDR_METADATA_HDR10 hdr10 = {};
@@ -195,15 +169,10 @@ private:
 	HDRMetadata m_hdr10 = {};
 	HDRMetadata m_lastHdr10 = {};
 
-	// Input parameters
-	DXGI_FORMAT m_srcDXGIFormat = DXGI_FORMAT_UNKNOWN;
+	
 
-	// intermediate texture format
-	DXGI_FORMAT m_InternalTexFmt = DXGI_FORMAT_B8G8R8A8_UNORM;
-
-	// swap chain format
-	DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
-	UINT32 m_bitsPerChannelSupport = 8;
+	
+	
 
 	bool m_bCallbackDeviceIsSet = false;
 
@@ -212,10 +181,10 @@ private:
 	void SetGraphSize() override;
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
 
-	void SetShaderConvertColorParams();
-	CONSTANT_BUFFER_VAR m_pBufferVar;
+	
+	
 
-	bool m_PSConvColorData = false;
+	
 
 	HRESULT Process(const CRect& srcRect, const CRect& dstRect, const bool second);
 
@@ -230,7 +199,11 @@ private:
 	void SetVideoRect(const CRect& videoRect)      override;
 	HRESULT SetWindowRect(const CRect& windowRect) override;
 	HRESULT Reset() override;
-	bool IsInit() const override { return m_bHdrDisplaySwitching; }
+	bool IsInit() const override {
+		assert(0);
+		return true;
+		//return m_bHdrDisplaySwitching; 
+	}
 
 	IDirect3DDeviceManager9* GetDeviceManager9() override { return GetDevMan9(); }
 	HRESULT GetCurentImage(long* pDIBImage) override;

@@ -22,7 +22,7 @@
 
 #include "stdafx.h"
 #include "LinearAllocator.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 #include "CommandListManager.h"
 #include <thread>
 

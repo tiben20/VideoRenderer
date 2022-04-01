@@ -22,7 +22,7 @@
 
 #include "stdafx.h"
 #include "SamplerManager.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 #include "Hash.h"
 #include <map>
 

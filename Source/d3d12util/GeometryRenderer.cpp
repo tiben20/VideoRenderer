@@ -31,6 +31,7 @@
 #include "d3d12util/CompiledShaders/GeometryVS.h"
 
 using namespace D3D12Engine;
+
 using namespace Math;
 using namespace std;
 

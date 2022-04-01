@@ -23,7 +23,7 @@
 #include "stdafx.h"
 #include <cmath>
 #include "Helper.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 
 #include "D3D12VP.h"
 

@@ -128,12 +128,10 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 
 	m_nCurrentAdapter = -1;
 	m_pDisplayMode = &m_DisplayMode;
-
-	hr = CreateDXGIFactory1(IID_IDXGIFactory1, (void**)&m_pDXGIFactory1);
-	if (FAILED(hr)) {
-		DLog(L"CDX12VideoProcessor::CDX12VideoProcessor() : CreateDXGIFactory1() failed with error {}", HR2Str(hr));
+	if (FAILED(D3D12Engine::InitDXGIFactory()))
 		return;
-	}
+	
+
 
 	// set default ProcAmp ranges and values
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
@@ -149,35 +147,7 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 
 	MH_EnableHook(MH_ALL_HOOKS);
 
-	CComPtr<IDXGIAdapter> pDXGIAdapter;
-	for (UINT adapter = 0; m_pDXGIFactory1->EnumAdapters(adapter, &pDXGIAdapter) != DXGI_ERROR_NOT_FOUND; ++adapter) {
-		CComPtr<IDXGIOutput> pDXGIOutput;
-		for (UINT output = 0; pDXGIAdapter->EnumOutputs(output, &pDXGIOutput) != DXGI_ERROR_NOT_FOUND; ++output) {
-			DXGI_OUTPUT_DESC desc{};
-			if (SUCCEEDED(pDXGIOutput->GetDesc(&desc))) {
-				DisplayConfig_t displayConfig = {};
-				if (GetDisplayConfig(desc.DeviceName, displayConfig)) {
-					m_hdrModeStartState[desc.DeviceName] = displayConfig.advancedColor.advancedColorEnabled;
-					DXGI_ADAPTER_DESC dxgiAdapterDesc = {};
-					hr = pDXGIAdapter->GetDesc(&dxgiAdapterDesc);
-					if (SUCCEEDED(hr)) {
-						m_VendorId = dxgiAdapterDesc.VendorId;
-						m_strAdapterDescription = fmt::format(L"{} ({:04X}:{:04X})", dxgiAdapterDesc.Description, dxgiAdapterDesc.VendorId, dxgiAdapterDesc.DeviceId);
-						DLog(L"Graphics DXGI adapter: {}", m_strAdapterDescription);
-					}
-				}
-			}
-
-			pDXGIOutput.Release();
-		}
-		
-		pDXGIAdapter.Release();
-	}
-	for (int xx = 0; xx < 3; xx++)
-	{
-		SwapChainBuffer[xx] = nullptr;
-
-	}
+	
 }
 
 CDX12VideoProcessor::~CDX12VideoProcessor()
@@ -189,30 +159,18 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	RootSignature::DestroyAll();
 	DescriptorAllocator::DestroyAll();
 	ImageScaling::FreeImageScaling();
-	/*Need this to have correct heap if we dont entirely close the module*/
-	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
 	
 	D3D12Engine::DestroyCommonState();
 	D3D12Engine::DestroyRenderingBuffers();
-	m_pPlaneResource[0].DestroyBuffer();
-	m_pPlaneResource[1].DestroyBuffer();
-	m_pResizeResource.DestroyBuffer();
-	m_pVideoOutputResource.DestroyBuffer();
+
+	D3D12Engine::ReleaseEngine();
+
 	TextRenderer::Shutdown();
 	GeometryRenderer::Shutdown();
 	ReleaseSwapChain();
 	
 	
-	g_hWnd = nullptr;
-	m_pD3DDebug.Release();
-	m_pD3DDebug1.Release();
-	m_pDXGIAdapter.Release();
-	m_pDXGIFactory2.Release();
-	m_pDXGIFactory1.Release();
-	m_pDXGIOutput.Release();
 	ReleaseDevice();
 	MH_RemoveHook(SetWindowPos);
 	MH_RemoveHook(SetWindowLongA);
@@ -308,9 +266,9 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	TextRenderer::Initialize();
 	GeometryRenderer::Initialize();
 	
-	ImageScaling::Initialize(m_SwapChainFmt);
+	ImageScaling::Initialize(D3D12Engine::GetSwapChainFormat());
 	
-	SetShaderConvertColorParams();
+	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
 
 	return S_OK;
 	
@@ -318,7 +276,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 {
-	CheckPointer(m_pDXGISwapChain1, E_FAIL);
+	//CheckPointer(m_pDXGISwapChain1, E_FAIL);
 
 	uint64_t tick = GetPreciseTick();
 
@@ -395,58 +353,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 			return hr;
 		}
 
-		D3D12_RESOURCE_DESC desc;
-		desc = pD3D12Resource->GetDesc();
-
-
-
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2];
-		UINT64 pitch_plane[2];
-		UINT rows_plane[2];
-		UINT64 RequiredSize;
-		m_renderRect.IntersectRect(m_videoRect, m_windowRect);
-		D3D12Engine::g_Device->GetCopyableFootprints(&desc,
-			0, 2, 0, layoutplane, rows_plane, pitch_plane, &RequiredSize);
-
-		//we can't use the format from the footprint its always a typeless format which can't be handled by the copy
-		if (desc.Format != DXGI_FORMAT_P010 && m_pPlaneResource[0].GetWidth() == 0)// DXGI_FORMAT_NV12
-		{
-			m_pPlaneResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R8_UNORM);
-			m_pPlaneResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, DXGI_FORMAT_R8G8_UNORM);
-			m_srcDXGIFormat = DXGI_FORMAT_NV12;
-		}
-		else if (m_pPlaneResource[0].GetWidth() == 0)
-		{
-			m_pPlaneResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R16_UNORM);
-			m_pPlaneResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, DXGI_FORMAT_R16G16_UNORM);
-			m_srcDXGIFormat = DXGI_FORMAT_P010;
-		}
-
-		//create the resize resource needed to wait to have a video source
-		if (m_pResizeResource.GetWidth() == 0)
-		{
-			m_pResizeResource.Create(L"Resize Scaling Resource", desc.Width, desc.Height, 1, m_SwapChainFmt);
-			m_pVideoOutputResource.Create(L"Resize Scaling Resource Final", desc.Width, desc.Height, 1, m_SwapChainFmt);
-		}
-
-		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
-
-
-		pVideoContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
-		pVideoContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST, true);
-		//need to flush if we dont want an error on the resource state
-
-
-		D3D12_TEXTURE_COPY_LOCATION dst;
-		D3D12_TEXTURE_COPY_LOCATION src;
-		for (int i = 0; i < 2; i++) {
-			dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pPlaneResource[i].GetResource());
-			src = CD3DX12_TEXTURE_COPY_LOCATION(pD3D12Resource, i);
-			pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-		}
-		pVideoContext.SetViewportAndScissor(m_videoRect.left, m_videoRect.top, m_videoRect.Width(), m_videoRect.Height());
-		ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar);
-		pVideoContext.Finish();
+		hr = D3D12Engine::CopySample(pD3D12Resource);
 	}
 	else if (CComQIPtr<IMFGetService> pService = pSample)
 	{
@@ -542,17 +449,14 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
 	HRESULT hr = S_OK;
-	DXGI_SWAP_CHAIN_DESC desc2;
 	REFERENCE_TIME rtStart, rtEnd;
 
 	if (m_pFilter->m_filterState == State_Stopped)
 		assert(0);
 	
-	if (!m_pDXGISwapChain1)
-		Reset();
-	m_pDXGISwapChain1->GetDesc(&desc2);
-	if (desc2.OutputWindow != m_hWnd)
-		Reset();
+	CheckSwapChain(m_windowRect);
+	
+	
 
 	const long size = pSample->GetActualDataLength();
 	
@@ -689,148 +593,6 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 #endif
 }
 
-void CDX12VideoProcessor::UpdateQuad()
-{
-	return;
-	//result = D3D_SetupQuadData(o, &quad->generic, output, pVertexDataBegin, triangleVertices, orientation);
-//vertex buffer data pVertexDataBegin dst_data pData
-//index buffer data triangleVertices
-/*create index buffer and quad vertex buffer*/
-	
-	VideoQuadVertex vertex_data[4];
-	WORD triangleVertices[6];
-
-	D3D12_RANGE readRange = { 0 };
-	HRESULT hr = m_pVertexBuffer->Map(0, &readRange, (void**)&vertex_data);
-	if (FAILED(hr))
-		assert(0);
-	hr = m_pIndexBuffer->Map(0, &readRange, (void**)&triangleVertices);
-	if (FAILED(hr))
-		assert(0);
-
-	//vertex_data = (VideoQuadVertex*)malloc(sizeof(VideoQuadVertex[4]));
-	//triangleVertices = (WORD*)malloc(sizeof(triangleVertices[6]));
-	unsigned int src_width = m_srcRect.Width();
-	unsigned int src_height = m_srcRect.Height();
-	float MidX, MidY;
-
-	float top, bottom, left, right;
-	/* find the middle of the visible part of the texture, it will be a 0,0
-	 * the rest of the visible area must correspond to -1,1 */
-
-	 /* left/top aligned */
-	MidY = (m_videoRect.top + m_videoRect.bottom) / 2.f;
-	MidX = (m_videoRect.left + m_videoRect.right) / 2.f;
-	top = MidY / (MidY - m_videoRect.top);
-	bottom = -(src_height - MidY) / (m_videoRect.bottom - MidY);
-	left = -MidX / (MidX - m_videoRect.left);
-	right = (src_width - MidX) / (m_videoRect.right - MidX);
-
-
-
-	const float vertices_coords[4][2] = {
-			{ left,  bottom },
-			{ right, bottom },
-			{ right, top    },
-			{ left,  top    },
-	};
-	int vertex_order[4];
-	vertex_order[0] = 0;
-	vertex_order[1] = 1;
-	vertex_order[2] = 2;
-	vertex_order[3] = 3;
-
-
-	for (int i = 0; i < 4; ++i) {
-		vertex_data[i].position.x = vertices_coords[vertex_order[i]][0];
-		vertex_data[i].position.y = vertices_coords[vertex_order[i]][1];
-	}
-
-	// bottom left
-	vertex_data[0].position.z = 0.0f;
-	vertex_data[0].texture.u = 0.0f;
-	vertex_data[0].texture.v = 1.0f;
-
-	// bottom right
-	vertex_data[1].position.z = 0.0f;
-	vertex_data[1].texture.u = 1.0f;
-	vertex_data[1].texture.v = 1.0f;
-
-	// top right
-	vertex_data[2].position.z = 0.0f;
-	vertex_data[2].texture.u = 1.0f;
-	vertex_data[2].texture.v = 0.0f;
-
-	// top left
-	vertex_data[3].position.z = 0.0f;
-	vertex_data[3].texture.u = 0.0f;
-	vertex_data[3].texture.v = 0.0f;
-
-	/* Make sure surfaces are facing the right way */
-
-	triangleVertices[0] = (WORD)3;
-	triangleVertices[1] = (WORD)1;
-	triangleVertices[2] = (WORD)0;
-
-	triangleVertices[3] = (WORD)2;
-	triangleVertices[4] = (WORD)1;
-	triangleVertices[5] = (WORD)3;
-	m_pVertexBuffer->Unmap(0, NULL);
-	m_pIndexBuffer->Unmap(0, NULL);
-	resetquad = false;
-	//buffer need to be 16byte aligned which is too small for this vertice
-	///void* stackMem = _malloca((sizeof(WORD) + 1) * 16);
-	//WORD* stackptr = Math::AlignUp((WORD*)stackMem, 16);
-	//stackMem = (void*)triangleVertices;
-
-	//_freea(stackMem);
-
-	
-}
-void CDX12VideoProcessor::SetupQuad()
-{
-
-	
-	//VideoQuadVertex = stride
-	//vertexcount = 4 on rectangular
-	
-	m_pVertexBuffer.Create(L"QuadVertex", sizeof(VideoQuadVertex) * 4);//in the good state too start
-	m_pVertexBufferView.BufferLocation = m_pVertexBuffer.GetGpuVirtualAddress();
-	m_pVertexBufferView.SizeInBytes = m_pVertexBuffer.GetBufferSize();
-	m_pVertexBufferView.StrideInBytes = sizeof(VideoQuadVertex);
-	//indexcount = 6
-
-	m_pIndexBuffer.Create(L"IndexBuffer", sizeof(WORD)*6);
-	m_pIndexBufferView.BufferLocation = m_pVertexBuffer.GetGpuVirtualAddress();
-	m_pIndexBufferView.SizeInBytes = m_pVertexBuffer.GetBufferSize();
-	m_pIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-	
-	
-	m_pVertexHeapDesc.NumDescriptors = 258;
-	m_pVertexHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	m_pVertexHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	m_pVertexHeapDesc.NodeMask = 0;
-	//m_pViewpointShaderConstant;
-	//m_pPixelShaderConstants;
-	HRESULT hr = D3D12Engine::g_Device->CreateDescriptorHeap(&m_pVertexHeapDesc, IID_PPV_ARGS(&m_pVertexHeap));
-
-
-	m_pPixelShaderConstants.Create(L"Viewpoint Shader Constant", sizeof(*m_sShaderConstants));
-	D3D12_RANGE readRange = { 0 }; // no reading
-
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = m_pPixelShaderConstants.GetGpuVirtualAddress();
-	cbvDesc.SizeInBytes = m_pPixelShaderConstants.GetBufferSize();
-
-	D3D12Engine::g_Device->CreateConstantBufferView(&cbvDesc, m_pVertexHeap->GetCPUDescriptorHandleForHeapStart());
-
-	//its ok to leave it on map
-	m_pPixelShaderConstants->Map(0, &readRange, (void**)&m_sShaderConstants);
-
-	
-	UpdateQuad();
-	resetquad = false;
-}
 
 HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice)
 {
@@ -979,27 +741,14 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 
 	UpdateTexParams(FmtParams.CDepth);
 #endif
-	if (m_bHdrAllowSwitchDisplay && m_srcVideoTransferFunction != m_srcExFmt.VideoTransferFunction) {
-		auto ret = HandleHDRToggle();
-		if (!ret && (m_bHdrPassthrough && m_bHdrPassthroughSupport && SourceIsHDR() && !m_pDXGISwapChain4)) {
-			ret = true;
-		}
-		if (ret) {
-			ReleaseSwapChain();
-			Init(m_hWnd);
-		}
-	}
-
-	if (Preferred10BitOutput() && m_SwapChainFmt == DXGI_FORMAT_B8G8R8A8_UNORM) {
-		ReleaseSwapChain();
+	if (!ProcessHDR(m_srcExFmt, m_srcParams))
+	{
+		D3D12Engine::ReleaseSwapChain();
 		Init(m_hWnd);
 	}
-
-
-	m_srcVideoTransferFunction = m_srcExFmt.VideoTransferFunction;
 	m_srcWidth = origW;
 	m_srcHeight = origH;
-	m_srcDXGIFormat = FmtParams.VP11Format;
+	
 	m_iSrcFromGPU = 12;/* this will add D3D12 in the stats*/
 	//we dont use the video processor yet but at least set the src height and width
 
@@ -1200,7 +949,7 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 
 	if (config.bUseDither != m_bUseDither) {
 		m_bUseDither = config.bUseDither;
-		changeNumTextures = m_InternalTexFmt != DXGI_FORMAT_B8G8R8A8_UNORM;
+		changeNumTextures = D3D12Engine::GetInternalFormat() != DXGI_FORMAT_B8G8R8A8_UNORM;
 	}
 
 	if (config.iSwapEffect != m_iSwapEffect) {
@@ -1240,7 +989,6 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 		EXECUTE_ASSERT(S_OK == m_pFilter->Init(true));
 
 		if (changeHDR && (SourceIsHDR()) || m_iHdrToggleDisplay) {
-			m_srcVideoTransferFunction = 0;
 			InitMediaType(&m_pFilter->m_inputMT);
 		}
 		return;
@@ -1253,7 +1001,6 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 				m_pFilter->Init(true);
 			}
 
-			m_srcVideoTransferFunction = 0;
 			InitMediaType(&m_pFilter->m_inputMT);
 
 			return;
@@ -1346,22 +1093,6 @@ void CDX12VideoProcessor::ReleaseDevice()
 	g_Device = nullptr;
 	
 	
-}
-
-void CDX12VideoProcessor::ReleaseSwapChain()
-{
-	
-	for (uint32_t i = 0; i < 3; ++i)
-	{
-		SwapChainBufferColor[i].Destroy();
-	}
-	if (m_pDXGISwapChain1) {
-		m_pDXGISwapChain1->SetFullscreenState(FALSE, nullptr);
-	}
-	m_pDXGIOutput.Release();
-	m_pDXGISwapChain4.Release();
-	m_pDXGISwapChain1.Release();
-
 }
 
 bool CDX12VideoProcessor::HandleHDRToggle()
@@ -1457,51 +1188,7 @@ BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 	return FALSE;
 }
 
-void CDX12VideoProcessor::SetShaderConvertColorParams()
-{
-	mp_csp_params csp_params;
-	set_colorspace(m_srcExFmt, csp_params.color);
-	csp_params.brightness = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Brightness) / 255;
-	csp_params.contrast = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Contrast);
-	csp_params.hue = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Hue) / 180 * acos(-1);
-	csp_params.saturation = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Saturation);
-	csp_params.gray = m_srcParams.CSType == CS_GRAY;
 
-	csp_params.input_bits = csp_params.texture_bits = m_srcParams.CDepth;
-
-	m_PSConvColorData =
-		m_srcParams.CSType == CS_YUV ||
-		m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16 ||
-		csp_params.gray ||
-		fabs(csp_params.brightness) > 1e-4f || fabs(csp_params.contrast - 1.0f) > 1e-4f;
-
-	mp_cmat cmatrix;
-	mp_get_csp_matrix(&csp_params, &cmatrix);
-	m_pBufferVar = {
-		{cmatrix.m[0][0], cmatrix.m[0][1], cmatrix.m[0][2], 0},
-		{cmatrix.m[1][0], cmatrix.m[1][1], cmatrix.m[1][2], 0},
-		{cmatrix.m[2][0], cmatrix.m[2][1], cmatrix.m[2][2], 0},
-		{cmatrix.c[0],    cmatrix.c[1],    cmatrix.c[2],    0},
-	};
-
-	if (m_srcParams.cformat == CF_Y410 || m_srcParams.cformat == CF_Y416) {
-		std::swap(m_pBufferVar.cm_r.x, m_pBufferVar.cm_r.y);
-		std::swap(m_pBufferVar.cm_g.x, m_pBufferVar.cm_g.y);
-		std::swap(m_pBufferVar.cm_b.x, m_pBufferVar.cm_b.y);
-	}
-	else if (m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16) {
-		std::swap(m_pBufferVar.cm_r.x, m_pBufferVar.cm_r.y); std::swap(m_pBufferVar.cm_r.y, m_pBufferVar.cm_r.z);
-		std::swap(m_pBufferVar.cm_g.x, m_pBufferVar.cm_g.y); std::swap(m_pBufferVar.cm_g.y, m_pBufferVar.cm_g.z);
-		std::swap(m_pBufferVar.cm_b.x, m_pBufferVar.cm_b.y); std::swap(m_pBufferVar.cm_b.y, m_pBufferVar.cm_b.z);
-	}
-	else if (csp_params.gray) {
-		m_pBufferVar.cm_g.x = m_pBufferVar.cm_g.y;
-		m_pBufferVar.cm_g.y = 0;
-		m_pBufferVar.cm_b.x = m_pBufferVar.cm_b.z;
-		m_pBufferVar.cm_b.z = 0;
-	}
-
-}
 
 
 
@@ -1586,7 +1273,7 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 
 HRESULT CDX12VideoProcessor::Render(int field)
 {
-	CheckPointer(m_pDXGISwapChain1, E_FAIL);
+	//CheckPointer(m_pDXGISwapChain1, E_FAIL);
 	HRESULT hr = S_OK;
 	if (field)
 		m_FieldDrawn = field;
@@ -1633,13 +1320,7 @@ HRESULT CDX12VideoProcessor::Render(int field)
 
 	if (!m_windowRect.IsRectEmpty())
 	{
-		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Clear Target");
-		pVideoContext.SetViewportAndScissor(m_windowRect.left, m_windowRect.top, m_windowRect.Width(), m_windowRect.Height());
-		pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-		pVideoContext.SetRenderTarget(SwapChainBufferColor[p_CurrentBuffer].GetRTV());
-
-		pVideoContext.ClearColor(SwapChainBufferColor[p_CurrentBuffer]);
-		pVideoContext.Finish();
+		D3D12Engine::ClearBackBuffer(m_windowRect);
 	}
 
 	if (!m_renderRect.IsRectEmpty())
@@ -1663,18 +1344,18 @@ HRESULT CDX12VideoProcessor::Render(int field)
 		ASSERT(S_OK == hrSubPic);
 	}
 
-	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-	pVideoContext.SetRenderTarget(SwapChainBufferColor[p_CurrentBuffer].GetRTV());
+	//pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
+	//pVideoContext.SetRenderTarget(SwapChainBufferColor[p_CurrentBuffer].GetRTV());
 
 	if (m_bShowStats)
 		DrawStats(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
 
-	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
+	//pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	
 	if (m_bAlphaBitmapEnable)
 	{
-		D3D12_RESOURCE_DESC desc;
-		SwapChainBufferColor[0]->GetDesc();
+		D3D12_RESOURCE_DESC desc = D3D12Engine::GetSwapChainResourceDesc();
+		
 		D3D11_VIEWPORT VP = {
 			m_AlphaBitmapNRectDest.left * desc.Width,
 			m_AlphaBitmapNRectDest.top * desc.Height,
@@ -1693,6 +1374,7 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	uint64_t tick3 = GetPreciseTick();
 	m_RenderStats.paintticks = tick3 - tick1;
 	//TODO do not use m_pDXGISwapChain4 if we are not in hdr
+#ifdef TODO
 	if (0)//m_pDXGISwapChain4) 
 	{
 		const DXGI_COLOR_SPACE_TYPE colorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
@@ -1747,17 +1429,15 @@ HRESULT CDX12VideoProcessor::Render(int field)
 			}
 		}
 	}
-
+#endif
 	pVideoContext.Finish();
 
-	if (m_bVBlankBeforePresent && m_pDXGIOutput) {
-		hr = m_pDXGIOutput->WaitForVBlank();
-		DLogIf(FAILED(hr), L"WaitForVBlank failed with error {}", HR2Str(hr));
-	}
+	
+	D3D12Engine::WaitForVBlank();
 
 	g_bPresent12 = true;
-	hr = m_pDXGISwapChain1->Present(1, 0);
-	p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
+	D3D12Engine::Present();
+	
 	g_bPresent12 = false;
 	DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : Present() failed with error {}", HR2Str(hr));
 
@@ -1791,15 +1471,12 @@ HRESULT CDX12VideoProcessor::Process(const CRect& srcRect, const CRect& dstRect,
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Onto SwapChain");
 	if (rSrc != dstRect) 
 	{
-		ImageScaling::Upscale(pVideoContext, m_pVideoOutputResource, m_pResizeResource, (ImageScaling::eScalingFilter)m_iUpscaling, m_videoRect);
-		pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-		ImageScaling::PreparePresentSDR(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, m_videoRect);
+		D3D12Engine::Upscale(pVideoContext, (ImageScaling::eScalingFilter)m_iUpscaling, m_videoRect);
+		
 	}
 	else
 	{
-		pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-		ImageScaling::PreparePresentSDR(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, m_videoRect);
-
+		D3D12Engine::PresentBackBuffer(pVideoContext);
 	}
 	pVideoContext.Finish();
 	DLogIf(FAILED(hr), L"CDX9VideoProcessor::Process() : failed with error {}", HR2Str(hr));
@@ -1827,38 +1504,13 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 	
 	m_windowRect = windowRect;
 	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
-	//m_renderRect.left = m_windowRect.Width() - m_renderRect.right;
-	const UINT w = m_windowRect.Width();
-	const UINT h = m_windowRect.Height();
-	if (m_pDXGISwapChain1)
-	{
-		D3D12Engine::g_CommandManager.IdleGPU();
-		for (uint32_t i = 0; i < 3; ++i)
-		{
-			SwapChainBufferColor[i].Destroy();
-		}
-		HRESULT hr = m_pDXGISwapChain4->ResizeBuffers(3, w, h, m_SwapChainFmt, 0);
-		if (SUCCEEDED(hr))
-		{
-			
-			//SwapChainBufferColor[3]
 
-			CComPtr<ID3D12Resource> DisplayPlane;
-
-			//m_pDXGISwapChain4->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane));
-			//SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
-			for (uint32_t i = 0; i < 3; ++i)
-			{
-				CComPtr<ID3D12Resource> DisplayPlane;
-				m_pDXGISwapChain4->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane));
-				SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
-			}
-			D3D12Engine::g_OverlayBuffer.Create(L"UI Overlay", w, h, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
-			D3D12Engine:: g_HorizontalBuffer.Create(L"Bicubic Intermediate", w, h, 1, DXGI_FORMAT_R10G10B10A2_UNORM);
-			p_CurrentBuffer = 0;
-			D3D12Engine::g_CommandManager.IdleGPU();
-		}
-	}
+	D3D12Engine::ResetSwapChain(m_windowRect);
+	D3D12Engine::SetVideoRect(m_videoRect);
+	D3D12Engine::SetWindowRect(m_windowRect);
+	D3D12Engine::SetRenderRect(m_renderRect);
+	m_VendorId = g_VendorId;
+	
 	SetGraphSize();
 	resetquad = true;
 	return S_OK;
@@ -1866,59 +1518,8 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 
 HRESULT CDX12VideoProcessor::Reset()
 {
-	for (int i = 0; i < 3; i++)
-	{
-		SwapChainBufferColor[i].Destroy();
-		if(SwapChainBuffer[i])
-			SwapChainBuffer[i]->Release();
-	}
-
-	m_pDXGISwapChain1.Release();
-
-	CComPtr<IDXGIFactory4> dxgiFactory;
-	EXECUTE_ASSERT(S_OK == CreateDXGIFactory2(0, MY_IID_PPV_ARGS(&dxgiFactory)));
-
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.Width = m_windowRect.Width();
-	swapChainDesc.Height = m_windowRect.Height();
-	swapChainDesc.Format = m_SwapChainFmt;// DXGI_FORMAT_R10G10B10A2_UNORM;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 3;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.SampleDesc.Quality = 0;
-	swapChainDesc.Scaling = DXGI_SCALING_NONE;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = {};
-	fsSwapChainDesc.Windowed = TRUE;
-
-	
-	HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(
-		D3D12Engine::g_CommandManager.GetCommandQueue(),
-		D3D12Engine::g_hWnd,
-		&swapChainDesc,
-		&fsSwapChainDesc,
-		nullptr,
-		&m_pDXGISwapChain1);
-
-	hr = m_pDXGISwapChain1->QueryInterface(MY_IID_PPV_ARGS(&m_pDXGISwapChain4)); 
-	m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
-	for (UINT i = 0; i < 3; i++)
-	{
-		hr = m_pDXGISwapChain4->GetBuffer(i, IID_ID3D12Resource, (void**)&SwapChainBuffer[i]);
-		SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", SwapChainBuffer[i]);
-	}
-
-	hr = m_pDXGISwapChain1->GetContainingOutput(&m_pDXGIOutput);
-	dxgiFactory.Release();
-	DXGI_SWAP_CHAIN_DESC desc2;
-	m_pDXGISwapChain1->GetDesc(&desc2);
-	
-	if (desc2.OutputWindow != m_hWnd)
-		assert(0);
-    return E_NOTIMPL;
+	//not sure about this
+	return D3D12Engine::ResetSwapChain(m_windowRect);
 }
 
 HRESULT CDX12VideoProcessor::GetCurentImage(long* pDIBImage)
@@ -1968,11 +1569,11 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 				}
 			}
 		}*/
-		m_strStatsVProc += fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(m_InternalTexFmt));
+		m_strStatsVProc += fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(D3D12Engine::GetInternalFormat()));
 
 		if (SourceIsHDR()) {
 			m_strStatsHDR.assign(L"\nHDR processing: ");
-			if (m_bHdrPassthroughSupport && m_bHdrPassthrough) {
+			if (D3D12Engine::HdrPassthroughSupport() && m_bHdrPassthrough) {
 				m_strStatsHDR.append(L"Passthrough");
 				if (m_lastHdr10.bValid) {
 					m_strStatsHDR += fmt::format(L", {} nits", m_lastHdr10.hdr10.MaxMasteringLuminance / 10000);

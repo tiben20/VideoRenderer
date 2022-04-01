@@ -22,7 +22,7 @@
 
 #include "stdafx.h"
 #include "GpuBuffer.h"
-//#include "DX12Helper.h"
+//#include "DX12Engine.h"
 //#include "EsramAllocator.h"
 #include "CommandContext.h"
 #include "BufferManager.h"

@@ -33,7 +33,7 @@
 #include "DynamicDescriptorHeap.h"
 #include "LinearAllocator.h"
 #include "CommandSignature.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 #include <vector>
 #include "utility.h"
 #include "GraphicsCommon.h"

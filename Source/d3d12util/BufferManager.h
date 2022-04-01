@@ -24,18 +24,4 @@
 
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
-//#include "ShadowBuffer.h"
 #include "GpuBuffer.h"
-//#include "DX12Helper.h"
-
-namespace D3D12Engine
-{
-    extern ColorBuffer g_SceneColorBuffer;  // R11G11B10_FLOAT
-    extern ColorBuffer g_SceneNormalBuffer; // R16G16B16A16_FLOAT
-    extern ColorBuffer g_OverlayBuffer;     // R8G8B8A8_UNORM
-    extern ColorBuffer g_HorizontalBuffer;  // For separable (bicubic) upsampling
-    void InitializeRenderingBuffers(uint32_t NativeWidth, uint32_t NativeHeight );
-
-    void DestroyRenderingBuffers();
-
-} // namespace D3D12Engine

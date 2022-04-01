@@ -26,7 +26,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 #include "Utils/Util.h"
 using namespace std;
 

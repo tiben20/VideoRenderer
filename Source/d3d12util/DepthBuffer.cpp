@@ -22,7 +22,7 @@
 
 #include "stdafx.h"
 #include "DepthBuffer.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 
 #include "DescriptorHeap.h"
 

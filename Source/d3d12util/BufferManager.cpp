@@ -22,10 +22,9 @@
 
 #include "stdafx.h"
 #include "BufferManager.h"
-//#include "Display.h"
+
 #include "CommandContext.h"
 
-//#include "TemporalEffects.h"
 
 namespace D3D12Engine
 {

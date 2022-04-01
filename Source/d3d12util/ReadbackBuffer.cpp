@@ -22,7 +22,7 @@
 
 #include "stdafx.h"
 #include "ReadbackBuffer.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 
 using namespace D3D12Engine;
 

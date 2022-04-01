@@ -21,7 +21,7 @@
  */
 
 #include "stdafx.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 #include "CommandListManager.h"
 
 CommandQueue::CommandQueue(D3D12_COMMAND_LIST_TYPE Type) :

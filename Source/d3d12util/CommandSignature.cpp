@@ -23,7 +23,7 @@
 #include "stdafx.h"
 #include "CommandSignature.h"
 #include "RootSignature.h"
-#include "DX12Helper.h"
+#include "DX12Engine.h"
 
 using namespace D3D12Engine;
 

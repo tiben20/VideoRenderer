@@ -24,7 +24,7 @@
 #include "Texture.h"
 //#include "DDSTextureLoader.h"
 //#include "FileUtility.h"
-//#include "DX12Helper.h"
+//#include "DX12Engine.h"
 #include "CommandContext.h"
 #include <map>
 #include <thread>

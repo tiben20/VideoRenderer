@@ -104,7 +104,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="DX11Helper.cpp" />
     <ClCompile Include="DX11VideoProcessor.cpp" />
-    <ClCompile Include="DX12Helper.cpp" />
+    <ClCompile Include="DX12Engine.cpp" />
     <ClCompile Include="DX12VideoProcessor.cpp" />
     <ClCompile Include="DX9Device.cpp" />
     <ClCompile Include="DX9Helper.cpp" />
@@ -179,7 +179,7 @@
     <ClInclude Include="DisplayConfig.h" />
     <ClInclude Include="DX11Helper.h" />
     <ClInclude Include="DX11VideoProcessor.h" />
-    <ClInclude Include="DX12Helper.h" />
+    <ClInclude Include="DX12Engine.h" />
     <ClInclude Include="DX12VideoProcessor.h" />
     <ClInclude Include="DX9Device.h" />
     <ClInclude Include="DX9Helper.h" />
