@@ -42,7 +42,7 @@
 #include "d3d12util/BufferManager.h"
 
 #include "d3d12util/TextRenderer.h"
-#include "d3d12util/EsramAllocator.h"
+
 #include "d3d12util/math/Common.h"
 
 

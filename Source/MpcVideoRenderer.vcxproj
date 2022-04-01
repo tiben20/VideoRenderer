@@ -143,7 +143,6 @@
     <ClInclude Include="d3d12util\DescriptorHeap.h" />
     <ClInclude Include="d3d12util\DynamicDescriptorHeap.h" />
     <ClInclude Include="d3d12util\EngineTuning.h" />
-    <ClInclude Include="d3d12util\EsramAllocator.h" />
     <ClInclude Include="d3d12util\FileUtility.h" />
     <ClInclude Include="d3d12util\GeometryRenderer.h" />
     <ClInclude Include="d3d12util\GpuBuffer.h" />
@@ -152,8 +151,6 @@
     <ClInclude Include="d3d12util\Hash.h" />
     <ClInclude Include="d3d12util\ImageScaling.h" />
     <ClInclude Include="d3d12util\LinearAllocator.h" />
-    <ClInclude Include="d3d12util\math\BoundingBox.h" />
-    <ClInclude Include="d3d12util\math\BoundingPlane.h" />
     <ClInclude Include="d3d12util\math\Common.h" />
     <ClInclude Include="d3d12util\math\Matrix3.h" />
     <ClInclude Include="d3d12util\math\Matrix4.h" />

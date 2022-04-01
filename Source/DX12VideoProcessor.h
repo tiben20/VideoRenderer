@@ -107,6 +107,8 @@ private:
 	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
 
 	bool resetquad = false;
+//Swapchain
+	int p_CurrentBuffer = 0;
 	ID3D12Resource* SwapChainBuffer[3];
 	ColorBuffer SwapChainBufferColor[3];
 	ColorBuffer m_pResizeResource;// same format as back buffer,will have the plane rendered onto
@@ -115,14 +117,12 @@ private:
 	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_ARGB(255, 255, 255, 255);
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
-
-	
-
+	//Graph rendering
 	GraphRectangle m_StatsBackground;
 	GraphRectangle m_Rect3D;
 	GraphRectangle m_Underlay;
 	std::vector<GraphLine> m_Lines;
-	int p_CurrentBuffer = 0;
+	
 
 	typedef struct  {
 		struct {

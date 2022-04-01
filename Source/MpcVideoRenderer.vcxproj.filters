@@ -362,12 +362,6 @@
     <ClInclude Include="d3d12util\math\Vector.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\math\BoundingBox.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\BoundingPlane.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\math\Common.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
@@ -417,9 +411,6 @@
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\GpuResource.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\EsramAllocator.h">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\PipelineState.h">
