@@ -114,7 +114,7 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 	// Query video processor capabilities.
 	hr = m_pDXVA2_VPService->GetVideoProcessorCaps(devguid, &videodesc, outputFmt, &m_DXVA2VPcaps);
 	if (FAILED(hr)) {
-		DLog(L"CDX9VideoProcessor::InitializeDXVA2VP() : GetVideoProcessorCaps() failed with error {}", HR2Str(hr));
+		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : GetVideoProcessorCaps() failed with error {}", HR2Str(hr));
 		return FALSE;
 	}
 	if (preferredDeintTech) {
@@ -444,7 +444,7 @@ IDirect3DSurface9* CDXVA2VP::GetNextInputSurface(const REFERENCE_TIME start, con
 
 void CDXVA2VP::ClearInputSurfaces(const DXVA2_ExtendedFormat exFmt)
 {
-	m_VideoSamples.SetProps(m_VideoSamples.Size(), exFmt);
+	m_VideoSamples.SetProps(m_VideoSamples.MaxSize(), exFmt);
 }
 
 void CDXVA2VP::CleanSamplesData()

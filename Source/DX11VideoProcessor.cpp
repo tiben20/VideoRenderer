@@ -499,6 +499,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 {
 	DLog(L"CDX11VideoProcessor::Init()");
 
+	const bool bWindowChanged = (m_hWnd != hwnd);
 	m_hWnd = hwnd;
 	m_bHdrPassthroughSupport = false;
 	m_bHdrDisplayModeEnabled = false;
@@ -539,7 +540,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 			}
 		}
 
-		if (!m_pDXGISwapChain1 || m_bIsFullscreen != m_pFilter->m_bIsFullscreen) {
+		if (!m_pDXGISwapChain1 || m_bIsFullscreen != m_pFilter->m_bIsFullscreen || bWindowChanged) {
 			InitSwapChain();
 			UpdateStatsStatic();
 			m_pFilter->OnDisplayModeChange();
@@ -1829,17 +1830,17 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 			if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDR)) {
 				m_hdr10.bValid = true;
 
-				m_hdr10.hdr10.RedPrimary[0]   = static_cast<UINT16>(hdr->display_primaries_x[2] * 50000.0);
-				m_hdr10.hdr10.RedPrimary[1]   = static_cast<UINT16>(hdr->display_primaries_y[2] * 50000.0);
-				m_hdr10.hdr10.GreenPrimary[0] = static_cast<UINT16>(hdr->display_primaries_x[0] * 50000.0);
-				m_hdr10.hdr10.GreenPrimary[1] = static_cast<UINT16>(hdr->display_primaries_y[0] * 50000.0);
-				m_hdr10.hdr10.BluePrimary[0]  = static_cast<UINT16>(hdr->display_primaries_x[1] * 50000.0);
-				m_hdr10.hdr10.BluePrimary[1]  = static_cast<UINT16>(hdr->display_primaries_y[1] * 50000.0);
-				m_hdr10.hdr10.WhitePoint[0]   = static_cast<UINT16>(hdr->white_point_x * 50000.0);
-				m_hdr10.hdr10.WhitePoint[1]   = static_cast<UINT16>(hdr->white_point_y * 50000.0);
+				m_hdr10.hdr10.RedPrimary[0]   = static_cast<UINT16>(std::lround(hdr->display_primaries_x[2] * 50000.0));
+				m_hdr10.hdr10.RedPrimary[1]   = static_cast<UINT16>(std::lround(hdr->display_primaries_y[2] * 50000.0));
+				m_hdr10.hdr10.GreenPrimary[0] = static_cast<UINT16>(std::lround(hdr->display_primaries_x[0] * 50000.0));
+				m_hdr10.hdr10.GreenPrimary[1] = static_cast<UINT16>(std::lround(hdr->display_primaries_y[0] * 50000.0));
+				m_hdr10.hdr10.BluePrimary[0]  = static_cast<UINT16>(std::lround(hdr->display_primaries_x[1] * 50000.0));
+				m_hdr10.hdr10.BluePrimary[1]  = static_cast<UINT16>(std::lround(hdr->display_primaries_y[1] * 50000.0));
+				m_hdr10.hdr10.WhitePoint[0]   = static_cast<UINT16>(std::lround(hdr->white_point_x * 50000.0));
+				m_hdr10.hdr10.WhitePoint[1]   = static_cast<UINT16>(std::lround(hdr->white_point_y * 50000.0));
 
-				m_hdr10.hdr10.MaxMasteringLuminance = static_cast<UINT>(hdr->max_display_mastering_luminance * 10000.0);
-				m_hdr10.hdr10.MinMasteringLuminance = static_cast<UINT>(hdr->min_display_mastering_luminance * 10000.0);
+				m_hdr10.hdr10.MaxMasteringLuminance = static_cast<UINT>(std::lround(hdr->max_display_mastering_luminance * 10000.0));
+				m_hdr10.hdr10.MinMasteringLuminance = static_cast<UINT>(std::lround(hdr->min_display_mastering_luminance * 10000.0));
 			}
 
 			MediaSideDataHDRContentLightLevel* hdrCLL = nullptr;
