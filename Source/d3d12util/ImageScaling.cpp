@@ -544,13 +544,31 @@ void ImageScaling::SetPipelineBilinear(GraphicsContext& Context)
   Context.SetPipelineState(BilinearUpsamplePS);
 }
 
+void ImageScaling::Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech, CRect destRect)
+{
+  //ScopedTimer _prof(L"Image Upscale", Context);
+
+  Context.SetRootSignature(s_PresentRS);
+  Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  //Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+  Context.SetDynamicDescriptor(0, 0, source.GetSRV());
+
+  switch (tech)
+  {
+  case kBicubic: return BicubicScale(Context, dest, source, destRect);
+  case kSharpening: return BilinearSharpeningScale(Context, dest, source, destRect);
+  case kBilinear: return BilinearScale(Context, dest, source, destRect);
+  case kLanczos: return LanczosScale(Context, dest, source, destRect);
+  }
+}
+
 void ImageScaling::Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech, CRect destRect)
 {
     //ScopedTimer _prof(L"Image Upscale", Context);
 
     Context.SetRootSignature(s_PresentRS);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    //Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     Context.SetDynamicDescriptor(0, 0, source.GetSRV());
 
     switch (tech)

@@ -106,20 +106,9 @@ private:
 	GraphRectangle m_Underlay;
 	std::vector<GraphLine> m_Lines;
 	
-
-	typedef struct  {
-		struct {
-			FLOAT x;
-			FLOAT y;
-			FLOAT z;
-		} position;
-		struct {
-			FLOAT u;
-			FLOAT v;
-		} texture;
-	} VideoQuadVertex;
-
-
+	int  m_iChromaScaling12 = CHROMA_Bilinear;
+	int  m_iUpscaling12 = UPSCALE_CatmullRom; // interpolation
+	int  m_iDownscaling12 = DOWNSCALE_Hamming;  // convolution
 
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
@@ -200,7 +189,7 @@ private:
 	HRESULT SetWindowRect(const CRect& windowRect) override;
 	HRESULT Reset() override;
 	bool IsInit() const override {
-		assert(0);
+		//assert(0);
 		return true;
 		//return m_bHdrDisplaySwitching; 
 	}

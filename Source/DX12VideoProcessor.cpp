@@ -115,9 +115,9 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	m_VPFormats = config.VPFmts;
 	m_bDeintDouble = config.bDeintDouble;
 	m_bVPScaling = config.bVPScaling;
-	m_iChromaScaling = config.iChromaScaling;
-	m_iUpscaling = config.iUpscaling;
-	m_iDownscaling = config.iDownscaling;
+	m_iChromaScaling12 = config.iChromaScaling12;
+	m_iUpscaling12 = config.iUpscaling12;
+	m_iDownscaling12 = config.iDownscaling12;
 	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
 	m_bUseDither = config.bUseDither;
 	m_iSwapEffect = config.iSwapEffect;
@@ -570,7 +570,7 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	}
 
 	
-	ImageScaling::Upscale(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, (ImageScaling::eScalingFilter)m_iUpscaling, m_videoRect);
+	ImageScaling::Upscale(pVideoContext, SwapChainBufferColor[p_CurrentBuffer], m_pResizeResource, (ImageScaling::eScalingFilter)m_iUpscaling12, m_videoRect);
 
 	pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 	/*Render the overlay*/
@@ -933,17 +933,17 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 		changeVP = true; // temporary solution
 	}
 #ifdef TODO
-	if (config.iChromaScaling != m_iChromaScaling) {
-		m_iChromaScaling = config.iChromaScaling;
+	if (config.iChromaScaling != m_iChromaScaling12) {
+		m_iChromaScaling12 = config.iChromaScaling;
 		changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
 	}
 #endif
-	if (config.iUpscaling != m_iUpscaling) {
-		m_iUpscaling = config.iUpscaling;
+	if (config.iUpscaling != m_iUpscaling12) {
+		m_iUpscaling12 = config.iUpscaling12;
 		changeUpscalingShader = true;
 	}
-	if (config.iDownscaling != m_iDownscaling) {
-		m_iDownscaling = config.iDownscaling;
+	if (config.iDownscaling != m_iDownscaling12) {
+		m_iDownscaling12 = config.iDownscaling12;
 		changeDowndcalingShader = true;
 	}
 
@@ -1227,13 +1227,13 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	const int dstH = m_videoRect.Height();
 	str += fmt::format(L"\nScaling       : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
 	//enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos, kFilterCount };
-	if (m_iUpscaling == 0)
+	if (m_iUpscaling12 == 0)
 		str.append(L" Bilinear");
-	else if (m_iUpscaling == 1)
+	else if (m_iUpscaling12 == 1)
 		str.append(L" Sharpening");
-	else if (m_iUpscaling == 2)
+	else if (m_iUpscaling12 == 2)
 		str.append(L" Bicubic");
-	else if (m_iUpscaling == 3)
+	else if (m_iUpscaling12 == 3)
 		str.append(L" kLanczos");
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);
@@ -1471,8 +1471,7 @@ HRESULT CDX12VideoProcessor::Process(const CRect& srcRect, const CRect& dstRect,
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Onto SwapChain");
 	if (rSrc != dstRect) 
 	{
-		D3D12Engine::Upscale(pVideoContext, (ImageScaling::eScalingFilter)m_iUpscaling, m_videoRect);
-		
+		D3D12Engine::Upscale(pVideoContext, (ImageScaling::eScalingFilter)m_iUpscaling12, m_videoRect);
 	}
 	else
 	{
@@ -1548,28 +1547,7 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 
 		UpdateStatsInputFmt();
 
-		/*m_strStatsVProc.assign(L"\nVideoProcessor: ");
-		if (0) {
-			m_strStatsVProc += fmt::format(L"D3D11 VP, output to {}", DXGIFormatToString(m_D3D11OutputFmt));
-		}
-		else {
-			m_strStatsVProc.append(L"Shaders");
-			if (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422) {
-				m_strStatsVProc.append(L", Chroma scaling: ");
-				switch (m_iChromaScaling) {
-				case CHROMA_Nearest:
-					m_strStatsVProc.append(L"Nearest-neighbor");
-					break;
-				case CHROMA_Bilinear:
-					m_strStatsVProc.append(L"Bilinear");
-					break;
-				case CHROMA_CatmullRom:
-					m_strStatsVProc.append(L"Catmull-Rom");
-					break;
-				}
-			}
-		}*/
-		m_strStatsVProc += fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(D3D12Engine::GetInternalFormat()));
+		m_strStatsVProc = fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(D3D12Engine::GetInternalFormat()));
 
 		if (SourceIsHDR()) {
 			m_strStatsHDR.assign(L"\nHDR processing: ");

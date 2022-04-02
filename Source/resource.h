@@ -109,6 +109,9 @@
 #define IDC_COMBO5                      1045
 #define IDC_COMBO6                      1046
 #define IDC_COMBO7                      1047
+#define IDC_COMBO8                      1048
+#define IDC_COMBO9                      1049
+#define IDC_COMBO10                     1050
 #define IDC_BUTTON1                     1051
 
 // Next default values for new objects

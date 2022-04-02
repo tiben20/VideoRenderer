@@ -113,6 +113,10 @@ void CVRMainPPage::SetControls()
 	SendDlgItemMessageW(IDC_COMBO2, CB_SETCURSEL, m_SetsPP.iUpscaling, 0);
 	SendDlgItemMessageW(IDC_COMBO3, CB_SETCURSEL, m_SetsPP.iDownscaling, 0);
 
+	SendDlgItemMessageW(IDC_COMBO8, CB_SETCURSEL, m_SetsPP.iChromaScaling12, 0);
+	SendDlgItemMessageW(IDC_COMBO9, CB_SETCURSEL, m_SetsPP.iUpscaling12, 0);
+	SendDlgItemMessageW(IDC_COMBO10, CB_SETCURSEL, m_SetsPP.iDownscaling12, 0);
+
 	SendDlgItemMessageW(IDC_COMBO4, CB_SETCURSEL, m_SetsPP.iSwapEffect, 0);
 }
 
@@ -207,6 +211,18 @@ HRESULT CVRMainPPage::OnActivate()
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
+
+	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Not coded yet");
+
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Sharpening");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
+	
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Not coded yet");
+	//8 chroma upsampling
+//9 upscaling
+//10 downscaling
 
 	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Discard");
 	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Flip");
@@ -378,6 +394,30 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				lValue = SendDlgItemMessageW(IDC_COMBO3, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iDownscaling) {
 					m_SetsPP.iDownscaling = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO8) {
+				lValue = SendDlgItemMessageW(IDC_COMBO8, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iChromaScaling12) {
+					m_SetsPP.iChromaScaling12 = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO9) {
+				lValue = SendDlgItemMessageW(IDC_COMBO9, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iUpscaling12) {
+					m_SetsPP.iUpscaling12 = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO10) {
+				lValue = SendDlgItemMessageW(IDC_COMBO10, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iDownscaling12) {
+					m_SetsPP.iDownscaling12 = lValue;
 					SetDirty();
 					return (LRESULT)1;
 				}

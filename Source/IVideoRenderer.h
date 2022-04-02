@@ -86,6 +86,9 @@ struct Settings_t {
 	int  iChromaScaling;
 	int  iUpscaling;
 	int  iDownscaling;
+	int  iChromaScaling12;
+	int  iUpscaling12;
+	int  iDownscaling12;
 	bool bInterpolateAt50pct;
 	bool bUseDither;
 	int  iSwapEffect;

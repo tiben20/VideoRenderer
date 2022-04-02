@@ -45,6 +45,9 @@
 #define OPT_ChromaUpsampling               L"ChromaUpsampling"
 #define OPT_Upscaling                      L"Upscaling"
 #define OPT_Downscaling                    L"Downscaling"
+#define OPT_ChromaUpsampling12             L"ChromaUpsampling12"
+#define OPT_Upscaling12                    L"Upscaling12"
+#define OPT_Downscaling12                  L"Downscaling12"
 #define OPT_InterpolateAt50pct             L"InterpolateAt50pct"
 #define OPT_Dither                         L"Dither"
 #define OPT_SwapEffect                     L"SwapEffect"
@@ -199,6 +202,15 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling, dw)) {
 			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ChromaUpsampling12, dw)) {
+			m_Sets.iChromaScaling12 = discard<int>(dw, CHROMA_Bilinear, CHROMA_Nearest, CHROMA_CatmullRom);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Upscaling12, dw)) {
+			m_Sets.iUpscaling12 = discard<int>(dw, UPSCALE_CatmullRom, UPSCALE_Nearest, UPSCALE_Lanczos3);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling12, dw)) {
+			m_Sets.iDownscaling12 = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_InterpolateAt50pct, dw)) {
 			m_Sets.bInterpolateAt50pct = !!dw;
