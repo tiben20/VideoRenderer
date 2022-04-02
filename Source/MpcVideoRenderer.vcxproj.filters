@@ -46,6 +46,9 @@
     <Filter Include="Header Files\d3d12\d3d12helper\Utility">
       <UniqueIdentifier>{2c9ab5d2-efa7-48cb-8ca7-4557b0f734f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\shaders\Includes">
+      <UniqueIdentifier>{93403f00-281f-45a6-97d4-add60c4acf57}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -471,50 +474,50 @@
     <None Include="d3d12util\math\Functions.inl">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </None>
-    <None Include="d3d12util\shaders\GenerateMipsCS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\PixelPacking.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\PixelPacking_R11G11B10.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\PixelPacking_RGBE.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\PixelPacking_RGBM.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\PixelPacking_Velocity.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\SSAORS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
     <None Include="d3d12util\shaders\BicubicFilterFunctions.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\CommonRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\TextRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </None>
-    <None Include="d3d12util\shaders\ToneMappingUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
     </None>
     <None Include="d3d12util\shaders\ColorSpaceUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\CommonRS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\GenerateMipsCS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
     </None>
     <None Include="d3d12util\shaders\LanczosFunctions.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\PixelPacking_R11G11B10.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\PixelPacking.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\PixelPacking_RGBE.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\PixelPacking_RGBM.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\PixelPacking_Velocity.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
     </None>
     <None Include="d3d12util\shaders\PresentRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
     </None>
     <None Include="d3d12util\shaders\ShaderUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\ToneMappingUtility.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\TextRS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
+    <None Include="d3d12util\shaders\SSAORS.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
