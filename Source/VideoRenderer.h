@@ -110,6 +110,8 @@ private:
 	// VideoProcessor
 	CVideoProcessor* m_VideoProcessor = nullptr;
 
+	bool m_bLAVUseD3D12 = false;
+
 	CMediaType m_inputMT;
 
 	ISubRenderCallback* m_pSubCallBack = nullptr;

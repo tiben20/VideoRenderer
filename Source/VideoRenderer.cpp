@@ -58,6 +58,7 @@
 #define OPT_HdrToggleDisplay               L"HdrToggleDisplay"
 #define OPT_ConvertToSdr                   L"ConvertToSdr"
 #define OPT_UseD3DFullscreen               L"UseD3DFullscreen"
+#define OPT_LAVD3D12                       L"Software\\LAV\\Video\\HWAccel"
 
 static std::atomic_int g_nInstance = 0;
 static const wchar_t g_szClassName[] = L"VRWindow";
@@ -150,6 +151,15 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	// read settings
 
 	CRegKey key;
+	
+	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_LAVD3D12, KEY_READ))
+	{
+		DWORD dw; 
+		if (ERROR_SUCCESS == key.QueryDWORDValue(L"HWAccel", dw)) {
+			m_bLAVUseD3D12 = (discard<int>(dw, 5, 0, 6) == 6);
+		}
+	}
+
 	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER, KEY_READ)) {
 		DWORD dw;
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D11, dw)) {
@@ -248,7 +258,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 
 	HRESULT hr = S_FALSE;
 	//m_Sets.bUseD3D11 = true;
-	if (m_Sets.bUseD3D11 && IsWindows7SP1OrGreater()) {
+	if (m_Sets.bUseD3D11 && !m_bLAVUseD3D12 && IsWindows7SP1OrGreater()) {
 		m_VideoProcessor = new CDX11VideoProcessor(this, m_Sets, hr);
 		if (SUCCEEDED(hr)) {
 			hr = m_VideoProcessor->Init(m_hWnd);
@@ -260,7 +270,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
 	}
 
-	if (m_Sets.bUseD3D12 && IsWindows7SP1OrGreater() && !m_Sets.bUseD3D11) {
+	if (m_Sets.bUseD3D12 && IsWindows7SP1OrGreater() && !m_VideoProcessor) {
 		m_VideoProcessor = new CDX12VideoProcessor(this, m_Sets, hr);
 		if (SUCCEEDED(hr)) {
 			hr = m_VideoProcessor->Init(m_hWnd);// m_hWnd);

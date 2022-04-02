@@ -30,7 +30,7 @@ interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D11Decoder
   virtual UINT STDMETHODCALLTYPE GetD3D11AdapterIndex() = 0;
 };
 
-interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D12DecoderConfiguration : public IUnknown
+interface __declspec(uuid("8495AA1F-E090-4C85-9C34-3B082215DFA2")) ID3D12DecoderConfiguration : public IUnknown
 {
   // Set the surface format the decoder is going to send.
   // If the renderer is not ready to accept this format, an error will be returned.
@@ -66,7 +66,7 @@ interface __declspec(uuid("BC8753F5-0AC8-4806-8E5F-A12B2AFE153E")) IMediaSampleD
 
 
 
-interface __declspec(uuid("BC8753F5-0AC7-4806-8E5F-A12B2AFE153E")) IMediaSampleD3D12 : public IUnknown
+interface __declspec(uuid("48334841-69F8-43CD-9EDC-75AFE51FF96D")) IMediaSampleD3D12 : public IUnknown
 {
   // Get the D3D11 texture for the specified view.
   // 2D images with only one view always use view 0. For 3D, view 0 specifies the base view, view 1 the extension
