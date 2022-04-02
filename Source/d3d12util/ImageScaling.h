@@ -24,7 +24,6 @@
 
 class GraphicsContext;
 class ColorBuffer;
-
 enum DXGI_FORMAT;
 
 __declspec(align(16)) struct CONSTANT_BUFFER_VAR {
@@ -40,6 +39,7 @@ namespace ImageScaling
   void Initialize(DXGI_FORMAT DestFormat);
   void FreeImageScaling();
   void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant);
+  
   void SetPipelineBilinear(GraphicsContext& Context);
   enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos, kFilterCount };
   void PreparePresentSDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);

@@ -45,7 +45,6 @@
 
 #include "d3d12util/math/Common.h"
 
-
 #include "../external/minhook/include/MinHook.h"
 
 #include "DX12VideoProcessor.h"
@@ -109,6 +108,7 @@ using namespace D3D12Engine;
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
+	m_bForceD3D12 = config.bForceD3D12;
 	m_bShowStats = config.bShowStats;
 	m_iResizeStats = config.iResizeStats;
 	m_iTexFormat = config.iTexFormat;
@@ -254,6 +254,11 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 		m_hWnd = hwnd;
 	D3D12Engine::g_hWnd = hwnd;
 
+	if (m_bForceD3D12 && !D3D12Engine::g_Device)
+	{
+		D3D12Engine::CreateDevice();
+		
+	}
 	if (!D3D12Engine::g_Device)
 		return S_OK;
 	
@@ -269,7 +274,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	ImageScaling::Initialize(D3D12Engine::GetSwapChainFormat());
 	
 	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
-
+	UpdateStatsStatic();
 	return S_OK;
 	
 }
@@ -435,16 +440,51 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 		if (size > 0 && S_OK == pSample->GetPointer(&data)) {
 			// do not use UpdateSubresource for D3D11 VP here
 			// because it can cause green screens and freezes on some configurations
-#ifdef TODO
-			hr = MemCopyToTexSrcVideo(data, m_srcPitch);
-#endif
-			
+
+			hr = MemCopyToTexSrcVideo(data, m_srcPitch, size);
+
 		}
 	}
 
 	return hr;
 }
 
+HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch, size_t bufferlength)
+{
+	HRESULT hr = S_FALSE;
+	
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2];
+	UINT64 pitch_plane[2];
+	UINT rows_plane[2];
+	UINT64 RequiredSize;
+	D3D12_RESOURCE_DESC desc;
+	if (m_srcParams.DX11Format == DXGI_FORMAT_NV12 || m_srcParams.DX11Format == DXGI_FORMAT_P010)
+	{
+		desc = CD3DX12_RESOURCE_DESC::Tex2D(m_srcParams.DX11Format, m_srcRect.Width(), m_srcRect.Height(), 1, 1);
+		g_Device->GetCopyableFootprints(&desc, 0, 2, 0, layoutplane, rows_plane, pitch_plane, &RequiredSize);
+		layoutplane[0].Footprint.Format = m_srcParams.pDX11Planes->FmtPlane1;
+		layoutplane[1].Footprint.Format = m_srcParams.pDX11Planes->FmtPlane2;
+	}
+
+
+	
+	size_t firstplane = /*m_srcRect.Width()*/ pitch_plane[0] * m_srcRect.Height();
+	layoutplane[1].Offset = 0;// firstplane;
+	layoutplane[0].Footprint.RowPitch = pitch_plane[0];// srcPitch;
+	layoutplane[1].Footprint.RowPitch = pitch_plane[1];//srcPitch;
+
+	TypedBuffer buf1(m_srcParams.pDX11Planes->FmtPlane1);//DXGI_FORMAT_R8_UNORM
+	TypedBuffer buf2(m_srcParams.pDX11Planes->FmtPlane2);//DXGI_FORMAT_R8G8_UNORM);
+
+	buf1.Create(L"plane 0", 1, firstplane, srcData);
+	
+	buf2.Create(L"plane 1", 1, bufferlength - firstplane, srcData + firstplane);
+
+	//1382400
+	D3D12Engine::CopySampleSW(buf1,buf2, layoutplane);
+
+	return hr;
+}
 
 HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
@@ -713,7 +753,8 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 	}
 	m_srcRectWidth = m_srcRect.Width();
 	m_srcRectHeight = m_srcRect.Height();
-
+	if (m_decExFmt.value == 0)
+		m_decExFmt = m_srcExFmt;
 	m_srcExFmt = SpecifyExtendedFormat(m_decExFmt, FmtParams, m_srcRectWidth, m_srcRectHeight);
 
 	const auto frm_gcd = std::gcd(m_srcRectWidth, m_srcRectHeight);
@@ -818,6 +859,9 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 
 	return FALSE;
 #endif
+	//Update the colors in case we are using sw for rendering
+	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
+	UpdateStatsStatic();
 	return TRUE;
 }
 
@@ -895,6 +939,7 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	bool changeNumTextures = false;
 	bool changeResizeStats = false;
 
+	m_bForceD3D12 = config.bForceD3D12;
 	// settings that do not require preparation
 	m_bShowStats = config.bShowStats;
 	m_bDeintDouble = config.bDeintDouble;
@@ -1089,7 +1134,7 @@ void CDX12VideoProcessor::ReleaseDevice()
 	m_pIndexBuffer.Destroy();
 	m_pViewpointShaderConstant.Destroy();
 	m_pPixelShaderConstants.Destroy();
-	m_pVertexHeap.Release();
+	
 	g_Device = nullptr;
 	
 	
@@ -1116,9 +1161,7 @@ void CDX12VideoProcessor::SetGraphSize()
 		CalcGraphParams();
 		m_Underlay.graphrect = m_GraphRect;
 		m_Underlay.graphcolor = D3DCOLOR_ARGB(80, 0, 0, 0);
-		//TODO
-		//m_Lines.ClearPoints(rtSize);
-		POINT points[2];
+
 		const int linestep = 20 * m_Yscale;
 		GraphLine lne;
 		m_Lines.clear();
@@ -1129,11 +1172,7 @@ void CDX12VideoProcessor::SetGraphSize()
 			lne.linecolor = (y == m_Yaxis) ? D3DCOLOR_XRGB(150, 150, 255) : D3DCOLOR_XRGB(100, 100, 255);
 			lne.linesize = 2;
 			m_Lines.push_back(lne);
-			//TODO
-			//m_Lines.AddPoints(points, std::size(points), (y == m_Yaxis) ? D3DCOLOR_XRGB(150, 150, 255) : D3DCOLOR_XRGB(100, 100, 255));
 		}
-		//TODO
-		//m_Lines.UpdateVertexBuffer();
 	}
 }
 

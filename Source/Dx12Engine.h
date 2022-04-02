@@ -37,6 +37,7 @@ class DescriptorAllocator;
 class ContextManager;
 class ColorBuffer;
 
+
 namespace D3D12Engine
 {
 
@@ -56,6 +57,7 @@ namespace D3D12Engine
 		return g_DescriptorAllocator[Type].Allocate(Count);
 	}
 
+	HRESULT CreateDevice();
 	HRESULT InitSwapChain(CRect windowRect);
 	HRESULT ResetSwapChain(CRect windowrect);
 	HRESULT InitDXGIFactory();
@@ -77,7 +79,7 @@ namespace D3D12Engine
 	void  ReleaseEngine();
 	void ReleaseSwapChain();
 
-
+	HRESULT CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2]);
 	HRESULT CopySample(ID3D12Resource* resource);
 	void ClearBackBuffer(CRect windowRect);
 	

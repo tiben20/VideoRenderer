@@ -33,6 +33,7 @@
 #define OPT_REGKEY_VIDEORENDERER           L"Software\\MPC-BE Filters\\MPC Video Renderer"
 #define OPT_UseD3D11                       L"UseD3D11"
 #define OPT_UseD3D12                       L"UseD3D12"
+#define OPT_ForceD3D12                     L"ForceD3D12"
 #define OPT_ShowStatistics                 L"ShowStatistics"
 #define OPT_ResizeStatistics               L"ResizeStatistics"
 #define OPT_TextureFormat                  L"TextureFormat"
@@ -156,7 +157,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	{
 		DWORD dw; 
 		if (ERROR_SUCCESS == key.QueryDWORDValue(L"HWAccel", dw)) {
-			m_bLAVUseD3D12 = (discard<int>(dw, 5, 0, 6) == 6);
+			m_Sets.bLAVUseD3D12 = (discard<int>(dw, 5, 0, 6) == 6);
 		}
 	}
 
@@ -165,6 +166,9 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D11, dw)) {
 			m_Sets.bUseD3D11 = !!dw;
 		}
+	  if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ForceD3D12, dw)) {
+				m_Sets.bForceD3D12 = !!dw;
+	  }
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D12, dw)) {
 			m_Sets.bUseD3D12 = !!dw;
 		}
@@ -258,7 +262,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 
 	HRESULT hr = S_FALSE;
 	//m_Sets.bUseD3D11 = true;
-	if (m_Sets.bUseD3D11 && !m_bLAVUseD3D12 && IsWindows7SP1OrGreater()) {
+	if (m_Sets.bUseD3D11 && !m_Sets.bLAVUseD3D12 && IsWindows7SP1OrGreater() && !m_Sets.bForceD3D12) {
 		m_VideoProcessor = new CDX11VideoProcessor(this, m_Sets, hr);
 		if (SUCCEEDED(hr)) {
 			hr = m_VideoProcessor->Init(m_hWnd);
@@ -270,7 +274,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
 	}
 
-	if (m_Sets.bUseD3D12 && IsWindows7SP1OrGreater() && !m_VideoProcessor) {
+	if ((m_Sets.bUseD3D12 && IsWindows7SP1OrGreater() && !m_VideoProcessor) || m_Sets.bForceD3D12) {
 		m_VideoProcessor = new CDX12VideoProcessor(this, m_Sets, hr);
 		if (SUCCEEDED(hr)) {
 			hr = m_VideoProcessor->Init(m_hWnd);// m_hWnd);
@@ -1218,6 +1222,7 @@ STDMETHODIMP CMpcVideoRenderer::SaveSettings()
 	if (ERROR_SUCCESS == key.Create(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER)) {
 		key.SetDWORDValue(OPT_UseD3D11,                       m_Sets.bUseD3D11);
 		key.SetDWORDValue(OPT_UseD3D12,                       m_Sets.bUseD3D12);
+		key.SetDWORDValue(OPT_ForceD3D12,                     m_Sets.bForceD3D12);
 		key.SetDWORDValue(OPT_ShowStatistics,                 m_Sets.bShowStats);
 		key.SetDWORDValue(OPT_ResizeStatistics,               m_Sets.iResizeStats);
 		key.SetDWORDValue(OPT_TextureFormat,                  m_Sets.iTexFormat);

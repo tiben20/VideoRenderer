@@ -91,8 +91,9 @@ private:
 	UploadBuffer m_pPixelShaderConstants;
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
-	D3D12_DESCRIPTOR_HEAP_DESC m_pVertexHeapDesc;//m_cbvSrvHeap
-	CComPtr<ID3D12DescriptorHeap> m_pVertexHeap;//m_cbvSrvHeap
+	
+	
+
 
 	bool resetquad = false;
 
@@ -149,7 +150,7 @@ private:
 	
 
 
-	
+	bool m_bForceD3D12 = false;
 
 	struct HDRMetadata {
 		DXGI_HDR_METADATA_HDR10 hdr10 = {};
@@ -202,6 +203,10 @@ private:
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
 	
+	HRESULT MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch, size_t bufferlength);
+
+	HRESULT CreateDevice();
+
 public:
 	HRESULT SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice);
 	

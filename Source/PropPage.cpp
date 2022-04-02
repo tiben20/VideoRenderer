@@ -85,6 +85,8 @@ void CVRMainPPage::SetControls()
 {
 	CheckDlgButton(IDC_CHECK1, m_SetsPP.bUseD3D11                        ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_CHECK13, m_SetsPP.bUseD3D12                        ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK17, m_SetsPP.bForceD3D12                     ? BST_CHECKED : BST_UNCHECKED);
+	
 	CheckDlgButton(IDC_CHECK2, m_SetsPP.bShowStats                       ? BST_CHECKED : BST_UNCHECKED);
 
 	ComboBox_SelectByItemData(m_hWnd, IDC_COMBO1, m_SetsPP.iTexFormat);
@@ -244,6 +246,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 		const int nID = LOWORD(wParam);
 
 		if (HIWORD(wParam) == BN_CLICKED) {
+
 			if (nID == IDC_CHECK1) {
 				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
 				if (IsDlgButtonChecked(IDC_CHECK13))
@@ -256,6 +259,14 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				SetDirty();
 				return (LRESULT)1;
 			}
+
+			if (nID == IDC_CHECK17) {
+				m_SetsPP.bForceD3D12 = IsDlgButtonChecked(IDC_CHECK17) == BST_CHECKED;
+				EnableControls();
+				SetDirty();
+				return (LRESULT)1;
+			}
+				
 			if (nID == IDC_CHECK13) {
 				m_SetsPP.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
 				if (IsDlgButtonChecked(IDC_CHECK1))

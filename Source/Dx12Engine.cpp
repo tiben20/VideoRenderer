@@ -188,6 +188,61 @@ namespace D3D12Engine
 		return S_OK;
 	}
 
+	HRESULT D3D12Engine::CreateDevice()
+	{
+		HRESULT hr = S_OK;
+		ID3D12Debug* pD3DDebug;
+		ID3D12Debug1* pD3DDebug1;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&pD3DDebug))))
+		{
+			pD3DDebug->EnableDebugLayer();
+			pD3DDebug->QueryInterface(IID_PPV_ARGS(&pD3DDebug1));
+			//m_pD3DDebug1->SetEnableGPUBasedValidation(true);
+			pD3DDebug1->SetEnableSynchronizedCommandQueueValidation(1);
+			pD3DDebug->Release();
+			pD3DDebug1->Release();
+		}
+		
+#if 0
+		// create DXGI factory
+		IDXGIAdapter* pDXGIAdapter = nullptr;
+		IDXGIFactory1* pDXGIFactory = nullptr;
+		hr = dx.mCreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_pDxgiFactory));
+		if (FAILED(hr))
+		{
+			DbgLog((LOG_ERROR, 10, L"-> DXGIFactory creation failed"));
+			//goto fail;
+		}
+
+		//hr = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_pDxgiFactory));
+		if FAILED(hr)
+			assert(0);
+
+		if (DXGI_ERROR_NOT_FOUND == m_pDxgiFactory->EnumAdapters(nDeviceIndex, &m_pDxgiAdapter))
+		{
+			hr = S_FALSE;
+			assert(0);
+		}
+		DXGI_ADAPTER_DESC desc;
+		hr = m_pDxgiAdapter->GetDesc(&desc);
+		if FAILED(hr)
+			assert(0);
+#endif
+		const D3D_FEATURE_LEVEL* levels = NULL;
+		D3D_FEATURE_LEVEL max_level = D3D_FEATURE_LEVEL_12_1;
+		//int level_count = s_GetD3D12FeatureLevels(max_level, &levels);
+
+		hr = D3D12CreateDevice(m_pDXGIAdapter, max_level, IID_PPV_ARGS(&g_Device));
+		if FAILED(hr)
+			assert(0);
+
+
+
+		//hr = m_pD3DDevice->QueryInterface(IID_PPV_ARGS(&m_pVideoDevice));
+		return hr;
+
+	}
+
 	HRESULT D3D12Engine::InitSwapChain(CRect windowRect)
 	{
 		for (int i = 0; i < 3; i++)
@@ -360,6 +415,53 @@ namespace D3D12Engine
 			m_pBufferVar.cm_b.z = 0;
 		}
 
+	}
+
+	HRESULT D3D12Engine::CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2])
+	{
+		//create the resize resource needed to wait to have a video source
+		if (m_pResizeResource.GetWidth() == 0)
+		{
+			m_pResizeResource.Create(L"Resize Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, m_SwapChainFmt);
+			m_pVideoOutputResource.Create(L"Resize Scaling Resource Final", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, m_SwapChainFmt);
+		}
+
+		if (m_pPlaneResource[0].GetWidth() == 0)// DXGI_FORMAT_NV12
+		{
+			m_pPlaneResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, layoutplane[0].Footprint.Format);
+			m_pPlaneResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, layoutplane[1].Footprint.Format);
+			if (DXGI_FORMAT_R16_UNORM == layoutplane[0].Footprint.Format)
+				m_srcDXGIFormat = DXGI_FORMAT_P010;
+			else
+				m_srcDXGIFormat = DXGI_FORMAT_NV12;
+		}
+		/*else if (m_pPlaneResource[0].GetWidth() == 0)
+		{
+			m_pPlaneResource[0].Create(L"Scaling Resource", layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height, 1, DXGI_FORMAT_R16_UNORM);
+			m_pPlaneResource[1].Create(L"Scaling Resource", layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, 1, DXGI_FORMAT_R16G16_UNORM);
+			m_srcDXGIFormat = DXGI_FORMAT_P010;
+		}*/
+		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
+		pVideoContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
+		pVideoContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST, true);
+		
+		D3D12_TEXTURE_COPY_LOCATION dst;
+		D3D12_TEXTURE_COPY_LOCATION src;
+		for (int i = 0; i < 2; i++) {
+			dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pPlaneResource[i].GetResource());
+			if (i==0)
+			src = CD3DX12_TEXTURE_COPY_LOCATION(buf1.GetResource(), layoutplane[i]);
+			else
+				src = CD3DX12_TEXTURE_COPY_LOCATION(buf2.GetResource(), layoutplane[i]);
+			pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+		}
+
+		//the first plane is the correct size not the second one
+		pVideoContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
+		ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar);
+		pVideoContext.Finish(true);
+		return S_OK;
+	
 	}
 
 	HRESULT D3D12Engine::CopySample(ID3D12Resource* resource)

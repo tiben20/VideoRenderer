@@ -300,6 +300,8 @@ namespace ImageScaling
 
     }
 
+    
+
     void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant)
     {
       Context.SetRootSignature(s_PresentRSColor);
@@ -345,22 +347,22 @@ namespace ImageScaling
 
             uint32_t tileWidth, tileHeight, shaderMode;
 
-            if (source.GetWidth() * 16 <= destRect.Width() * 13 &&
-                source.GetHeight() * 16 <= destRect.Height() * 13)
+            if (source.GetWidth() * 16 <= (uint32_t)destRect.Width() * 13 &&
+                source.GetHeight() * 16 <= (uint32_t)destRect.Height() * 13)
             {
                 tileWidth = 16;
                 tileHeight = 16;
                 shaderMode = kFast16CS;
             }
-            else if (source.GetWidth() * 24 <= destRect.Width() * 21 &&
-                source.GetHeight() * 24 <= destRect.Height() * 21)
+            else if (source.GetWidth() * 24 <= (uint32_t)destRect.Width() * 21 &&
+                source.GetHeight() * 24 <= (uint32_t)destRect.Height() * 21)
             {
                 tileWidth = 32; // For some reason, occupancy drops with 24x24, reducing perf
                 tileHeight = 24;
                 shaderMode = kFast24CS;
             }
-            else if (source.GetWidth() * 32 <= destRect.Width() * 29 &&
-                source.GetHeight() * 32 <= destRect.Height() * 29)
+            else if (source.GetWidth() * 32 <= (uint32_t)destRect.Width() * 29 &&
+                source.GetHeight() * 32 <= (uint32_t)destRect.Height() * 29)
             {
                 tileWidth = 32;
                 tileHeight = 32;
@@ -441,22 +443,22 @@ namespace ImageScaling
 
             uint32_t tileWidth, tileHeight, shaderMode;
 
-            if (source.GetWidth() * 16 <= destRect.Width() * 13 &&
-                source.GetHeight() * 16 <= destRect.Height() * 13)
+            if (source.GetWidth() * 16 <= (uint32_t)destRect.Width() * 13 &&
+                source.GetHeight() * 16 <= (uint32_t)destRect.Height() * 13)
             {
                 tileWidth = 16;
                 tileHeight = 16;
                 shaderMode = kFast16CS;
             }
-            else if (source.GetWidth() * 24 <= destRect.Width() * 21 &&
-                     source.GetHeight() * 24 <= destRect.Height() * 21)
+            else if (source.GetWidth() * 24 <= (uint32_t)destRect.Width() * 21 &&
+                     source.GetHeight() * 24 <= (uint32_t)destRect.Height() * 21)
             {
                 tileWidth = 32; // For some reason, occupancy drops with 24x24, reducing perf
                 tileHeight = 24;
                 shaderMode = kFast24CS;
             }
-            else if (source.GetWidth() * 32 <= destRect.Width() * 29 &&
-                     source.GetHeight() * 32 <= destRect.Height() * 29)
+            else if (source.GetWidth() * 32 <= (uint32_t)destRect.Width() * 29 &&
+                     source.GetHeight() * 32 <= (uint32_t)destRect.Height() * 29)
             {
                 tileWidth = 32;
                 tileHeight = 32;

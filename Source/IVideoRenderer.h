@@ -77,6 +77,8 @@ struct VPEnableFormats_t {
 struct Settings_t {
 	bool bUseD3D11;
 	bool bUseD3D12;
+	bool bForceD3D12;
+	bool bLAVUseD3D12;
 	bool bShowStats;
 	int  iResizeStats;
 	int  iTexFormat;
