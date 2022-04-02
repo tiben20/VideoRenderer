@@ -130,5 +130,5 @@ void main(
 
     // Transform to display settings
     Result = RemoveDisplayProfile(Result, LDR_COLOR_FORMAT);
-    Dest[DTid.xy] = ApplyDisplayProfile(Result, DISPLAY_PLANE_FORMAT);
+    Dest[DTid.xy] = ApplyDisplayProfile(Result, COLOR_FORMAT_LINEAR);
 }

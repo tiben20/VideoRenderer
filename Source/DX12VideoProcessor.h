@@ -200,7 +200,7 @@ private:
 	HRESULT SetWindowRect(const CRect& windowRect) override;
 	HRESULT Reset() override;
 	bool IsInit() const override {
-		assert(0);
+		//assert(0);
 		return true;
 		//return m_bHdrDisplaySwitching; 
 	}
