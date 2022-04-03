@@ -1235,6 +1235,9 @@ STDMETHODIMP CMpcVideoRenderer::SaveSettings()
 		key.SetDWORDValue(OPT_ChromaUpsampling,               m_Sets.iChromaScaling);
 		key.SetDWORDValue(OPT_Upscaling,                      m_Sets.iUpscaling);
 		key.SetDWORDValue(OPT_Downscaling,                    m_Sets.iDownscaling);
+		key.SetDWORDValue(OPT_ChromaUpsampling12,             m_Sets.iChromaScaling12);
+		key.SetDWORDValue(OPT_Upscaling12,                    m_Sets.iUpscaling12);
+		key.SetDWORDValue(OPT_Downscaling12,                  m_Sets.iDownscaling12);
 		key.SetDWORDValue(OPT_InterpolateAt50pct,             m_Sets.bInterpolateAt50pct);
 		key.SetDWORDValue(OPT_Dither,                         m_Sets.bUseDither);
 		key.SetDWORDValue(OPT_SwapEffect,                     m_Sets.iSwapEffect);

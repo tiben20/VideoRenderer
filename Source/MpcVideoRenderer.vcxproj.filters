@@ -647,5 +647,8 @@
     <FxCompile Include="..\Shaders\d3d11\vs_simple.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="d3d12util\shaders\DownSamplingFilters.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -249,12 +249,6 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 			if (nID == IDC_CHECK1) {
 				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
-				if (IsDlgButtonChecked(IDC_CHECK13))
-				{
-					m_SetsPP.bUseD3D12 = 0;
-					CheckDlgButton(IDC_CHECK13, BST_UNCHECKED);
-					
-				}
 				EnableControls();
 				SetDirty();
 				return (LRESULT)1;
@@ -269,13 +263,6 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				
 			if (nID == IDC_CHECK13) {
 				m_SetsPP.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
-				if (IsDlgButtonChecked(IDC_CHECK1))
-				{
-					m_SetsPP.bUseD3D11 = 0;
-					CheckDlgButton(IDC_CHECK1, BST_UNCHECKED);
-				}
-				
-			
 				EnableControls();
 				SetDirty();
 				return (LRESULT)1;

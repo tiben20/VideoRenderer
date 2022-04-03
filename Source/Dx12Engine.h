@@ -83,6 +83,7 @@ namespace D3D12Engine
 	HRESULT CopySample(ID3D12Resource* resource);
 	void ClearBackBuffer(CRect windowRect);
 	
+	void Downscale(GraphicsContext& Context, ImageScaling::eDownScalingFilter tech = ImageScaling::kDownBox, CRect srcRect = CRect(), CRect destRect = CRect());
 	void Upscale(GraphicsContext& Context, ImageScaling::eScalingFilter tech = ImageScaling::kLanczos, CRect destRect = CRect());
 	void PresentBackBuffer(GraphicsContext& Context);
 	void WaitForVBlank();

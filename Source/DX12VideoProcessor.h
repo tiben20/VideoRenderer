@@ -185,6 +185,7 @@ private:
 	void DrawStats(GraphicsContext& Context, float x, float y, float w, float h);
 
 	HRESULT FillBlack() override;
+	void UpdateRenderRect();
 
 	void SetVideoRect(const CRect& videoRect)      override;
 	HRESULT SetWindowRect(const CRect& windowRect) override;

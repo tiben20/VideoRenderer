@@ -1144,6 +1144,32 @@ bool CDX12VideoProcessor::HandleHDRToggle()
 	return false;
 }
 
+void CDX12VideoProcessor::UpdateRenderRect()
+{
+	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
+
+	const int w2 = m_videoRect.Width();
+	const int h2 = m_videoRect.Height();
+	const int k = m_bInterpolateAt50pct ? 2 : 1;
+	int w1, h1;
+	if (m_iRotation == 90 || m_iRotation == 270) {
+		w1 = m_srcRectHeight;
+		h1 = m_srcRectWidth;
+	}
+	else {
+		w1 = m_srcRectWidth;
+		h1 = m_srcRectHeight;
+	}
+	m_strShaderX = L"box";/*(w1 == w2) ? nullptr
+		: (w1 > k * w2)
+		? s_Downscaling11ResIDs[m_iDownscaling].description
+		: s_Upscaling11ResIDs[m_iUpscaling].description;*/
+		m_strShaderY = L"box";/*(h1 == h2) ? nullptr
+		: (h1 > k * h2)
+		? s_Downscaling11ResIDs[m_iDownscaling].description
+		: s_Upscaling11ResIDs[m_iUpscaling].description;*/
+}
+
 void CDX12VideoProcessor::SetGraphSize()
 {
 	if (!m_windowRect.IsRectEmpty()) {
@@ -1511,7 +1537,8 @@ HRESULT CDX12VideoProcessor::Process(const CRect& srcRect, const CRect& dstRect,
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Onto SwapChain");
 	if (rSrc != dstRect) 
 	{
-		D3D12Engine::Upscale(pVideoContext, (ImageScaling::eScalingFilter)m_iUpscaling12, m_videoRect);
+		D3D12Engine::Downscale(pVideoContext, (ImageScaling::eDownScalingFilter)m_iDownscaling12, srcRect,dstRect);
+		//D3D12Engine::Upscale(pVideoContext, (ImageScaling::eScalingFilter)m_iUpscaling12, m_videoRect);
 	}
 	else
 	{
@@ -1530,10 +1557,11 @@ HRESULT CDX12VideoProcessor::FillBlack()
 
 void CDX12VideoProcessor::SetVideoRect(const CRect& videoRect)
 {
+
 	m_videoRect = videoRect;
-	
+	UpdateRenderRect();
 		
-	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
+	//m_renderRect.IntersectRect(m_videoRect, m_windowRect);
 	
 	resetquad = true;
 }
@@ -1551,6 +1579,7 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 	m_VendorId = g_VendorId;
 	
 	SetGraphSize();
+	UpdateStatsStatic();
 	resetquad = true;
 	return S_OK;
 }

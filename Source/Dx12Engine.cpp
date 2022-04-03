@@ -518,6 +518,7 @@ namespace D3D12Engine
 		}
 		//the first plane is the correct size not the second one
 		pVideoContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
+		
 		ImageScaling::ColorAjust(pVideoContext, m_pResizeResource, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar);
 		pVideoContext.Finish();
 		return S_OK;
@@ -532,6 +533,16 @@ namespace D3D12Engine
 
 		pVideoContext.ClearColor(SwapChainBufferColor[p_CurrentBuffer]);
 		pVideoContext.Finish();
+	}
+
+	void D3D12Engine::Downscale(GraphicsContext& Context, ImageScaling::eDownScalingFilter tech, CRect srcRect, CRect destRect)
+	{
+		//Context.SetViewportAndScissor(g_windowRect.left, g_windowRect.top, g_windowRect.Width(), g_windowRect.Height());
+		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pResizeResource, tech, srcRect, destRect);
+		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+		ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, srcRect);
+		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	}
 
 	void D3D12Engine::Upscale(GraphicsContext& Context, ImageScaling::eScalingFilter tech, CRect destRect)
