@@ -26,8 +26,8 @@
 #include "Helper.h"
 #include "DX12Engine.h"
 #include <string>
-#include "d3d12util/CommandListManager.h"
-#include "d3d12util/BufferManager.h"
+#include "CommandListManager.h"
+#include "BufferManager.h"
 
 #include "DisplayConfig.h"
 #include <map>

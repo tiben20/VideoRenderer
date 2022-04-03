@@ -29,8 +29,8 @@
 #include "BufferManager.h"
 #include "Helper.h"
 #include "D3DUtil/FontBitmap.h"
-#include "d3d12util/CompiledShaders/ps_font.h"
-#include "d3d12util/CompiledShaders/vs_simple.h"
+#include "CompiledShaders/ps_font.h"
+#include "CompiledShaders/vs_simple.h"
 #define MAX_NUM_VERTS 400*6
 
 struct Font12Vertex {

@@ -27,8 +27,8 @@
 #include "PipelineState.h"
 #include "RootSignature.h"
 #include "BufferManager.h"
-#include "d3d12util/CompiledShaders/GeometryPS.h"
-#include "d3d12util/CompiledShaders/GeometryVS.h"
+#include "CompiledShaders/GeometryPS.h"
+#include "CompiledShaders/GeometryVS.h"
 
 using namespace D3D12Engine;
 

@@ -138,9 +138,6 @@
     <ClCompile Include="D3D12VP.cpp">
       <Filter>Source Files\d3d12</Filter>
     </ClCompile>
-    <ClCompile Include="DX12VideoProcessor.cpp">
-      <Filter>Source Files\d3d12</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\math\Random.cpp">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClCompile>
@@ -227,6 +224,12 @@
     </ClCompile>
     <ClCompile Include="DX12Engine.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12Capabilities.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12VideoProcessor.cpp">
+      <Filter>Header Files\d3d12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -456,6 +459,9 @@
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="DX12Engine.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Capabilities.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
   </ItemGroup>

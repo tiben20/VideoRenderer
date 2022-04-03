@@ -38,13 +38,10 @@
 #include <iostream>
 #include <fstream>
 #include "dxgi1_6.h"
-
-#include "d3d12util/BufferManager.h"
-
-#include "d3d12util/TextRenderer.h"
-
-#include "d3d12util/math/Common.h"
-
+#include "DX12Capabilities.h"
+#include "BufferManager.h"
+#include "TextRenderer.h"
+#include "math/Common.h"
 #include "../external/minhook/include/MinHook.h"
 
 #include "DX12VideoProcessor.h"
@@ -482,7 +479,7 @@ HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 
 	//1382400
 	D3D12Engine::CopySampleSW(buf1,buf2, layoutplane);
-
+	m_bSWRendering = true;
 	return hr;
 }
 
@@ -637,6 +634,8 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice)
 {
 	D3D12Engine::g_Device = pDevice;
+	//now the device is set get the caps of it
+	D3D12Engine::FillD3D12Capabilities();
 	Init(m_hWnd, false);
 	return S_OK;
 }
@@ -1233,6 +1232,12 @@ BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 
 void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, float w, float h)
 {
+	if (!m_bShowStats)
+	{
+		Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+		Context.ClearColor(g_OverlayBuffer);
+		return;
+	}
 	//Switch to the overlay buffer
 	Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 	Context.ClearColor(g_OverlayBuffer);
@@ -1383,13 +1388,9 @@ HRESULT CDX12VideoProcessor::Render(int field)
 		ASSERT(S_OK == hrSubPic);
 	}
 
-	//pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-	//pVideoContext.SetRenderTarget(SwapChainBufferColor[p_CurrentBuffer].GetRTV());
+	//will just desactive the overlay if stats are not on
+	DrawStats(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
 
-	if (m_bShowStats)
-		DrawStats(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
-
-	//pVideoContext.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	
 	if (m_bAlphaBitmapEnable)
 	{
@@ -1581,9 +1582,13 @@ void CDX12VideoProcessor::UpdateStatsPresent()
 
 void CDX12VideoProcessor::UpdateStatsStatic()
 {
-	if (m_srcParams.cformat) {
+	if (m_srcParams.cformat)
+	{
 		m_strStatsHeader = fmt::format(L"MPC VR {}, Direct3D 12", _CRT_WIDE(VERSION_STR));
-
+		if (m_bSWRendering)
+			m_strStatsHeader += L"\nSoftware copy to d3d12 surface";
+		else
+			m_strStatsHeader += L"\nD3D12 texture directly rendered to display";
 		UpdateStatsInputFmt();
 
 		m_strStatsVProc = fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(D3D12Engine::GetInternalFormat()));

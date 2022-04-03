@@ -19,30 +19,21 @@
 */
 
 #pragma once
+#include <map>
 
-#include <d3d12.h>
-#include <d3d12video.h>
-#include "d3dx12.h"
-
-// D3D11 Video Processor
-class CD3D12VP
+struct VideoCapabilities
 {
-private:
-	
-	CComPtr<ID3D12VideoDevice> m_pVideoDevice;
-	
+  //DXGI_FORMAT Format;
+  bool        Texture2D;
+  bool        Input;
+  bool        Output;
+  bool        Encoder;
+};
 
 
-public:
-	HRESULT InitVideoDevice(ID3D12Device *pDevice);
-	void ReleaseVideoDevice();
 
-	HRESULT InitVideoProcessor(const DXGI_FORMAT inputFmt, const UINT width, const UINT height, const bool interlaced, DXGI_FORMAT& outputFmt);
-	void ReleaseVideoProcessor();
-
-	HRESULT InitInputTextures(ID3D12Device* pDevice);
-
-	bool IsVideoDeviceOk() { return (m_pVideoDevice != nullptr); }
-	
-
+namespace D3D12Engine
+{
+  static std::map<DXGI_FORMAT, VideoCapabilities> g_D3D12Capabilities;
+  void FillD3D12Capabilities();
 };

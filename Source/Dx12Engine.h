@@ -28,10 +28,10 @@
 #include <string_view>
 #include "dxva2api.h"
 #include "helper.h"
-#include "d3d12util/ImageScaling.h"
+#include "ImageScaling.h"
 
-#include "d3d12util/descriptorheap.h"
-#include "d3d12util/commandcontext.h"
+#include "descriptorheap.h"
+#include "commandcontext.h"
 class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;

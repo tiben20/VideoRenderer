@@ -30,13 +30,13 @@
 #include "D3D12VP.h"
 #include "DX9Device.h"
 #include "VideoProcessor.h"
-#include "d3d12util/PipelineState.h"
-#include "d3d12util/ColorBuffer.h"
-#include "d3d12util/gpubuffer.h"
-#include "d3d12util/CommandContext.h"
-#include "d3d12util/uploadbuffer.h"
-#include "d3d12util/ImageScaling.h"
-#include "d3d12util/GeometryRenderer.h"
+#include "PipelineState.h"
+#include "ColorBuffer.h"
+#include "gpubuffer.h"
+#include "CommandContext.h"
+#include "uploadbuffer.h"
+#include "ImageScaling.h"
+#include "GeometryRenderer.h"
 #define TEST_SHADER 0
 
 
@@ -91,7 +91,7 @@ private:
 	UploadBuffer m_pPixelShaderConstants;
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
-	
+	bool m_bSWRendering = false;
 	
 
 
