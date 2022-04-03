@@ -43,19 +43,24 @@ __declspec(align(16)) struct CONSTANT_DOWNSCALE_BUFFER {
   int axis;
 };
 
+__declspec(align(16)) struct CONSTANT_UPSCALE_BUFFER {
+  DirectX::XMFLOAT2 wh;
+  DirectX::XMFLOAT2 dxdy;
+  DirectX::XMFLOAT2 scale;
+  int filter;
+  int axis;
+};
+
 namespace ImageScaling
 {
 
   void Initialize(DXGI_FORMAT DestFormat);
   void FreeImageScaling();
   void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant);
-  
-  void SetPipelineBilinear(GraphicsContext& Context);
-  enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos };
-  enum eDownScalingFilter { kDownBox, kDownBilinear, kDownHamming, kDownBicubic, kDownLanczos };
+
   void PreparePresentSDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
   void PreparePresentHDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
-  void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eDownScalingFilter tech = kDownBox, CRect srcRect = CRect(),CRect destRect = CRect());
-  void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, eScalingFilter tech = kLanczos, CRect destRect = CRect());
+  void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect,CRect destRect);
+  void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect);
 
 }

@@ -535,22 +535,22 @@ namespace D3D12Engine
 		pVideoContext.Finish();
 	}
 
-	void D3D12Engine::Downscale(GraphicsContext& Context, ImageScaling::eDownScalingFilter tech, CRect srcRect, CRect destRect)
+	void D3D12Engine::Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect)
 	{
-		//Context.SetViewportAndScissor(g_windowRect.left, g_windowRect.top, g_windowRect.Width(), g_windowRect.Height());
-		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pResizeResource, tech, srcRect, destRect);
+		
+		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pResizeResource, ScalingFilter, srcRect, destRect);
 		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, srcRect);
 		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	}
 
-	void D3D12Engine::Upscale(GraphicsContext& Context, ImageScaling::eScalingFilter tech, CRect destRect)
+	void D3D12Engine::Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect)
 	{
-		Context.SetViewportAndScissor(g_windowRect.left, g_windowRect.top, g_windowRect.Width(), g_windowRect.Height());
-		ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pResizeResource, tech, destRect);
-		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 		
+		ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pResizeResource, ScalingFilter, srcRect, destRect);
+		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
+		//by using g_videoRect as CRect renderrect we get the clear is ok but we lose the overlay which is rendered in the full window
 		ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, g_videoRect);
 		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	}

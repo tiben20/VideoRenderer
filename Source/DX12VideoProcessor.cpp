@@ -100,6 +100,24 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 {
 	return MH_CreateHook(*ppSystemFunction, pHookFunction, reinterpret_cast<LPVOID*>(ppSystemFunction)) == MH_OK;
 }
+
+static const wchar_t* s_UpscalingName[5] = {
+	{L"Nearest-neighbor"  },
+	{L"Mitchell-Netravali"},
+	{L"Catmull-Rom"       },
+	{L"Lanczos2"          },
+	{L"Lanczos3"          },
+};
+
+static const wchar_t* s_DownscalingName[6] = {
+	{ L"Box"          },
+	{L"Bilinear"     },
+	{L"Hamming"      },
+	{L"Bicubic"      },
+	{L"Bicubic sharp"},
+	{L"Lanczos"      }
+};
+
 using namespace D3D12Engine;
 
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
@@ -1160,14 +1178,14 @@ void CDX12VideoProcessor::UpdateRenderRect()
 		w1 = m_srcRectWidth;
 		h1 = m_srcRectHeight;
 	}
-	m_strShaderX = L"box";/*(w1 == w2) ? nullptr
+	m_strShaderX = (w1 == w2) ? nullptr
 		: (w1 > k * w2)
-		? s_Downscaling11ResIDs[m_iDownscaling].description
-		: s_Upscaling11ResIDs[m_iUpscaling].description;*/
-		m_strShaderY = L"box";/*(h1 == h2) ? nullptr
+		? s_DownscalingName[m_iDownscaling12]
+		: s_UpscalingName[m_iUpscaling12];
+		m_strShaderY = (h1 == h2) ? nullptr
 		: (h1 > k * h2)
-		? s_Downscaling11ResIDs[m_iDownscaling].description
-		: s_Upscaling11ResIDs[m_iUpscaling].description;*/
+		? s_DownscalingName[m_iDownscaling12]
+		: s_UpscalingName[m_iUpscaling12];
 }
 
 void CDX12VideoProcessor::SetGraphSize()
@@ -1258,6 +1276,9 @@ BOOL CDX12VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 
 void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, float w, float h)
 {
+	if (m_windowRect.IsRectEmpty())
+		return;
+	
 	if (!m_bShowStats)
 	{
 		Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
@@ -1296,15 +1317,21 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	const int dstW = m_videoRect.Width();
 	const int dstH = m_videoRect.Height();
 	str += fmt::format(L"\nScaling       : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
-	//enum eScalingFilter { kBilinear, kSharpening, kBicubic, kLanczos, kFilterCount };
-	if (m_iUpscaling12 == 0)
-		str.append(L" Bilinear");
-	else if (m_iUpscaling12 == 1)
-		str.append(L" Sharpening");
-	else if (m_iUpscaling12 == 2)
-		str.append(L" Bicubic");
-	else if (m_iUpscaling12 == 3)
-		str.append(L" kLanczos");
+	if (m_srcRectWidth != dstW || m_srcRectHeight != dstH)
+	{
+		str += L' ';
+		if (m_strShaderX)
+		{
+			str.append(m_strShaderX);
+			if (m_strShaderY && m_strShaderY != m_strShaderX)
+			{
+				str += L'/';
+				str.append(m_strShaderY);
+			}
+		}
+		else if (m_strShaderY)
+			str.append(m_strShaderY);
+	}
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);
 	str += fmt::format(L"\nFrames: {:5}, skipped: {}/{}, failed: {}",
@@ -1537,8 +1564,10 @@ HRESULT CDX12VideoProcessor::Process(const CRect& srcRect, const CRect& dstRect,
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Onto SwapChain");
 	if (rSrc != dstRect) 
 	{
-		D3D12Engine::Downscale(pVideoContext, (ImageScaling::eDownScalingFilter)m_iDownscaling12, srcRect,dstRect);
-		//D3D12Engine::Upscale(pVideoContext, (ImageScaling::eScalingFilter)m_iUpscaling12, m_videoRect);
+		if( rSrc.Width()>dstRect.Width() || rSrc.Height() > dstRect.Height())
+			D3D12Engine::Downscale(pVideoContext, m_iDownscaling12, srcRect,dstRect);
+		else
+			D3D12Engine::Upscale(pVideoContext, m_iUpscaling12, srcRect, dstRect);
 	}
 	else
 	{

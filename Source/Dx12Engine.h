@@ -51,7 +51,10 @@ namespace D3D12Engine
 	extern CRect g_videoRect;
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
-	/* */
+	
+	extern RootSignature s_PresentRS;
+
+	
 	inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
 	{
 		return g_DescriptorAllocator[Type].Allocate(Count);
@@ -83,8 +86,8 @@ namespace D3D12Engine
 	HRESULT CopySample(ID3D12Resource* resource);
 	void ClearBackBuffer(CRect windowRect);
 	
-	void Downscale(GraphicsContext& Context, ImageScaling::eDownScalingFilter tech = ImageScaling::kDownBox, CRect srcRect = CRect(), CRect destRect = CRect());
-	void Upscale(GraphicsContext& Context, ImageScaling::eScalingFilter tech = ImageScaling::kLanczos, CRect destRect = CRect());
+	void Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
+	void Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
 	void PresentBackBuffer(GraphicsContext& Context);
 	void WaitForVBlank();
 	void Present();

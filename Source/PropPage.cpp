@@ -213,18 +213,25 @@ HRESULT CVRMainPPage::OnActivate()
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
-
+	/*chroma upsampling d3d12*/
 	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Not coded yet");
+	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
+	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
+	/*upscaling d3d12*/
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Mitchell-Netravali");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Lanczos2");
+	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Lanczos3");
+	/*down scaling d3d12*/
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Box");
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Hamming");
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
+	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
 
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Sharpening");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
-	
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Not coded yet");
-	//8 chroma upsampling
-//9 upscaling
-//10 downscaling
 
 	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Discard");
 	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Flip");
