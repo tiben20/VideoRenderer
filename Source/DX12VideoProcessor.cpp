@@ -20,7 +20,7 @@
 
 #include "stdafx.h"
 #include <uuids.h>
-#include <mfapi.h> // for MR_BUFFER_SERVICE
+#include <mfapi.h>
 #include <Mferror.h>
 #include <Mfidl.h>
 #include <dwmapi.h>
@@ -30,7 +30,6 @@
 #include "resource.h"
 #include "VideoRenderer.h"
 #include "../Include/Version.h"
-
 #include "../Include/ID3DVideoMemoryConfiguration.h"
 #include "Shaders.h"
 #include "Utils/CPUInfo.h"
@@ -290,8 +289,102 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	
 	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
 	UpdateStatsStatic();
+	IDXGIAdapter* pDXGIAdapter = nullptr;
+	const UINT currentAdapter = GetAdapter(hwnd, D3D12Engine::GetDXGIFactory(), &pDXGIAdapter);
+	//TODO do this on the engine side
+	if (!m_bCallbackDeviceIsSet)
+		m_nCurrentAdapter = currentAdapter;
+
+	if (m_nCurrentAdapter == currentAdapter)
+	{
+		SAFE_RELEASE(pDXGIAdapter);
+		if (hwnd) {
+			HRESULT hr = InitDX9Device(hwnd, pChangeDevice);
+			ASSERT(S_OK == hr);
+			if (m_pD3DDevEx)
+			{
+				// set a special blend mode for alpha channels for ISubRenderCallback rendering
+				// this is necessary for the second alpha blending
+				m_pD3DDevEx->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+				m_pD3DDevEx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
+				m_pD3DDevEx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ZERO);
+				m_pD3DDevEx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
+
+				SetCallbackDevice(pChangeDevice ? *pChangeDevice : false);
+				CreateSubPicSurface();
+			}
+		}
+	}
+	m_nCurrentAdapter = currentAdapter;
 	return S_OK;
 	
+}
+
+void CDX12VideoProcessor::CreateSubPicSurface()
+{
+	m_pSurface9SubPic.Release();
+	if (m_pTextureSubPic.GetWidth() > 0)
+		m_pTextureSubPic.DestroyBuffer();
+	HRESULT hr = S_OK;
+	if (m_pD3DDevEx)
+	{
+		HANDLE sharedHandle = nullptr;
+		hr = m_pD3DDevEx->CreateRenderTarget(
+			m_d3dpp.BackBufferWidth,
+			m_d3dpp.BackBufferHeight,
+			D3DFMT_A8R8G8B8,
+			D3DMULTISAMPLE_NONE,
+			0,
+			FALSE,
+			&m_pSurface9SubPic,
+			&sharedHandle);
+		DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : CreateRenderTarget(Direct3D9) failed with error {}", HR2Str(hr));
+
+		if (m_pSurface9SubPic) {
+			//should not happen we would lose every heap pointers
+			ID3D12Resource* resource;
+			hr = D3D12Engine::g_Device->OpenSharedHandle(sharedHandle, IID_PPV_ARGS(&resource));
+			m_pTextureSubPic.CreateShared(L"Shared subpic texture",
+				m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight, 1,
+				DXGI_FORMAT_B8G8R8A8_UNORM, resource);
+			//hr = D3D12Engine::g_Device->OpenSharedHandle(sharedHandle, IID_PPV_ARGS(&m_pTextureSubPic));
+			DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : OpenSharedResource() failed with error {}", HR2Str(hr));
+			
+		}
+		if (m_pTextureSubPic.GetWidth()>0) {
+			hr = m_pD3DDevEx->ColorFill(m_pSurface9SubPic, nullptr, D3DCOLOR_ARGB(255, 0, 0, 0));
+			hr = m_pD3DDevEx->SetRenderTarget(0, m_pSurface9SubPic);
+			DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : SetRenderTarget(Direct3D9) failed with error {}", HR2Str(hr));
+		}
+
+		return;
+		ID3D12Resource* resource;
+
+		
+
+		/*if (m_pTextureSubPic) {
+			D3D11_TEXTURE2D_DESC texdesc = {};
+			m_pTextureSubPic->GetDesc(&texdesc);
+			if (texdesc.BindFlags & D3D11_BIND_SHADER_RESOURCE) {
+				D3D11_SHADER_RESOURCE_VIEW_DESC shaderDesc;
+				shaderDesc.Format = texdesc.Format;
+				shaderDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				shaderDesc.Texture2D.MostDetailedMip = 0; // = Texture2D desc.MipLevels - 1
+				shaderDesc.Texture2D.MipLevels = 1;       // = Texture2D desc.MipLevels
+
+				hr = m_pDevice->CreateShaderResourceView(m_pTextureSubPic, &shaderDesc, &m_pShaderResourceSubPic);
+				DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : CreateShaderResourceView() failed with error {}", HR2Str(hr));
+			}
+
+			if (m_pShaderResourceSubPic) {
+				hr = m_pD3DDevEx->ColorFill(m_pSurface9SubPic, nullptr, D3DCOLOR_ARGB(255, 0, 0, 0));
+				hr = m_pD3DDevEx->SetRenderTarget(0, m_pSurface9SubPic);
+				DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : SetRenderTarget(Direct3D9) failed with error {}", HR2Str(hr));
+			}
+		}*/
+	}
+
+
 }
 
 HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
@@ -1287,7 +1380,7 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	}
 	//Switch to the overlay buffer
 	Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-	Context.ClearColor(g_OverlayBuffer);
+	//Context.ClearColor(g_OverlayBuffer);
 	Context.SetRenderTarget(g_OverlayBuffer.GetRTV());
 	Context.SetViewportAndScissor(0, 0, g_OverlayBuffer.GetWidth(), g_OverlayBuffer.GetHeight());
 
@@ -1381,7 +1474,7 @@ HRESULT CDX12VideoProcessor::Render(int field)
 
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
 
-	if (m_pFilter->m_pSubCallBack)
+	if (m_pFilter->m_pSubCallBack && m_pTextureSubPic.GetWidth()>0)
 	{
 		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
 		const CRect rDstVid(m_videoRect);
@@ -1435,10 +1528,9 @@ HRESULT CDX12VideoProcessor::Render(int field)
 		VP.Height = rSrcPri.Height();
 		VP.MinDepth = 0.0f;
 		VP.MaxDepth = 1.0f;
-#ifdef TODO
-		hrSubPic = AlphaBltSub(m_pShaderResourceSubPic, pBackBuffer, rSrcPri, VP);
-#endif
-		ASSERT(S_OK == hrSubPic);
+		hrSubPic = D3D12Engine::RenderSubPic(pVideoContext,m_pTextureSubPic, rSrcPri);
+		//hrSubPic = AlphaBltSub(m_pShaderResourceSubPic, pBackBuffer, rSrcPri, VP);
+
 	}
 
 	//will just desactive the overlay if stats are not on
@@ -1684,16 +1776,19 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 
 STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues* pValues)
 {
+	DLog(L"CDX12VideoProcessor::SetProcAmpValues");
   return E_NOTIMPL;
 }
 
 STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetAlphaBitmap(const MFVideoAlphaBitmap* pBmpParms)
 {
+	DLog(L"CDX12VideoProcessor::SetAlphaBitmap");
   return E_NOTIMPL;
 }
 
 STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::UpdateAlphaBitmapParameters(const MFVideoAlphaBitmapParams* pBmpParms)
 {
+	DLog(L"CDX12VideoProcessor::UpdateAlphaBitmapParameters");
   return E_NOTIMPL;
 }
 

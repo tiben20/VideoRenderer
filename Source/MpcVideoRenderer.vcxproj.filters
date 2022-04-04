@@ -78,9 +78,6 @@
     <ClCompile Include="Times.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VideoRendererInputPin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CustomAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -234,6 +231,9 @@
     <ClCompile Include="DX12VideoProcessor.cpp">
       <Filter>Header Files\d3d12</Filter>
     </ClCompile>
+    <ClCompile Include="VideoRendererInputPin.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -340,12 +340,6 @@
     </ClInclude>
     <ClInclude Include="DX12VideoProcessor.h">
       <Filter>Header Files\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\Commond3d12.h">
-      <Filter>Header Files\d3d12\d3d12helper</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\d3dx12.h">
-      <Filter>Header Files\d3d12\d3d12helper</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\math\Matrix3.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
@@ -466,6 +460,12 @@
     </ClInclude>
     <ClInclude Include="DX12Capabilities.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\d3dx12.h">
+      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\Commond3d12.h">
+      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -592,6 +592,9 @@
     </FxCompile>
     <FxCompile Include="d3d12util\shaders\DownScalingFilters.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d11\ps_simple.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

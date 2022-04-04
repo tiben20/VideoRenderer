@@ -52,6 +52,8 @@ public:
       m_Format = DXGI_FORMAT_UNKNOWN;
       Destroy();
     }
+    
+    
     // Create a color buffer from a swap chain buffer.  Unordered access is restricted.
     void CreateFromSwapChain( const std::wstring& Name, ID3D12Resource* BaseResource );
 
@@ -76,6 +78,9 @@ public:
     // this functions the same as Create() without a video address.
     void CreateArray(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,
         DXGI_FORMAT Format, EsramAllocator& Allocator);
+
+    void CreateShared(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,
+      DXGI_FORMAT Format, ID3D12Resource* resource);
 
     // Get pre-created CPU-visible descriptor handles
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRV(void) const { return m_SRVHandle; }

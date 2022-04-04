@@ -71,7 +71,8 @@ namespace D3D12Engine
 	int p_CurrentBuffer = 0;
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 	// swap chain format
-	DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
+	//DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
+	DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	bool m_bIsFullscreen = false;
 	// hdr
 	std::map<std::wstring, BOOL> m_hdrModeSavedState;
@@ -99,6 +100,7 @@ namespace D3D12Engine
 	DXGI_FORMAT D3D12Engine::GetInternalFormat() { return m_InternalTexFmt; }
 	D3D12_RESOURCE_DESC D3D12Engine::GetSwapChainResourceDesc() { return SwapChainBufferColor[0]->GetDesc(); }
 	bool D3D12Engine::HdrPassthroughSupport() { return m_bHdrPassthroughSupport; }
+	IDXGIFactory1* D3D12Engine::GetDXGIFactory() { return m_pDXGIFactory1; }
 	
 	void SetVideoRect(CRect rect) { g_videoRect = rect; }
 	void SetWindowRect(CRect rect) { g_windowRect = rect; }
@@ -415,6 +417,12 @@ namespace D3D12Engine
 			m_pBufferVar.cm_b.z = 0;
 		}
 
+	}
+
+	HRESULT D3D12Engine::RenderSubPic(GraphicsContext& Context, ColorBuffer resource, CRect srcRect)
+	{
+		return ImageScaling::RenderSubPic(Context, resource, g_OverlayBuffer, srcRect);
+		//return ImageScaling::RenderSubPic(Context, resource, SwapChainBufferColor[p_CurrentBuffer], srcRect);
 	}
 
 	HRESULT D3D12Engine::CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2])

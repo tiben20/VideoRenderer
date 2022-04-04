@@ -363,6 +363,26 @@ D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D( uint32_t Width, uint32_t Height,
     return Desc;
 }
 
+void PixelBuffer::CreateSharedTextureResource(ID3D12Device* Device, const std::wstring& Name,
+  const D3D12_RESOURCE_DESC& ResourceDesc, D3D12_CLEAR_VALUE ClearValue, D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr
+  ,ID3D12Resource* resource)
+{
+  Destroy();
+
+  (void)VidMemPtr;
+  m_pResource = resource;
+  
+
+  m_UsageState = D3D12_RESOURCE_STATE_COMMON;
+  m_GpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+
+#ifndef RELEASE
+  m_pResource->SetName(Name.c_str());
+#else
+  (Name);
+#endif
+}
+
 void PixelBuffer::CreateTextureResource( ID3D12Device* Device, const std::wstring& Name,
     const D3D12_RESOURCE_DESC& ResourceDesc, D3D12_CLEAR_VALUE ClearValue, D3D12_GPU_VIRTUAL_ADDRESS VidMemPtr )
 {

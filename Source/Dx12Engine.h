@@ -32,6 +32,7 @@
 
 #include "descriptorheap.h"
 #include "commandcontext.h"
+#include "dxgi.h"
 class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;
@@ -77,17 +78,21 @@ namespace D3D12Engine
 	DXGI_FORMAT GetSwapChainFormat();
 	DXGI_FORMAT GetInternalFormat();
 	D3D12_RESOURCE_DESC GetSwapChainResourceDesc();
+	IDXGIFactory1* GetDXGIFactory();
 	bool HdrPassthroughSupport();
 
 	void  ReleaseEngine();
 	void ReleaseSwapChain();
 
+	HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, CRect srcRect);
 	HRESULT CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2]);
 	HRESULT CopySample(ID3D12Resource* resource);
+	
 	void ClearBackBuffer(CRect windowRect);
 	
 	void Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
 	void Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
+
 	void PresentBackBuffer(GraphicsContext& Context);
 	void WaitForVBlank();
 	void Present();

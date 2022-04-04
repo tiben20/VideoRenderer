@@ -43,6 +43,9 @@
 #include "CompiledShaders/BlendUIHDRPS.h"
 #include "CompiledShaders/ScaleAndCompositeHDRPS.h"
 
+//subpic
+#include "CompiledShaders/vs_simple.h"
+#include "CompiledShaders/ps_simple.h"
 using namespace D3D12Engine;
 
 namespace ImageScaling
@@ -51,6 +54,8 @@ namespace ImageScaling
   /*Scaling PSO*/
   GraphicsPSO UpScalingFiltersPS(L"Image Scaling: Upscaling filters PSO");
   GraphicsPSO DownScalingFiltersPS(L"Image Scaling: DownScaling filters PSO");
+
+  GraphicsPSO SubPicPS(L"SubPic PSO");
   //constant buffer for downsampling
   CONSTANT_DOWNSCALE_BUFFER DownScalingConstantBuffer;;
   CONSTANT_UPSCALE_BUFFER UpScalingConstantBuffer;;
@@ -59,6 +64,7 @@ namespace ImageScaling
   RootSignature s_PresentRS;
   RootSignature s_PresentRSColor;
   RootSignature s_PresentRSScaling;
+  RootSignature s_SubPicRS;
   GraphicsPSO s_BlendUIPSO(L"Core: BlendUI");
   GraphicsPSO s_BlendUIHDRPSO(L"Core: BlendUIHDR");
   GraphicsPSO PresentSDRPS(L"Core: PresentSDR");
@@ -97,6 +103,37 @@ namespace ImageScaling
     s_PresentRSScaling.InitStaticSampler(0, SamplerLinearClampDesc);
     s_PresentRSScaling.InitStaticSampler(1, SamplerPointClampDesc);
     s_PresentRSScaling.Finalize(L"Present");
+
+    D3D12_SAMPLER_DESC SampDesc = {};
+    SampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+    SampDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    SampDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    SampDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    SampDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+    SampDesc.MinLOD = 0;
+    SampDesc.MaxLOD = D3D12_FLOAT32_MAX;
+    s_SubPicRS.Reset(2, 1);
+    s_SubPicRS.InitStaticSampler(0, SampDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+    s_SubPicRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
+    s_SubPicRS[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
+    s_SubPicRS.Finalize(L"SupPic Renderer", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    D3D12_INPUT_ELEMENT_DESC vertElem[] =
+    {
+          { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0 },
+          { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA , 0 }
+    };
+
+    SubPicPS.SetRootSignature(s_SubPicRS);
+    SubPicPS.SetRasterizerState(D3D12Engine::RasterizerDefaultCw);
+    SubPicPS.SetBlendState(D3D12Engine::BlendFont);
+    SubPicPS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+    SubPicPS.SetInputLayout(_countof(vertElem), vertElem);
+    SubPicPS.SetSampleMask(0xFFFFFFFF);
+    SubPicPS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+    SubPicPS.SetVertexShader(g_pvs_simple, sizeof(g_pvs_simple));
+    SubPicPS.SetPixelShader(g_pps_simple, sizeof(g_pps_simple));
+    SubPicPS.SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+    SubPicPS.Finalize();
 
     s_BlendUIPSO.SetRootSignature(s_PresentRS);
     s_BlendUIPSO.SetRasterizerState(RasterizerTwoSided);
@@ -205,8 +242,8 @@ namespace ImageScaling
 
   void PreparePresentSDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect)
   {
-
     Context.SetRootSignature(s_PresentRS);
+    Context.SetPipelineState(ScaleAndCompositeSDRPS);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // We're going to be reading these buffers to write to the swap chain buffer(s)
@@ -214,7 +251,7 @@ namespace ImageScaling
     Context.SetDynamicDescriptor(0, 0, videoSource.GetSRV());
     Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     Context.SetDynamicDescriptor(0, 1, g_OverlayBuffer.GetSRV());
-    Context.SetPipelineState(ScaleAndCompositeSDRPS);
+    
 
     Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
     Context.SetRenderTarget(renderTarget.GetRTV());
@@ -224,7 +261,26 @@ namespace ImageScaling
     Context.Draw(3);
   }
 
+  HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, ColorBuffer target, CRect srcRect)
+  {
+    Context.SetRootSignature(s_SubPicRS);
+    Context.SetPipelineState(SubPicPS);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);// D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+    Context.TransitionResource(target, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.TransitionResource(resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    Context.SetViewportAndScissor(0, 0, target.GetWidth(), target.GetHeight());
+    Context.SetDynamicDescriptor(0, 0, resource.GetSRV());
+    //Context.SetDynamicDescriptor(0, 1, target.GetSRV());
+    
+    Context.SetRenderTarget(target.GetRTV());
+    Context.SetViewportAndScissor(srcRect.left, srcRect.top, srcRect.Width(), srcRect.Height());
+
+    Context.Draw(4);
+    Context.TransitionResource(target, D3D12_RESOURCE_STATE_PRESENT);
+    return S_OK;
+  }
 
   void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant)
   {
@@ -250,6 +306,8 @@ namespace ImageScaling
     /*We need to reset them to 0 if we dont the root signature is not the same when we start a new video*/
     s_PresentRS.Free();
     s_PresentRSColor.Free();
+    s_PresentRSScaling.Free();
+    s_SubPicRS.Free();
     ColorConvertNV12PS.FreePSO();
     UpScalingFiltersPS.FreePSO();
     DownScalingFiltersPS.FreePSO();
@@ -261,6 +319,7 @@ namespace ImageScaling
     ScaleAndCompositeSDRPS.FreePSO();
     CompositeHDRPS.FreePSO();
     ScaleAndCompositeHDRPS.FreePSO();
+    
   }
 
   void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect)

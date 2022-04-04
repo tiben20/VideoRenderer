@@ -63,8 +63,8 @@ private:
 
 	/*d3d9 subpic*/
 	CComPtr<IDirect3DSurface9>        m_pSurface9SubPic;
-	CComPtr<ID3D12Resource>           m_pTextureSubPic;
-	//CComPtr<ID3D11ShaderResourceView> m_pShaderResourceSubPic;
+	ColorBuffer                       m_pTextureSubPic;
+
 	bool                              m_bSubPicWasRendered = false;
 
 	DXGI_SWAP_EFFECT              m_UsedSwapEffect = DXGI_SWAP_EFFECT_DISCARD;
@@ -207,7 +207,7 @@ private:
 	HRESULT MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch, size_t bufferlength);
 
 	HRESULT CreateDevice();
-
+	void CreateSubPicSurface();
 public:
 	HRESULT SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice);
 	

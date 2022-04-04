@@ -140,7 +140,7 @@ STDMETHODIMP CVideoRendererInputPin::ReceiveConnection(IPin* pConnector, const A
 			? S_OK
 			: VFW_E_TYPE_NOT_ACCEPTED;
 	} else {
-		m_bDXVA = m_bD3D11 = false;
+		m_bDXVA = m_bD3D11 = m_bD3D12 = false;
 	}
 
 	return __super::ReceiveConnection(pConnector, pmt);

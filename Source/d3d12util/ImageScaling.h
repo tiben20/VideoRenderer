@@ -57,6 +57,7 @@ namespace ImageScaling
   void Initialize(DXGI_FORMAT DestFormat);
   void FreeImageScaling();
   void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant);
+  HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, ColorBuffer target, CRect srcRect);
 
   void PreparePresentSDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
   void PreparePresentHDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);

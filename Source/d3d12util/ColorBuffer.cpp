@@ -167,3 +167,67 @@ void ColorBuffer::CreateArray( const std::wstring& Name, uint32_t Width, uint32_
 {
     CreateArray(Name, Width, Height, ArrayCount, Format);
 }
+
+void ColorBuffer::CreateShared(const std::wstring& Name, uint32_t Width, uint32_t Height, uint32_t ArrayCount,
+  DXGI_FORMAT Format,ID3D12Resource* resource)
+{
+  D3D12_RESOURCE_FLAGS Flags = CombineResourceFlags();
+  D3D12_RESOURCE_DESC ResourceDesc = DescribeTex2D(Width, Height, 1, 1, Format, Flags);
+
+  ResourceDesc.SampleDesc.Count = m_FragmentCount;
+  ResourceDesc.SampleDesc.Quality = 0;
+
+  D3D12_CLEAR_VALUE ClearValue = {};
+  ClearValue.Format = Format;
+  ClearValue.Color[0] = m_ClearColor.R();
+  ClearValue.Color[1] = m_ClearColor.G();
+  ClearValue.Color[2] = m_ClearColor.B();
+  ClearValue.Color[3] = m_ClearColor.A();
+  ResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
+  CreateSharedTextureResource(D3D12Engine::g_Device, Name, ResourceDesc, ClearValue, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, resource);
+  D3D12_RENDER_TARGET_VIEW_DESC RTVDesc = {};
+  D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
+  D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+
+  RTVDesc.Format = Format;
+  UAVDesc.Format = GetUAVFormat(Format);
+  SRVDesc.Format = Format;
+  SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+  RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+  RTVDesc.Texture2D.MipSlice = 0;
+
+  UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+  UAVDesc.Texture2D.MipSlice = 0;
+
+  SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+  SRVDesc.Texture2D.MipLevels = 1;
+  SRVDesc.Texture2D.MostDetailedMip = 0;
+
+
+  if (m_SRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+  {
+    //m_RTVHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_SRVHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+  }
+
+// Create the render target view
+//D3D12Engine::g_Device->CreateRenderTargetView(m_pResource, &RTVDesc, m_RTVHandle);
+
+// Create the shader resource view
+D3D12Engine::g_Device->CreateShaderResourceView(m_pResource, &SRVDesc, m_SRVHandle);
+
+if (m_FragmentCount > 1)
+return;
+
+// Create the UAVs for each mip level (RWTexture2D)
+/*for (uint32_t i = 0; i < 1; ++i)
+{
+  if (m_UAVHandle[i].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
+    m_UAVHandle[i] = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+  Device->CreateUnorderedAccessView(Resource, nullptr, &UAVDesc, m_UAVHandle[i]);
+
+  UAVDesc.Texture2D.MipSlice++;
+}*/
+
+}
