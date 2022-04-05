@@ -5,7 +5,11 @@
 #define IDD_MAINPROPPAGE                102
 #define IDD_INFOPROPPAGE                103
 #define IDS_MAINPROPPAGE_TITLE          104
+#define IDD_MAINPROPPAGE1               104
+#define IDD_D3D12PROPPAGE               104
 #define IDS_INFOPROPPAGE_TITLE          105
+#define IDS_D3D12PROP_TITLE             106
+#define IDI_ICON1                       108
 #define IDF_DITHER_32X32_FLOAT16        401
 #define IDF_HLSL_ST2084                 501
 #define IDF_HLSL_HLG                    502
@@ -118,7 +122,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
+#define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1052
 #define _APS_NEXT_SYMED_VALUE           101

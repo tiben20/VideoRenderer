@@ -22,6 +22,7 @@
 #include <InitGuid.h>
 #include "VideoRenderer.h"
 #include "PropPage.h"
+#include "D3D12PropPage.h"
 
 #include "../external/minhook/include/MinHook.h"
 
@@ -47,6 +48,7 @@ const AMOVIESETUP_FILTER sudFilter[] = {
 CFactoryTemplate g_Templates[] = {
 	{sudFilter[0].strName, &__uuidof(CMpcVideoRenderer), CreateInstance<CMpcVideoRenderer>, nullptr, &sudFilter[0]},
 	{L"MainProp", &__uuidof(CVRMainPPage), CreateInstance<CVRMainPPage>, nullptr, nullptr},
+	{L"D3D12Prop", &__uuidof(CD3D12SettingsPPage), CreateInstance<CD3D12SettingsPPage>, nullptr, nullptr},
 	{L"InfoProp", &__uuidof(CVRInfoPPage), CreateInstance<CVRInfoPPage>, nullptr, nullptr}
 };
 

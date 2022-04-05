@@ -274,12 +274,47 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 	if (m_bForceD3D12 && !D3D12Engine::g_Device)
 	{
-		D3D12Engine::CreateDevice();
-		
+		D3D12Engine::CreateDevice();	
 	}
 	if (!D3D12Engine::g_Device)
 		return S_OK;
-	
+	ID3D12VideoDevice* m_pVideoDevice;
+	ID3D12VideoProcessor* m_pVideoProcessor;
+	HRESULT hr = D3D12Engine::g_Device->QueryInterface(IID_PPV_ARGS(&m_pVideoDevice));
+	D3D12_VIDEO_PROCESS_OUTPUT_STREAM_DESC pOutputStreamDesc;
+	D3D12_VIDEO_PROCESS_INPUT_STREAM_DESC pInputStreamDescs;
+	pInputStreamDescs = {};
+	pInputStreamDescs.Format = DXGI_FORMAT_NV12;
+	pInputStreamDescs.ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+	pInputStreamDescs.SourceAspectRatio = DXGI_RATIONAL({ 800, 600 });
+	pInputStreamDescs.DestinationAspectRatio = DXGI_RATIONAL({ 800, 600 });
+	pInputStreamDescs.FrameRate = DXGI_RATIONAL({ 24, 1 });
+	pInputStreamDescs.SourceSizeRange = D3D12_VIDEO_SIZE_RANGE({ 800,600,600,400 });
+	pInputStreamDescs.DestinationSizeRange = D3D12_VIDEO_SIZE_RANGE({ 800,600,600,400 });
+	pInputStreamDescs.EnableOrientation = false;
+	pInputStreamDescs.FilterFlags = D3D12_VIDEO_PROCESS_FILTER_FLAG_NONE;
+	pInputStreamDescs.StereoFormat = D3D12_VIDEO_FRAME_STEREO_FORMAT_NONE;
+	pInputStreamDescs.FieldType = D3D12_VIDEO_FIELD_TYPE_NONE;
+	pInputStreamDescs.DeinterlaceMode = D3D12_VIDEO_PROCESS_DEINTERLACE_FLAG_NONE;
+	pInputStreamDescs.EnableAlphaBlending = 0;
+	pInputStreamDescs.LumaKey = D3D12_VIDEO_PROCESS_LUMA_KEY({0,0,0});
+	pInputStreamDescs.NumPastFrames = 0;
+	pInputStreamDescs.NumFutureFrames = 0;
+	pInputStreamDescs.EnableAutoProcessing = 0;
+	pOutputStreamDesc.Format = DXGI_FORMAT_NV12;
+	pOutputStreamDesc.ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+	pOutputStreamDesc.AlphaFillMode = D3D12_VIDEO_PROCESS_ALPHA_FILL_MODE_OPAQUE;
+	pOutputStreamDesc.AlphaFillModeSourceStreamIndex = 0;
+	pOutputStreamDesc.BackgroundColor[0] = 1.0f;
+	pOutputStreamDesc.BackgroundColor[1] = 1.0f;
+	pOutputStreamDesc.BackgroundColor[2] = 1.0f;
+	pOutputStreamDesc.BackgroundColor[3] = 1.0f;
+	pOutputStreamDesc.FrameRate = DXGI_RATIONAL({ 24, 1 });
+	pOutputStreamDesc.EnableStereo = 0;
+	hr = m_pVideoDevice->CreateVideoProcessor(0, &pOutputStreamDesc, 1, &pInputStreamDescs, IID_PPV_ARGS(&m_pVideoProcessor));
+	D3D12_FEATURE_DATA_VIDEO_PROCESS_REFERENCE_INFO formatInfo = {};
+	hr = m_pVideoDevice->CheckFeatureSupport(D3D12_FEATURE_VIDEO_PROCESS_REFERENCE_INFO, &formatInfo, sizeof(D3D12_FEATURE_DATA_VIDEO_PROCESS_REFERENCE_INFO));
+
 	if (D3D12Engine::g_CommandManager.GetGraphicsQueue().IsReady())
 		return S_OK;
 	UpdateStatsStatic();
@@ -1270,15 +1305,13 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	Context.SetViewportAndScissor(m_windowRect.left, m_windowRect.top, m_windowRect.Width(), m_windowRect.Height());
 	BackgroundWindow.DrawRectangle(m_StatsRect,rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
 	BackgroundWindow.End();
-	
-	//L"Consolas", m_StatsFontH, 0
 
 	std::wstring str;
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
 	str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
-	//TODO
+	//TODO interlace
 	wchar_t frametype = (m_SampleFormat != D3D12_VIDEO_FIELD_TYPE_NONE) ? 'i' : 'p';
 	str += fmt::format(
 		L"\nFrame rate    : {:7.3f}{},{:7.3f}",

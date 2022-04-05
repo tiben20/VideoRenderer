@@ -28,6 +28,7 @@
 #include "DX9VideoProcessor.h"
 #include "DX11VideoProcessor.h"
 #include "DX12VideoProcessor.h"
+#include "Utils/BaseTrayIcon.h"
 
 #include "../Include/ISubRender.h"
 #include "../Include/ID3DFullscreenControl.h"
@@ -284,4 +285,6 @@ public:
 private:
 	HRESULT Redraw();
 	void DoAfterChangingDevice();
+
+	CBaseTrayIcon* m_pTrayIcon = nullptr;
 };

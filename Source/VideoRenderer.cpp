@@ -24,10 +24,11 @@
 #include <Mferror.h>
 #include "Helper.h"
 #include "PropPage.h"
+#include "D3D12PropPage.h"
 #include "VideoRendererInputPin.h"
 #include "../Include/Version.h"
 #include "VideoRenderer.h"
-
+#include "resource.h"
 #define WM_SWITCH_FULLSCREEN (WM_APP + 0x1000)
 
 #define OPT_REGKEY_VIDEORENDERER           L"Software\\MPC-BE Filters\\MPC Video Renderer"
@@ -150,7 +151,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	ASSERT(S_OK == *phr);
 
 	// read settings
-
+	m_pTrayIcon = new CBaseTrayIcon(this, L"MPCVideo Renderer", IDI_ICON1);
 	CRegKey key;
 	
 	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_LAVD3D12, KEY_READ))
@@ -318,8 +319,9 @@ CMpcVideoRenderer::~CMpcVideoRenderer()
 		PostMessageW(m_hWndParentMain, WM_SWITCH_FULLSCREEN, 0, 0);
 	}
 
+	SAFE_DELETE(m_pTrayIcon);
 	SAFE_DELETE(m_VideoProcessor);
-
+	
 	g_nInstance--; // always decrement g_nInstance in the destructor
 }
 
@@ -1167,16 +1169,17 @@ STDMETHODIMP CMpcVideoRenderer::GetPages(CAUUID* pPages)
 
 	static const GUID guidQualityPPage = { 0x565DCEF2, 0xAFC5, 0x11D2, 0x88, 0x53, 0x00, 0x00, 0xF8, 0x08, 0x83, 0xE3 };
 
-	pPages->cElems = GetActive() ? 3 : 1;
+	pPages->cElems = GetActive() ? 4 : 1;
 	pPages->pElems = reinterpret_cast<GUID*>(CoTaskMemAlloc(sizeof(GUID) * pPages->cElems));
 	if (pPages->pElems == nullptr) {
 		return E_OUTOFMEMORY;
 	}
 
 	pPages->pElems[0] = __uuidof(CVRMainPPage);
-	if (pPages->cElems == 3) {
+	if (pPages->cElems == 4) {
 		pPages->pElems[1] = __uuidof(CVRInfoPPage);
-		pPages->pElems[2] = guidQualityPPage;
+		pPages->pElems[2] = __uuidof(CD3D12SettingsPPage);
+		pPages->pElems[3] = guidQualityPPage;
 	}
 
 	return S_OK;

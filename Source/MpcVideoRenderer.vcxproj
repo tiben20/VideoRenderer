@@ -74,6 +74,7 @@
     <ClCompile Include="d3d12util\CommandContext.cpp" />
     <ClCompile Include="d3d12util\CommandListManager.cpp" />
     <ClCompile Include="d3d12util\CommandSignature.cpp" />
+    <ClCompile Include="d3d12util\D3D12PropPage.cpp" />
     <ClCompile Include="d3d12util\DepthBuffer.cpp" />
     <ClCompile Include="d3d12util\DescriptorHeap.cpp" />
     <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp" />
@@ -120,6 +121,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Times.cpp" />
+    <ClCompile Include="Utils\BaseTrayIcon.cpp" />
     <ClCompile Include="Utils\CPUInfo.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Utils\Util.cpp" />
@@ -139,6 +141,7 @@
     <ClInclude Include="d3d12util\CommandListManager.h" />
     <ClInclude Include="d3d12util\CommandSignature.h" />
     <ClInclude Include="d3d12util\Commond3d12.h" />
+    <ClInclude Include="d3d12util\D3D12PropPage.h" />
     <ClInclude Include="d3d12util\d3dx12.h" />
     <ClInclude Include="d3d12util\DepthBuffer.h" />
     <ClInclude Include="d3d12util\DescriptorHeap.h" />
@@ -198,6 +201,7 @@
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Times.h" />
+    <ClInclude Include="Utils\BaseTrayIcon.h" />
     <ClInclude Include="Utils\CPUInfo.h" />
     <ClInclude Include="Utils\gpu_memcpy_sse4.h" />
     <ClInclude Include="Utils\StringUtil.h" />
@@ -222,19 +226,19 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="d3d12util\math\Functions.inl" />
-    <None Include="d3d12util\shaders\ColorSpaceUtility.hlsli" />
-    <None Include="d3d12util\shaders\CommonRS.hlsli" />
-    <None Include="d3d12util\shaders\GenerateMipsCS.hlsli" />
-    <None Include="d3d12util\shaders\PixelPacking.hlsli" />
-    <None Include="d3d12util\shaders\PixelPacking_R11G11B10.hlsli" />
-    <None Include="d3d12util\shaders\PixelPacking_RGBE.hlsli" />
-    <None Include="d3d12util\shaders\PixelPacking_RGBM.hlsli" />
-    <None Include="d3d12util\shaders\PixelPacking_Velocity.hlsli" />
-    <None Include="d3d12util\shaders\PresentRS.hlsli" />
-    <None Include="d3d12util\shaders\ShaderUtility.hlsli" />
-    <None Include="d3d12util\shaders\SSAORS.hlsli" />
-    <None Include="d3d12util\shaders\TextRS.hlsli" />
-    <None Include="d3d12util\shaders\ToneMappingUtility.hlsli" />
+    <None Include="..\Shaders\d3d12\ColorSpaceUtility.hlsli" />
+    <None Include="..\Shaders\d3d12\CommonRS.hlsli" />
+    <None Include="..\Shaders\d3d12\GenerateMipsCS.hlsli" />
+    <None Include="..\Shaders\d3d12\PixelPacking.hlsli" />
+    <None Include="..\Shaders\d3d12\PixelPacking_R11G11B10.hlsli" />
+    <None Include="..\Shaders\d3d12\PixelPacking_RGBE.hlsli" />
+    <None Include="..\Shaders\d3d12\PixelPacking_RGBM.hlsli" />
+    <None Include="..\Shaders\d3d12\PixelPacking_Velocity.hlsli" />
+    <None Include="..\Shaders\d3d12\PresentRS.hlsli" />
+    <None Include="..\Shaders\d3d12\ShaderUtility.hlsli" />
+    <None Include="..\Shaders\d3d12\SSAORS.hlsli" />
+    <None Include="..\Shaders\d3d12\TextRS.hlsli" />
+    <None Include="..\Shaders\d3d12\ToneMappingUtility.hlsli" />
     <None Include="res\dither32x32float16.bin" />
     <None Include="res\MpcVideoRenderer.rc2" />
   </ItemGroup>
@@ -261,7 +265,8 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BlendUIHDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\super-xbr.hlsl" />
+    <FxCompile Include="..\Shaders\d3d12\BlendUIHDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -274,7 +279,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\BufferCopyPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\BufferCopyPS.hlsl">
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -284,7 +289,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ColorConvertNV12PS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\ColorConvertNV12PS.hlsl">
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -295,7 +300,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\CompositeHDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\CompositeHDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -308,7 +313,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\CompositeSDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\CompositeSDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -321,7 +326,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\DownScalingFilters.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\DownScalingFilters.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
@@ -330,7 +335,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GenerateMipsLinearCS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\GenerateMipsLinearCS.hlsl">
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
@@ -340,19 +345,19 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GeometryPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\GeometryPS.hlsl">
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\GeometryVS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\GeometryVS.hlsl">
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PresentHDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\PresentHDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -365,7 +370,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\PresentSDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\PresentSDRPS.hlsl">
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -375,7 +380,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ScaleAndCompositeHDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\ScaleAndCompositeHDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -388,7 +393,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ScaleAndCompositeSDRPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\ScaleAndCompositeSDRPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -401,7 +406,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ScreenQuadCommonVS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\ScreenQuadCommonVS.hlsl">
       <ShaderType>Vertex</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -413,7 +418,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\ScreenQuadPresentVS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\ScreenQuadPresentVS.hlsl">
       <ShaderType>Vertex</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -425,7 +430,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\SharpeningUpsamplePS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\SharpeningUpsamplePS.hlsl">
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -435,7 +440,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\TextAntialiasPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\TextAntialiasPS.hlsl">
       <ShaderType>Pixel</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -448,7 +453,7 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\TextShadowPS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\TextShadowPS.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -462,7 +467,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.2</ShaderModel>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\TextVS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\TextVS.hlsl">
       <ShaderType>Vertex</ShaderType>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
@@ -474,7 +479,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\UpScalingFilters.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\UpScalingFilters.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -483,7 +488,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="d3d12util\shaders\VideoQuadPresentVS.hlsl">
+    <FxCompile Include="..\Shaders\d3d12\VideoQuadPresentVS.hlsl">
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
@@ -495,6 +500,9 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">g_p%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\Source\d3d12util\compiledshaders\%(Filename).h</HeaderFileOutput>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\favicon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
