@@ -24,6 +24,7 @@
 
 class GraphicsContext;
 class ColorBuffer;
+class Texture;
 enum DXGI_FORMAT;
 
 __declspec(align(16)) struct CONSTANT_BUFFER_VAR {
@@ -51,16 +52,22 @@ __declspec(align(16)) struct CONSTANT_UPSCALE_BUFFER {
   int axis;
 };
 
+struct VERTEX_SUBPIC {
+  DirectX::XMFLOAT3 Pos;
+  DirectX::XMFLOAT2 TexCoord;
+};
+
 namespace ImageScaling
 {
 
   void Initialize(DXGI_FORMAT DestFormat);
   void FreeImageScaling();
-  void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant);
-  HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, ColorBuffer target, CRect srcRect);
+  void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant, CRect destRect = CRect());
+  HRESULT RenderToBackBuffer(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source);
 
-  void PreparePresentSDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
-  void PreparePresentHDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect);
+  HRESULT RenderAlphaBitmap(GraphicsContext& Context, Texture& resource, RECT alpharect);
+  HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer& resource, ColorBuffer& target, CRect srcRect, UINT srcW, UINT srcH);
+
   void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect,CRect destRect);
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect);
 

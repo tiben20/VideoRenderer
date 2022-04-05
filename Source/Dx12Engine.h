@@ -53,9 +53,6 @@ namespace D3D12Engine
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
 	
-	extern RootSignature s_PresentRS;
-
-	
 	inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
 	{
 		return g_DescriptorAllocator[Type].Allocate(Count);
@@ -70,6 +67,7 @@ namespace D3D12Engine
 	void SetShaderConvertColorParams(DXVA2_ExtendedFormat srcExFmt, FmtConvParams_t m_srcParams, DXVA2_ProcAmpValues m_DXVA2ProcAmpValues);
 	bool ProcessHDR(DXVA2_ExtendedFormat srcExFmt, FmtConvParams_t m_srcParams);
 
+
 	void SetVideoRect(CRect rect); 
 	void SetWindowRect(CRect rect);
 	void SetRenderRect(CRect rect);
@@ -80,19 +78,24 @@ namespace D3D12Engine
 	D3D12_RESOURCE_DESC GetSwapChainResourceDesc();
 	IDXGIFactory1* GetDXGIFactory();
 	bool HdrPassthroughSupport();
+	ColorBuffer GetCurrentBackBuffer();
 
 	void  ReleaseEngine();
 	void ReleaseSwapChain();
 
-	HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, CRect srcRect);
+	HRESULT RenderAlphaBitmap(GraphicsContext& Context, Texture resource, D3D12_VIEWPORT vp, RECT alphaBitmapRectSrc);
+	HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, CRect srcRect, UINT srcW, UINT srcH);
 	HRESULT CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2]);
 	HRESULT CopySample(ID3D12Resource* resource);
 	
-	void ClearBackBuffer(CRect windowRect);
+	void ClearBackBuffer(GraphicsContext& Context, CRect windowRect );
 	
+	void DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect = CRect());
+	void Noscale(GraphicsContext& Context, CRect dstRect);
 	void Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
 	void Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
 
+	
 	void PresentBackBuffer(GraphicsContext& Context);
 	void WaitForVBlank();
 	void Present();

@@ -66,9 +66,10 @@ namespace D3D12Engine
     extern D3D12_BLEND_DESC BlendTraditional;		// SrcA, 1-SrcA
     extern D3D12_BLEND_DESC BlendAdditive;			// 1, 1
     extern D3D12_BLEND_DESC BlendTraditionalAdditive;// SrcA, 1
-    extern D3D12_BLEND_DESC BlendGeometry;// SrcA, 1
-    extern D3D12_BLEND_DESC BlendFont;// SrcA, 1
-
+    extern D3D12_BLEND_DESC BlendGeometry;
+    extern D3D12_BLEND_DESC BlendFont;
+    extern D3D12_BLEND_DESC BlendSubPic;
+    
     extern D3D12_DEPTH_STENCIL_DESC DepthStateDisabled;
     extern D3D12_DEPTH_STENCIL_DESC DepthStateReadWrite;
     extern D3D12_DEPTH_STENCIL_DESC DepthStateReadOnly;

@@ -54,38 +54,21 @@ namespace ImageScaling
   /*Scaling PSO*/
   GraphicsPSO UpScalingFiltersPS(L"Image Scaling: Upscaling filters PSO");
   GraphicsPSO DownScalingFiltersPS(L"Image Scaling: DownScaling filters PSO");
-
   GraphicsPSO SubPicPS(L"SubPic PSO");
+  GraphicsPSO VideoRessourceCopyPS(L"VideoRessourceCopy PSO");
   //constant buffer for downsampling
   CONSTANT_DOWNSCALE_BUFFER DownScalingConstantBuffer;;
   CONSTANT_UPSCALE_BUFFER UpScalingConstantBuffer;;
 
   /*Rendering PSO*/
-  RootSignature s_PresentRS;
   RootSignature s_PresentRSColor;
   RootSignature s_PresentRSScaling;
   RootSignature s_SubPicRS;
-  GraphicsPSO s_BlendUIPSO(L"Core: BlendUI");
-  GraphicsPSO s_BlendUIHDRPSO(L"Core: BlendUIHDR");
-  GraphicsPSO PresentSDRPS(L"Core: PresentSDR");
-  GraphicsPSO PresentHDRPS(L"Core: PresentHDR");
-  GraphicsPSO CompositeSDRPS(L"Core: CompositeSDR");
-  GraphicsPSO ScaleAndCompositeSDRPS(L"Core: ScaleAndCompositeSDR");
-  GraphicsPSO CompositeHDRPS(L"Core: CompositeHDR");
-  GraphicsPSO ScaleAndCompositeHDRPS(L"Core: ScaleAndCompositeHDR");
+  
 
   void Initialize(DXGI_FORMAT DestFormat)
   {
     /* Rendering and present PSOs*/
-    s_PresentRS.Reset(4, 2);
-    s_PresentRS[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-    s_PresentRS[1].InitAsConstants(0, 32, D3D12_SHADER_VISIBILITY_ALL);
-    s_PresentRS[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-    s_PresentRS[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-    s_PresentRS.InitStaticSampler(0, SamplerLinearClampDesc);
-    s_PresentRS.InitStaticSampler(1, SamplerPointClampDesc);
-    s_PresentRS.Finalize(L"Present");
-
     s_PresentRSColor.Reset(4, 2);
     s_PresentRSColor[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
     s_PresentRSColor[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
@@ -96,7 +79,7 @@ namespace ImageScaling
     s_PresentRSColor.Finalize(L"Present");
 
     s_PresentRSScaling.Reset(4, 2);
-    s_PresentRSScaling[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+    s_PresentRSScaling[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
     s_PresentRSScaling[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
     s_PresentRSScaling[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
     s_PresentRSScaling[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
@@ -125,7 +108,7 @@ namespace ImageScaling
 
     SubPicPS.SetRootSignature(s_SubPicRS);
     SubPicPS.SetRasterizerState(D3D12Engine::RasterizerDefaultCw);
-    SubPicPS.SetBlendState(D3D12Engine::BlendFont);
+    SubPicPS.SetBlendState(D3D12Engine::BlendSubPic);
     SubPicPS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
     SubPicPS.SetInputLayout(_countof(vertElem), vertElem);
     SubPicPS.SetSampleMask(0xFFFFFFFF);
@@ -135,43 +118,17 @@ namespace ImageScaling
     SubPicPS.SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
     SubPicPS.Finalize();
 
-    s_BlendUIPSO.SetRootSignature(s_PresentRS);
-    s_BlendUIPSO.SetRasterizerState(RasterizerTwoSided);
-    s_BlendUIPSO.SetBlendState(BlendPreMultiplied);
-    s_BlendUIPSO.SetDepthStencilState(DepthStateDisabled);
-    s_BlendUIPSO.SetSampleMask(0xFFFFFFFF);
-    s_BlendUIPSO.SetInputLayout(0, nullptr);
-    s_BlendUIPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-    s_BlendUIPSO.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
-    s_BlendUIPSO.SetPixelShader(g_pBufferCopyPS, sizeof(g_pBufferCopyPS));
-    s_BlendUIPSO.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
-    s_BlendUIPSO.Finalize();
-
-    s_BlendUIHDRPSO = s_BlendUIPSO;
-    s_BlendUIHDRPSO.SetPixelShader(g_pBlendUIHDRPS, sizeof(g_pBlendUIHDRPS));
-    s_BlendUIHDRPSO.Finalize();
-
-#define CreatePSO( ObjName, ShaderByteCode ) \
-    ObjName = s_BlendUIPSO; \
-    ObjName.SetBlendState( BlendDisable ); \
-    ObjName.SetPixelShader(ShaderByteCode, sizeof(ShaderByteCode) ); \
-    ObjName.Finalize();
-
-    CreatePSO(PresentSDRPS, g_pPresentSDRPS);
-    CreatePSO(CompositeSDRPS, g_pCompositeSDRPS);
-    CreatePSO(ScaleAndCompositeSDRPS, g_pScaleAndCompositeSDRPS);
-    CreatePSO(CompositeHDRPS, g_pCompositeHDRPS);
-    CreatePSO(ScaleAndCompositeHDRPS, g_pScaleAndCompositeHDRPS);
-#undef CreatePSO
-
-    PresentHDRPS = PresentSDRPS;
-    PresentHDRPS.SetPixelShader(g_pPresentHDRPS, sizeof(g_pPresentHDRPS));
-    DXGI_FORMAT SwapChainFormats[2] = { DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R10G10B10A2_UNORM };
-    PresentHDRPS.SetRenderTargetFormats(2, SwapChainFormats, DXGI_FORMAT_UNKNOWN);
-    PresentHDRPS.Finalize();
-
-
-
+    VideoRessourceCopyPS.SetRootSignature(s_SubPicRS);
+    VideoRessourceCopyPS.SetRasterizerState(D3D12Engine::RasterizerDefaultCw);
+    VideoRessourceCopyPS.SetBlendState(D3D12Engine::BlendDisable);
+    VideoRessourceCopyPS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+    VideoRessourceCopyPS.SetInputLayout(_countof(vertElem), vertElem);
+    VideoRessourceCopyPS.SetSampleMask(0xFFFFFFFF);
+    VideoRessourceCopyPS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+    VideoRessourceCopyPS.SetVertexShader(g_pvs_simple, sizeof(g_pvs_simple));
+    VideoRessourceCopyPS.SetPixelShader(g_pps_simple, sizeof(g_pps_simple));
+    VideoRessourceCopyPS.SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+    VideoRessourceCopyPS.Finalize();
 
     DownScalingFiltersPS.SetRootSignature(s_PresentRSScaling);
     DownScalingFiltersPS.SetRasterizerState(D3D12Engine::RasterizerDefault);
@@ -213,113 +170,135 @@ namespace ImageScaling
 
   }
 
-  void PreparePresentHDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect)
+
+
+  HRESULT CreateVertex(const UINT srcW, const UINT srcH, const RECT& srcRect, VERTEX_SUBPIC vertices[4])
   {
-    //NEED TESTING
-    bool NeedsScaling = true;// g_NativeWidth != g_DisplayWidth || g_NativeHeight != g_DisplayHeight;
-
-    Context.SetRootSignature(s_PresentRS);
-    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Context.TransitionResource(videoSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    Context.SetDynamicDescriptor(0, 0, videoSource.GetSRV());
-
-    ColorBuffer& Dest = renderTarget;
-
-    // On Windows, prefer scaling and compositing in one step via pixel shader
-    Context.SetRootSignature(s_PresentRS);
-    Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    Context.SetDynamicDescriptor(0, 1, g_OverlayBuffer.GetSRV());
-    Context.SetPipelineState(NeedsScaling ? ScaleAndCompositeHDRPS : CompositeHDRPS);
-    uint32_t g_NativeWidth = 800;
-    uint32_t g_NativeHeight = 600;
-    Context.SetConstants(1, (float)/*g_HDRPaperWhite*/50.0f / 10000.0f, (float)/*g_MaxDisplayLuminance*/500.0f,
-      0.7071f / g_NativeWidth, 0.7071f / g_NativeHeight);
-    Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    Context.SetRenderTarget(renderTarget.GetRTV());
-    Context.SetViewport(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
-    Context.Draw(3);
-  }
-
-  void PreparePresentSDR(GraphicsContext& Context, ColorBuffer& renderTarget, ColorBuffer& videoSource, CRect renderrect)
-  {
-    Context.SetRootSignature(s_PresentRS);
-    Context.SetPipelineState(ScaleAndCompositeSDRPS);
-    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // We're going to be reading these buffers to write to the swap chain buffer(s)
-    Context.TransitionResource(videoSource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    Context.SetDynamicDescriptor(0, 0, videoSource.GetSRV());
-    Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    Context.SetDynamicDescriptor(0, 1, g_OverlayBuffer.GetSRV());
     
+    const float src_dx = 1.0f / srcW;
+    const float src_dy = 1.0f / srcH;
+    float src_l = src_dx * srcRect.left;
+    float src_r = src_dx * srcRect.right;
+    const float src_t = src_dy * srcRect.top;
+    const float src_b = src_dy * srcRect.bottom;
 
-    Context.TransitionResource(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    Context.SetRenderTarget(renderTarget.GetRTV());
+    POINT points[4];
+    points[0] = { -1, -1 };
+    points[1] = { -1, +1 };
+    points[2] = { +1, -1 };
+    points[3] = { +1, +1 };
 
-    Context.SetViewportAndScissor(renderrect.left, renderrect.top, renderrect.Width(), renderrect.Height());
-
-    Context.Draw(3);
+    vertices[0].Pos = { (float)points[0].x, (float)points[0].y, 0 };
+    vertices[0].TexCoord = { src_l, src_b };
+    vertices[1].Pos = { (float)points[1].x, (float)points[1].y, 0 };
+    vertices[1].TexCoord = { src_l, src_t };
+    vertices[2].Pos = { (float)points[2].x, (float)points[2].y, 0 };
+    vertices[2].TexCoord = { src_r, src_b };
+    vertices[3].Pos = { (float)points[3].x, (float)points[3].y, 0 };
+    vertices[3].TexCoord = { src_r, src_t };
+    
+    return S_OK;
   }
 
-  HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, ColorBuffer target, CRect srcRect)
+  HRESULT RenderToBackBuffer(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source)
   {
+
+    Context.SetRootSignature(s_SubPicRS);
+    Context.SetPipelineState(VideoRessourceCopyPS);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);// D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.SetRenderTarget(dest.GetRTV());
+
+
+    Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+    Context.SetDynamicDescriptor(0, 0, source.GetSRV());
+    VERTEX_SUBPIC subpicvertex[4];
+    
+    CRect rect;
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = dest.GetWidth();
+    rect.bottom = dest.GetHeight();
+    CreateVertex(dest.GetWidth(), dest.GetHeight(), rect, subpicvertex);
+    Context.SetDynamicVB(0, 4, sizeof(VERTEX_SUBPIC), subpicvertex);
+    //Context.SetDynamicDescriptor(0, 1, target.GetSRV());
+
+
+    Context.SetViewportAndScissor(rect.left, rect.top, rect.Width(), rect.Height());
+
+    Context.Draw(4);
+    
+    return S_OK;
+  }
+  
+  HRESULT RenderAlphaBitmap(GraphicsContext& Context, Texture& resource, RECT alpharect)
+  {
+
+    Context.SetRootSignature(s_SubPicRS);
+    Context.SetPipelineState(SubPicPS);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);// D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    Context.SetDynamicDescriptor(0, 0, resource.GetSRV());
+
+    VERTEX_SUBPIC subpicvertex[4];
+    CreateVertex(resource.GetWidth(), resource.GetHeight(), alpharect, subpicvertex);
+    Context.SetDynamicVB(0, 4, sizeof(VERTEX_SUBPIC), subpicvertex);
+
+    Context.Draw(4);
+
+    return S_OK;
+  }
+  
+  HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer& resource, ColorBuffer& target, CRect srcRect, UINT srcW, UINT srcH)
+  {
+    
     Context.SetRootSignature(s_SubPicRS);
     Context.SetPipelineState(SubPicPS);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);// D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     Context.TransitionResource(target, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.SetRenderTarget(target.GetRTV());
+
+
     Context.TransitionResource(resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     Context.SetViewportAndScissor(0, 0, target.GetWidth(), target.GetHeight());
     Context.SetDynamicDescriptor(0, 0, resource.GetSRV());
+    VERTEX_SUBPIC subpicvertex[4];
+    CreateVertex(srcW, srcH, srcRect, subpicvertex);
+    Context.SetDynamicVB(0, 4, sizeof(VERTEX_SUBPIC), subpicvertex);
     //Context.SetDynamicDescriptor(0, 1, target.GetSRV());
     
-    Context.SetRenderTarget(target.GetRTV());
+    
     Context.SetViewportAndScissor(srcRect.left, srcRect.top, srcRect.Width(), srcRect.Height());
-
+    Context.TransitionResource(target, D3D12_RESOURCE_STATE_RENDER_TARGET);
     Context.Draw(4);
-    Context.TransitionResource(target, D3D12_RESOURCE_STATE_PRESENT);
+    
     return S_OK;
   }
 
-  void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant)
+  void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant, CRect destRect)
   {
+
     Context.SetRootSignature(s_PresentRSColor);
     Context.SetPipelineState(ColorConvertNV12PS);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_BUFFER_VAR), &colorconstant);
+    
+    Context.TransitionResource(source0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    Context.TransitionResource(source1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    Context.TransitionResourceShutUp(source0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    Context.TransitionResourceShutUp(source1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     Context.SetRenderTarget(dest.GetRTV());
-    Context.SetViewport(0, 0, dest.GetWidth(), dest.GetHeight());
+    if (destRect.Width() == 0 && destRect.Height() == 0)
+      Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+    else
+      Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
     Context.SetDynamicDescriptor(0, 0, source0.GetSRV());
     Context.SetDynamicDescriptor(0, 1, source1.GetSRV());
     Context.Draw(3);
-  }
-
-
-
-
-  void FreeImageScaling()
-  {
-    /*We need to reset them to 0 if we dont the root signature is not the same when we start a new video*/
-    s_PresentRS.Free();
-    s_PresentRSColor.Free();
-    s_PresentRSScaling.Free();
-    s_SubPicRS.Free();
-    ColorConvertNV12PS.FreePSO();
-    UpScalingFiltersPS.FreePSO();
-    DownScalingFiltersPS.FreePSO();
-    s_BlendUIPSO.FreePSO();
-    s_BlendUIHDRPSO.FreePSO();
-    PresentSDRPS.FreePSO();
-    PresentHDRPS.FreePSO();
-    CompositeSDRPS.FreePSO();
-    ScaleAndCompositeSDRPS.FreePSO();
-    CompositeHDRPS.FreePSO();
-    ScaleAndCompositeHDRPS.FreePSO();
-    
   }
 
   void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect)
@@ -327,8 +306,9 @@ namespace ImageScaling
     //the viewport x 0 y 46 width the width and height of the targetvideo
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(DownScalingFiltersPS);
-    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.SetRenderTarget(dest.GetRTV());
     Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
     Context.SetDynamicDescriptor(0, 0, source.GetSRV());
@@ -376,11 +356,11 @@ namespace ImageScaling
 
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect)
   {
-
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(UpScalingFiltersPS);
-    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.SetRenderTarget(dest.GetRTV());
     Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
     Context.SetDynamicDescriptor(0, 0, source.GetSRV());
@@ -398,4 +378,17 @@ namespace ImageScaling
     Context.Draw(3);
   }
 
+  void FreeImageScaling()
+  {
+    /*We need to reset them to 0 if we dont the root signature is not the same when we start a new video*/
+    s_PresentRSColor.Free();
+    s_PresentRSScaling.Free();
+    s_SubPicRS.Free();
+    ColorConvertNV12PS.FreePSO();
+    UpScalingFiltersPS.FreePSO();
+    DownScalingFiltersPS.FreePSO();
+    SubPicPS.FreePSO();
+    VideoRessourceCopyPS.FreePSO();
+  }
 }
+

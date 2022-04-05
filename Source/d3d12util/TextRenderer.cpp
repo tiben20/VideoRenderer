@@ -225,8 +225,6 @@ void FontContext::DrawText(const SIZE& rtSize, float sx, float sy, D3DCOLOR colo
 
   m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-  m_Context.SetRenderTarget(g_OverlayBuffer.GetRTV());
-
   D3D12_VIEWPORT VP;
   VP.TopLeftX = 0;
   VP.TopLeftY = 0;
@@ -284,14 +282,7 @@ void FontContext::DrawText(const SIZE& rtSize, float sx, float sy, D3DCOLOR colo
         m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
         m_Context.Draw(m_vertices.size());
         m_vertices.clear();
-        
-        // Unlock, render, and relock the vertex buffer
-        //m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
-        //m_pDeviceContext->Draw(nVertices, 0);
-
-        //hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-        //pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
-        //nVertices = 0;
+       
       }
     }
 
@@ -307,74 +298,4 @@ void FontContext::DrawText(const SIZE& rtSize, float sx, float sy, D3DCOLOR colo
 
   m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
   m_Context.Draw(m_vertices.size());
-  //m_pDeviceContext->PSSetShaderResources(0, 1, &m_pShaderResource);
-  //m_pDeviceContext->IASetInputLayout(m_pInputLayout);
-  //m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
-  //m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
-  //m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
-  //m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_pPixelBuffer);
-  //m_pDeviceContext->PSSetSamplers(0, 1, &m_pSamplerState);
-  //m_pDeviceContext->OMSetBlendState(m_pBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-  //m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-  //m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
-
-  // Adjust for character spacing
-  
-#if 0
-  D3D11_MAPPED_SUBRESOURCE mappedResource;
-  hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-  if (S_OK == hr) {
-    Font11Vertex* pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
-    UINT nVertices = 0;
-
-    while (*strText) {
-      const WCHAR c = *strText++;
-
-      if (c == '\n') {
-        drawX = fStartX;
-        drawY -= fLineHeight;
-        continue;
-      }
-
-      const auto tex = m_fTexCoords[Char2Index(c)];
-
-      const float Width = (tex.right - tex.left) * m_uTexWidth * 2 / rtSize.cx;
-      const float Height = (tex.bottom - tex.top) * m_uTexHeight * 2 / rtSize.cy;
-
-      if (c != 0x0020 && c != 0x00A0) { // Space and No-Break Space
-        const float left = drawX;
-        const float right = drawX + Width;
-        const float top = drawY;
-        const float bottom = drawY - Height;
-
-        *pVertices++ = { {left,  top,    0.0f}, {tex.left,  tex.top} };
-        *pVertices++ = { {right, bottom, 0.0f}, {tex.right, tex.bottom} };
-        *pVertices++ = { {left,  bottom, 0.0f}, {tex.left,  tex.bottom} };
-        *pVertices++ = { {left,  top,    0.0f}, {tex.left,  tex.top} };
-        *pVertices++ = { {right, top,    0.0f}, {tex.right, tex.top} };
-        *pVertices++ = { {right, bottom, 0.0f}, {tex.right, tex.bottom} };
-        nVertices += 6;
-
-        if (nVertices > (MAX_NUM_VERTICES - 6)) {
-          // Unlock, render, and relock the vertex buffer
-          m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
-          m_pDeviceContext->Draw(nVertices, 0);
-
-          hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-          pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
-          nVertices = 0;
-        }
-      }
-
-      drawX += Width;
-    }
-    m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
-    if (nVertices > 0) {
-      m_pDeviceContext->Draw(nVertices, 0);
-    }
-  }
-#endif
-  
-
 }

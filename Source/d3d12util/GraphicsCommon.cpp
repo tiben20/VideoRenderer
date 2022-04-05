@@ -61,6 +61,7 @@ namespace D3D12Engine
     D3D12_BLEND_DESC BlendPreMultiplied;
     D3D12_BLEND_DESC BlendGeometry;
     D3D12_BLEND_DESC BlendFont;
+    D3D12_BLEND_DESC BlendSubPic;
     D3D12_DEPTH_STENCIL_DESC DepthStateDisabled;
 
     CommandSignature DispatchIndirectCommandSignature(1);
@@ -193,6 +194,19 @@ void D3D12Engine::InitializeCommonState(void)
     BlendGeometry.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
     BlendFont = BlendGeometry;
     BlendFont.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
+    BlendSubPic = {};
+    BlendSubPic.AlphaToCoverageEnable = FALSE;
+    
+    BlendSubPic.IndependentBlendEnable = FALSE;
+    BlendSubPic.RenderTarget[0].BlendEnable = TRUE;
+    BlendSubPic.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+    BlendSubPic.RenderTarget[0].DestBlend = D3D12_BLEND_SRC_ALPHA;
+    BlendSubPic.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+    BlendSubPic.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    BlendSubPic.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+    BlendSubPic.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    BlendSubPic.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    
     //might need them for rendering with normal pictures but right now it make it crash on recreate
     //DispatchIndirectCommandSignature[0].Dispatch();
     //DispatchIndirectCommandSignature.Finalize();

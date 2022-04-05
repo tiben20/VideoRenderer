@@ -59,7 +59,7 @@ void GeometryRenderer::Initialize(void)
   //sdr
   s_RectanglePSO[0].SetRootSignature(s_RootSignature);
   s_RectanglePSO[0].SetRasterizerState(D3D12Engine::RasterizerDefaultCw);
-  s_RectanglePSO[0].SetBlendState(D3D12Engine::BlendDisable);
+  s_RectanglePSO[0].SetBlendState(D3D12Engine::BlendGeometry);
   s_RectanglePSO[0].SetDepthStencilState(D3D12Engine::DepthStateDisabled);
   s_RectanglePSO[0].SetInputLayout(_countof(vertElem),vertElem);
   s_RectanglePSO[0].SetSampleMask(0xFFFFFFFF);
@@ -175,9 +175,9 @@ void GeometryContext::DrawQuadrilateral(const SIZE& rtSize)
   m_Context.SetViewport(VP);
   m_Context.SetDynamicVB(0, 4, sizeof(POINTVERTEX12), m_Vertices);
 
-  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+  
   m_Context.Draw(4, 0);
-  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 }
 
 void GeometryContext::DrawRectangle(const RECT& rect, const SIZE& rtSize, const D3DCOLOR color)
@@ -201,9 +201,8 @@ void GeometryContext::DrawRectangle(const RECT& rect, const SIZE& rtSize, const 
   m_Context.SetViewport(VP);
   m_Context.SetDynamicVB(0, 4, sizeof(POINTVERTEX12), m_Vertices);
   
-  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
   m_Context.Draw(4,0);
-  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 }
 
 void GeometryContext::DrawLine(GraphLine line)
@@ -225,7 +224,6 @@ void GeometryContext::DrawLine(GraphLine line)
   m_Context.SetPipelineState(GeometryRenderer::s_PolylinePSO[0]);
   m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
   m_Context.SetDynamicVB(0, verts.size(), sizeof(POINTVERTEX12), verts.data());
-  //m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
   m_Context.Draw(verts.size());
 
 }
@@ -254,7 +252,6 @@ void GeometryContext::DrawGFPoints(int Xstart, int Xstep, int Yaxis, int Yscale,
   m_Context.SetPipelineState(GeometryRenderer::s_PolylinePSO[0]);
   m_Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
   m_Context.SetDynamicVB(0, verts.size(), sizeof(POINTVERTEX12), verts.data());
-  //m_Context.SetDynamicVB(0, m_vertices.size(), sizeof(Font12Vertex), m_vertices.data());
   m_Context.Draw(verts.size());
 
 

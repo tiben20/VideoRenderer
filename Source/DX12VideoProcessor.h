@@ -89,6 +89,7 @@ private:
 	UploadBuffer m_pIndexBuffer;
 	UploadBuffer m_pViewpointShaderConstant;
 	UploadBuffer m_pPixelShaderConstants;
+	Texture      m_pAlphaBitmapTexture;
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	bool m_bSWRendering = false;
@@ -176,7 +177,7 @@ private:
 
 	
 
-	HRESULT Process(const CRect& srcRect, const CRect& dstRect, const bool second);
+	HRESULT Process(GraphicsContext& Context, const CRect& srcRect, const CRect& dstRect, const bool second);
 
 	HRESULT ProcessSample(IMediaSample* pSample) override;
 	HRESULT CopySample(IMediaSample* pSample);

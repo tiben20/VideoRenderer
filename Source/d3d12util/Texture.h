@@ -31,19 +31,16 @@ class Texture : public GpuResource
 
 public:
 
-    Texture() { m_hCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
+  Texture() { m_hCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; m_Width = 0; m_Height = 0; }
     Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : m_hCpuDescriptorHandle(Handle) {}
 
     // Create a 1-level textures
     void Create2D(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData );
-    void CreateCube(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitialData);
-
-    void CreateTGAFromMemory( const void* memBuffer, size_t fileSize, bool sRGB );
-    bool CreateDDSFromMemory( const void* memBuffer, size_t fileSize, bool sRGB );
-    void CreatePIXImageFromMemory( const void* memBuffer, size_t fileSize );
 
     virtual void Destroy() override
     {
+      m_Width = 0;
+      m_Height = 0;
         GpuResource::Destroy();
         m_hCpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     }
