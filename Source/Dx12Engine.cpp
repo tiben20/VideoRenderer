@@ -474,13 +474,11 @@ namespace D3D12Engine
 		D3D12_RESOURCE_DESC desc;
 		desc = resource->GetDesc();
 
-
-
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2];
 		UINT64 pitch_plane[2];
 		UINT rows_plane[2];
 		UINT64 RequiredSize;
-		//m_renderRect.IntersectRect(m_videoRect, m_windowRect);
+
 		D3D12Engine::g_Device->GetCopyableFootprints(&desc,
 			0, 2, 0, layoutplane, rows_plane, pitch_plane, &RequiredSize);
 
@@ -521,10 +519,8 @@ namespace D3D12Engine
 			src = CD3DX12_TEXTURE_COPY_LOCATION(resource, i);
 			pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		}
-		//the first plane is the correct size not the second one
 		pVideoContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
 		
-		//ImageScaling::ColorAjust(pVideoContext, m_pVideoOutputResource, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar);
 		pVideoContext.Finish();
 		return S_OK;
 	}
