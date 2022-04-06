@@ -22,6 +22,15 @@
 
 #include "IVideoRenderer.h"
 
+
+void SetCursor(HWND hWnd, LPCWSTR lpCursorName);
+void SetCursor(HWND hWnd, UINT nID, LPCWSTR lpCursorName);
+inline void ComboBox_AddStringData(HWND hWnd, int nIDComboBox, LPCWSTR str, LONG_PTR data);
+
+inline LONG_PTR ComboBox_GetCurItemData(HWND hWnd, int nIDComboBox);
+
+void ComboBox_SelectByItemData(HWND hWnd, int nIDComboBox, LONG_PTR data);
+
 // CVRMainPPage
 
 class __declspec(uuid("DA46D181-07D6-441D-B314-019AEB10148A"))

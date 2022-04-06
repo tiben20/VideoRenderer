@@ -280,6 +280,27 @@ namespace ImageScaling
     return S_OK;
   }
 
+  void CopyPlanesSW(GraphicsContext& Context, ColorBuffer& dest, Texture& plane0, Texture& plane1, CONSTANT_BUFFER_VAR& colorconstant, CRect destRect)
+  {
+    Context.SetRootSignature(s_PresentRSColor);
+    Context.SetPipelineState(ColorConvertNV12PS);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_BUFFER_VAR), &colorconstant);
+
+    Context.TransitionResource(plane0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    Context.TransitionResource(plane1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.SetRenderTarget(dest.GetRTV());
+    if (destRect.Width() == 0 && destRect.Height() == 0)
+      Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
+    else
+      Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
+    Context.SetDynamicDescriptor(0, 0, plane0.GetSRV());
+    Context.SetDynamicDescriptor(0, 1, plane1.GetSRV());
+    Context.Draw(3);
+    
+  }
+
   void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant, CRect destRect)
   {
 

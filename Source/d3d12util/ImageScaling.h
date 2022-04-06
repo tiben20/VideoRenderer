@@ -24,6 +24,7 @@
 
 class GraphicsContext;
 class ColorBuffer;
+class TypedBuffer;
 class Texture;
 enum DXGI_FORMAT;
 
@@ -62,6 +63,8 @@ namespace ImageScaling
 
   void Initialize(DXGI_FORMAT DestFormat);
   void FreeImageScaling();
+  
+  void CopyPlanesSW(GraphicsContext& Context, ColorBuffer& dest, Texture& plane0, Texture& plane1, CONSTANT_BUFFER_VAR& colorconstant, CRect destRect);
   void ColorAjust(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source0, ColorBuffer& source1, CONSTANT_BUFFER_VAR& colorconstant, CRect destRect = CRect());
   HRESULT RenderToBackBuffer(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source);
 

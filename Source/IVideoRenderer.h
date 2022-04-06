@@ -74,23 +74,28 @@ struct VPEnableFormats_t {
 	bool bOther;
 };
 
-struct Settings_t {
-	bool bUseD3D11;
+struct D3D12Settings_t {
 	bool bUseD3D12;
 	bool bForceD3D12;
 	bool bLAVUseD3D12;
+	int chromaUpsampling;
+	int imageDownscaling;
+	int imageUpscaling;
+	int imageUpscalingDoubling;
+};
+
+struct Settings_t {
+	bool bUseD3D11;
 	bool bShowStats;
 	int  iResizeStats;
 	int  iTexFormat;
+	D3D12Settings_t D3D12Settings;
 	VPEnableFormats_t VPFmts;
 	bool bDeintDouble;
 	bool bVPScaling;
 	int  iChromaScaling;
 	int  iUpscaling;
 	int  iDownscaling;
-	int  iChromaScaling12;
-	int  iUpscaling12;
-	int  iDownscaling12;
 	bool bInterpolateAt50pct;
 	bool bUseDither;
 	int  iSwapEffect;
@@ -108,10 +113,10 @@ struct Settings_t {
 	void SetDefault() {
 		if (IsWindows8OrGreater()) {
 			bUseD3D11                     = true;
-			bUseD3D12                     = false;
+			D3D12Settings.bUseD3D12       = false;
 		} else {
 			bUseD3D11                     = false;
-			bUseD3D12                     = false;
+			D3D12Settings.bUseD3D12       = false;
 		}
 		bShowStats                      = false;
 		iResizeStats                    = 0;
@@ -139,6 +144,12 @@ struct Settings_t {
 			iHdrToggleDisplay           = HDRTD_Off;
 		}
 		bConvertToSdr                   = true;
+		D3D12Settings.bForceD3D12 = false;
+		D3D12Settings.bLAVUseD3D12 = false;
+		D3D12Settings.chromaUpsampling = 0;
+		D3D12Settings.imageDownscaling = 0;
+		D3D12Settings.imageDownscaling = 0;
+		D3D12Settings.imageUpscalingDoubling = 0;
 	}
 };
 

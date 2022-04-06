@@ -534,6 +534,9 @@
     <None Include="..\Shaders\d3d12\PixelPacking_RGBM.hlsli">
       <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
     </None>
+    <None Include="..\Shaders\d3d12\super-xbr-params.inc">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Shaders\d3d12\ScaleAndCompositeHDRPS.hlsl">

@@ -84,8 +84,7 @@ CVRMainPPage::~CVRMainPPage()
 void CVRMainPPage::SetControls()
 {
 	CheckDlgButton(IDC_CHECK1, m_SetsPP.bUseD3D11                        ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK13, m_SetsPP.bUseD3D12                        ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK17, m_SetsPP.bForceD3D12                     ? BST_CHECKED : BST_UNCHECKED);
+
 	
 	CheckDlgButton(IDC_CHECK2, m_SetsPP.bShowStats                       ? BST_CHECKED : BST_UNCHECKED);
 
@@ -115,9 +114,6 @@ void CVRMainPPage::SetControls()
 	SendDlgItemMessageW(IDC_COMBO2, CB_SETCURSEL, m_SetsPP.iUpscaling, 0);
 	SendDlgItemMessageW(IDC_COMBO3, CB_SETCURSEL, m_SetsPP.iDownscaling, 0);
 
-	SendDlgItemMessageW(IDC_COMBO8, CB_SETCURSEL, m_SetsPP.iChromaScaling12, 0);
-	SendDlgItemMessageW(IDC_COMBO9, CB_SETCURSEL, m_SetsPP.iUpscaling12, 0);
-	SendDlgItemMessageW(IDC_COMBO10, CB_SETCURSEL, m_SetsPP.iDownscaling12, 0);
 
 	SendDlgItemMessageW(IDC_COMBO4, CB_SETCURSEL, m_SetsPP.iSwapEffect, 0);
 }
@@ -213,24 +209,7 @@ HRESULT CVRMainPPage::OnActivate()
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
 	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
-	/*chroma upsampling d3d12*/
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Not coded yet");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
-	/*upscaling d3d12*/
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Mitchell-Netravali");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Lanczos2");
-	SendDlgItemMessageW(IDC_COMBO9, CB_ADDSTRING, 0, (LPARAM)L"Lanczos3");
-	/*down scaling d3d12*/
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Box");
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Hamming");
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
-	SendDlgItemMessageW(IDC_COMBO10, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
+
 
 
 	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Discard");
@@ -256,20 +235,6 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 			if (nID == IDC_CHECK1) {
 				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
-				EnableControls();
-				SetDirty();
-				return (LRESULT)1;
-			}
-
-			if (nID == IDC_CHECK17) {
-				m_SetsPP.bForceD3D12 = IsDlgButtonChecked(IDC_CHECK17) == BST_CHECKED;
-				EnableControls();
-				SetDirty();
-				return (LRESULT)1;
-			}
-				
-			if (nID == IDC_CHECK13) {
-				m_SetsPP.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
 				EnableControls();
 				SetDirty();
 				return (LRESULT)1;
@@ -403,30 +368,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 					return (LRESULT)1;
 				}
 			}
-			if (nID == IDC_COMBO8) {
-				lValue = SendDlgItemMessageW(IDC_COMBO8, CB_GETCURSEL, 0, 0);
-				if (lValue != m_SetsPP.iChromaScaling12) {
-					m_SetsPP.iChromaScaling12 = lValue;
-					SetDirty();
-					return (LRESULT)1;
-				}
-			}
-			if (nID == IDC_COMBO9) {
-				lValue = SendDlgItemMessageW(IDC_COMBO9, CB_GETCURSEL, 0, 0);
-				if (lValue != m_SetsPP.iUpscaling12) {
-					m_SetsPP.iUpscaling12 = lValue;
-					SetDirty();
-					return (LRESULT)1;
-				}
-			}
-			if (nID == IDC_COMBO10) {
-				lValue = SendDlgItemMessageW(IDC_COMBO10, CB_GETCURSEL, 0, 0);
-				if (lValue != m_SetsPP.iDownscaling12) {
-					m_SetsPP.iDownscaling12 = lValue;
-					SetDirty();
-					return (LRESULT)1;
-				}
-			}
+	
 			if (nID == IDC_COMBO4) {
 				lValue = SendDlgItemMessageW(IDC_COMBO4, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iSwapEffect) {

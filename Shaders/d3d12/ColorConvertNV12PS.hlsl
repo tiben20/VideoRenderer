@@ -1,20 +1,26 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
+/*
+* (C) 2022 Ti-BEN
+*
+* This file is part of MPC-BE.
+*
+* MPC-BE is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* MPC-BE is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 
 #include "ShaderUtility.hlsli"
 #include "PresentRS.hlsli"
 
-//static const float2 wh = { 720, 404 };
-//static const float2 dxdy2 = { 2.0 / 720, 2.0 / 404 };
 
 Texture2D ColorTex[2] : register(t0);
 
@@ -27,20 +33,10 @@ cbuffer Constants : register(b0)
 }
 
 SamplerState BilinearFilter : register(s0);
-float3 reverse_color(float3 floatin)
-{
-    float3 floatout;
-    floatout.r = floatin.g;
-    floatout.b = floatin.b;
-    floatout.g = floatin.r;
-    return floatout;
-}
+
 [RootSignature(Present_RootSig)]
 float3 main(float4 position : SV_Position, float2 uv : TexCoord0) : SV_Target0
 {
-    float4 LinearRGB;
-    //LinearRGB = ColorTex[0].Sample(BilinearFilter, uv);
-    //LinearRGB.gb = ColorTex[1].Sample(BilinearFilter, uv).gb;
     float colorY;
     float2 colorUV;
     colorY = ColorTex[0].Sample(BilinearFilter, uv).r;
@@ -49,11 +45,4 @@ float3 main(float4 position : SV_Position, float2 uv : TexCoord0) : SV_Target0
 
     color.rgb = float3(mul(cm_r, color), mul(cm_g, color), mul(cm_b, color)) + cm_c;
     return color;
-    //return ApplyREC709Curve(color);
-    //LinearRGB.yz = ColorTex[0].Sample(BilinearFilter, uv).yz;
-   
-    //float3 LinearRGB = ColorTex.SampleLevel(BilinearFilter, uv, 0);
-    //float3 LinearRGB = RemoveDisplayProfile(ColorTex.SampleLevel(BilinearFilter, uv, 0), LDR_COLOR_FORMAT);
-    return LinearRGB;
-    //return ApplyDisplayProfile(LinearRGB, DISPLAY_PLANE_FORMAT);
 }

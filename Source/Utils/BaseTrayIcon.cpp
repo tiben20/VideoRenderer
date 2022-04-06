@@ -18,9 +18,7 @@
  */
 
 #include "stdafx.h"
-//#include "DShowUtil.h"
 #include "BaseTrayIcon.h"
-//#include "BaseDSPropPage.h"
 
 #include <time.h>
 #include <process.h>
@@ -149,7 +147,7 @@ DWORD CBaseTrayIcon::TrayMessageThread()
 
 HRESULT CBaseTrayIcon::RegisterWindowClass()
 {
-    swprintf_s(m_wszClassName, (sizeof(m_wszClassName) / sizeof(m_wszClassName[0])), L"LAVTrayIconClass%d", GetCurrentThreadId());
+    swprintf_s(m_wszClassName, (sizeof(m_wszClassName) / sizeof(m_wszClassName[0])), L"MPCBETrayIconClass%d", GetCurrentThreadId());
 
     WNDCLASSEX wx = {};
     wx.cbSize = sizeof(WNDCLASSEX);
@@ -163,7 +161,7 @@ HRESULT CBaseTrayIcon::RegisterWindowClass()
 
 HRESULT CBaseTrayIcon::CreateMessageWindow()
 {
-    m_hWnd = CreateWindowEx(0, m_wszClassName, L"LAV Tray Message Window", 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
+    m_hWnd = CreateWindowEx(0, m_wszClassName, L"MPC Renderer tray Window", 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
                             nullptr, nullptr);
     SetWindowLongPtr(m_hWnd, GWLP_USERDATA, LONG_PTR(this));
     return m_hWnd == nullptr ? E_FAIL : S_OK;
@@ -215,7 +213,8 @@ HRESULT CBaseTrayIcon::OpenPropPage()
       CAUUID caGUID;
       pProp->GetPages(&caGUID);
       pProp->Release();
-      GUID gg = caGUID.pElems[2];
+      
+      
       hr = OleCreatePropertyFrame(m_hWnd,          // Parent window
         0, 0,               // Reserved
         FilterInfo.achName, // Caption for the dialog box

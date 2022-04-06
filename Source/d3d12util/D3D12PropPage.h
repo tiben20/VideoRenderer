@@ -21,25 +21,36 @@
 #pragma once
 
 #include "IVideoRenderer.h"
-
-// CVRMainPPage
-
+#include <map>
 
 // CD3D12SettingsPPage
 
 class __declspec(uuid("465D2B19-DE41-4425-8666-FB7FF0DAF122"))
 	CD3D12SettingsPPage : public CBasePropertyPage, public CWindow
 {
-	HFONT m_hMonoFont = nullptr;
 	CComQIPtr<IVideoRenderer> m_pVideoRenderer;
+	Settings_t m_SetsPP;
 
 public:
 	CD3D12SettingsPPage(LPUNKNOWN lpunk, HRESULT* phr);
 	~CD3D12SettingsPPage();
 
+	void EnableControls();
 private:
+	
 	HRESULT OnConnect(IUnknown* pUnknown) override;
 	HRESULT OnDisconnect() override;
 	HRESULT OnActivate() override;
 	INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	HRESULT OnApplyChanges();
+
+	void SetDirty()
+	{
+		m_bDirty = TRUE;
+		if (m_pPageSite)
+		{
+			m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+		}
+	}
+
 };

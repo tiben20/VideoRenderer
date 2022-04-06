@@ -122,16 +122,17 @@ using namespace D3D12Engine;
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
-	m_bForceD3D12 = config.bForceD3D12;
+	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
 	m_bShowStats = config.bShowStats;
 	m_iResizeStats = config.iResizeStats;
 	m_iTexFormat = config.iTexFormat;
 	m_VPFormats = config.VPFmts;
 	m_bDeintDouble = config.bDeintDouble;
 	m_bVPScaling = config.bVPScaling;
-	m_iChromaScaling12 = config.iChromaScaling12;
-	m_iUpscaling12 = config.iUpscaling12;
-	m_iDownscaling12 = config.iDownscaling12;
+	m_iChromaScaling12 = config.D3D12Settings.chromaUpsampling;
+	m_iUpscaling12 = config.D3D12Settings.imageUpscaling;
+	m_iDownscaling12 = config.D3D12Settings.imageDownscaling;
+	m_iUpscalingDoubling = config.D3D12Settings.imageUpscalingDoubling;
 	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
 	m_bUseDither = config.bUseDither;
 	m_iSwapEffect = config.iSwapEffect;
@@ -317,7 +318,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 	if (D3D12Engine::g_CommandManager.GetGraphicsQueue().IsReady())
 		return S_OK;
-	UpdateStatsStatic();
+
 	D3D12Engine::g_CommandManager.Create(D3D12Engine::g_Device);
 	D3D12Engine::InitializeCommonState();
 	D3D12Engine::InitializeRenderingBuffers(1280,528);
@@ -517,6 +518,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 			{
 				BYTE* srcData = (BYTE*)lr_src.pBits;
 				D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+				assert(0);
 #ifdef TODO
 				if (m_TexSrcVideo.pTexture2)
 				{
@@ -589,25 +591,21 @@ HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 		layoutplane[0].Footprint.Format = m_srcParams.pDX11Planes->FmtPlane1;
 		layoutplane[1].Footprint.Format = m_srcParams.pDX11Planes->FmtPlane2;
 	}
-
-
 	
-	size_t firstplane = /*m_srcRect.Width()*/ pitch_plane[0] * m_srcRect.Height();
-	layoutplane[1].Offset = 0;// firstplane;
-	layoutplane[0].Footprint.RowPitch = pitch_plane[0];// srcPitch;
-	layoutplane[1].Footprint.RowPitch = pitch_plane[1];//srcPitch;
-
-	TypedBuffer buf1(m_srcParams.pDX11Planes->FmtPlane1);//DXGI_FORMAT_R8_UNORM
-	TypedBuffer buf2(m_srcParams.pDX11Planes->FmtPlane2);//DXGI_FORMAT_R8G8_UNORM);
-
-	buf1.Create(L"plane 0", 1, firstplane, srcData);
+	size_t firstplane = pitch_plane[0] * m_srcHeight;
+	Texture texture1;
+	Texture texture2;
 	
-	buf2.Create(L"plane 1", 1, bufferlength - firstplane, srcData + firstplane);
-
-	//1382400
-	D3D12Engine::CopySampleSW(buf1,buf2, layoutplane);
-	m_bSWRendering = true;
-	return hr;
+	//TODO 1 plane or 3 planes
+	texture1.Create2D(srcPitch, m_srcWidth, m_srcHeight, m_srcParams.pDX11Planes->FmtPlane1, srcData);
+	texture2.Create2D(srcPitch, layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, m_srcParams.pDX11Planes->FmtPlane2, srcData + firstplane);
+	hr = CopySampleShaderPassSW(texture1, texture2, m_srcRect);
+	if (!m_bSWRendering)
+	{
+		m_bSWRendering = true;
+		UpdateStatsStatic();
+	}
+	return S_OK;
 }
 
 HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
@@ -970,7 +968,7 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	bool changeNumTextures = false;
 	bool changeResizeStats = false;
 
-	m_bForceD3D12 = config.bForceD3D12;
+	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
 	// settings that do not require preparation
 	m_bShowStats = config.bShowStats;
 	m_bDeintDouble = config.bDeintDouble;
@@ -1008,18 +1006,22 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 		changeTextures = true;
 		changeVP = true; // temporary solution
 	}
-#ifdef TODO
-	if (config.iChromaScaling != m_iChromaScaling12) {
-		m_iChromaScaling12 = config.iChromaScaling;
-		changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
+	if (config.D3D12Settings.imageUpscalingDoubling != m_iUpscalingDoubling) {
+		m_iUpscalingDoubling = config.D3D12Settings.imageUpscalingDoubling;
+		changeConvertShader = true;
+		//changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
 	}
-#endif
+	if (config.iChromaScaling != m_iChromaScaling12) {
+		m_iChromaScaling12 = config.D3D12Settings.chromaUpsampling;
+		changeConvertShader = true;
+		//changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
+	}
 	if (config.iUpscaling != m_iUpscaling12) {
-		m_iUpscaling12 = config.iUpscaling12;
+		m_iUpscaling12 = config.D3D12Settings.imageUpscaling;
 		changeUpscalingShader = true;
 	}
 	if (config.iDownscaling != m_iDownscaling12) {
-		m_iDownscaling12 = config.iDownscaling12;
+		m_iDownscaling12 = config.D3D12Settings.imageDownscaling;
 		changeDowndcalingShader = true;
 	}
 
@@ -1505,32 +1507,19 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 	HRESULT hr = S_OK;
 	m_bDitherUsed = false;
 	int rotation = m_iRotation;
-
 	CRect rSrc = srcRect;
-	Tex2D_t* pInputTexture = nullptr;
-#ifdef TODO
-	bool bNeedPostProc = m_pPSCorrection || m_pPostScaleShaders.size();
-	if (m_PSConvColorData.bEnable) {
-		ConvertColorPass(m_TexConvertOutput.pTexture);
-		pInputTexture = &m_TexConvertOutput;
-		rSrc.SetRect(0, 0, m_TexConvertOutput.desc.Width, m_TexConvertOutput.desc.Height);
-	}
-	else {
-		pInputTexture = &m_TexSrcVideo;
-	}
-#endif
 	
-	if (rSrc.Width() != dstRect.Width() && rSrc.Height() != dstRect.Height())// && (dstRect.Height() != m_videoRect.Height() || dstRect.Width() != m_videoRect.Width()))
+	if (rSrc.Width() != dstRect.Width() && rSrc.Height() != dstRect.Height())
 	{
 		if( rSrc.Width()>dstRect.Width() || rSrc.Height() > dstRect.Height())
-			D3D12Engine::Downscale(pVideoContext, m_iDownscaling12, srcRect,dstRect);
+			D3D12Engine::Downscale(pVideoContext, m_iDownscaling12, srcRect,dstRect, m_bSWRendering);
 		else
-			D3D12Engine::Upscale(pVideoContext, m_iUpscaling12, srcRect, dstRect);
+			D3D12Engine::Upscale(pVideoContext, m_iUpscaling12, srcRect, dstRect,m_bSWRendering);
 	}
 	else
 	{
 		//even with no scale we need a dstrect if we resize the window only in x or y position
-		D3D12Engine::Noscale(pVideoContext, dstRect);
+		D3D12Engine::Noscale(pVideoContext, dstRect, m_bSWRendering);
 	}
 	
 
@@ -1539,6 +1528,7 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 
 HRESULT CDX12VideoProcessor::FillBlack()
 {
+	
     return S_OK;
 }
 

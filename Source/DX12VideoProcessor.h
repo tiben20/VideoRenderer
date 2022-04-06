@@ -111,7 +111,7 @@ private:
 	int  m_iChromaScaling12 = CHROMA_Bilinear;
 	int  m_iUpscaling12 = UPSCALE_CatmullRom; // interpolation
 	int  m_iDownscaling12 = DOWNSCALE_Hamming;  // convolution
-
+	int  m_iUpscalingDoubling = 0;
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX12VideoProcessor() override;

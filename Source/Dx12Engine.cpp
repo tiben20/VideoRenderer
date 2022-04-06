@@ -110,8 +110,12 @@ namespace D3D12Engine
 		//need to update to the window size
 		//DXGI_FORMAT fmt = m_pVideoOutputResource.GetFormat();
 		m_pVideoOutputResource.DestroyBuffer();
-		m_pVideoOutputResourcePreScale.DestroyBuffer();
-		m_pVideoOutputResourcePreScale.Create(L"PreOutput video resource", g_videoRect.Width(), g_videoRect.Height(), 1, m_SwapChainFmt);
+		if (m_pVideoOutputResourcePreScale.GetWidth() == 0)
+		{
+			//once set don't touch it its the size of the video
+			m_pVideoOutputResourcePreScale.DestroyBuffer();
+			m_pVideoOutputResourcePreScale.Create(L"PreOutput video resource", g_videoRect.Width(), g_videoRect.Height(), 1, m_SwapChainFmt);
+		}
 		
 		m_pVideoOutputResource.Create(L"Output video resource", rect.Width(), rect.Height(), 1, m_SwapChainFmt);
 		g_windowRect = rect;
@@ -423,6 +427,16 @@ namespace D3D12Engine
 		
 		return S_OK;
 	}
+	
+	HRESULT D3D12Engine::CopySampleShaderPassSW(Texture buf1, Texture buf2,CRect dstRect)
+	{
+		GraphicsContext& pShaderContext = GraphicsContext::Begin(L"Shader Context");
+		ImageScaling::CopyPlanesSW(pShaderContext, m_pVideoOutputResourcePreScale, buf1, buf2, m_pBufferVar, dstRect);
+
+		//need the buffer to be done because were releasing it right after
+		pShaderContext.Finish(true);
+		return S_OK;
+	}
 
 	HRESULT D3D12Engine::CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2])
 	{
@@ -442,11 +456,11 @@ namespace D3D12Engine
 			else
 				m_srcDXGIFormat = DXGI_FORMAT_NV12;
 		}
-	
+
 		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
 		pVideoContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
 		pVideoContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST, true);
-		
+
 		D3D12_TEXTURE_COPY_LOCATION dst;
 		D3D12_TEXTURE_COPY_LOCATION src;
 		for (int i = 0; i < 2; i++) {
@@ -457,6 +471,7 @@ namespace D3D12Engine
 				src = CD3DX12_TEXTURE_COPY_LOCATION(buf2.GetResource(), layoutplane[i]);
 			pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		}
+
 
 		//the first plane is the correct size not the second one
 		//pVideoContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
@@ -528,39 +543,51 @@ namespace D3D12Engine
 	void D3D12Engine::ClearBackBuffer(GraphicsContext& pVideoContext, CRect windowRect)
 	{
 		//clear the video resource and set it as a render target since were rendering everything onto it
-		pVideoContext.TransitionResource(m_pVideoOutputResource, D3D12_RESOURCE_STATE_RENDER_TARGET,true);
+		pVideoContext.TransitionResource(m_pVideoOutputResource, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 		pVideoContext.SetRenderTarget(m_pVideoOutputResource.GetRTV());
 		pVideoContext.ClearColor(m_pVideoOutputResource);
-		
 		pVideoContext.SetViewportAndScissor(windowRect.left, windowRect.top, windowRect.Width(), windowRect.Height());
 	}
 
-	void D3D12Engine::Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect)
+	void D3D12Engine::Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect, bool sw)
 	{
-		DrawPlanes(Context, m_pVideoOutputResourcePreScale);
+		//we already copy to prescale with the texture copy
+		if (!sw)
+			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
 		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, ScalingFilter, srcRect, destRect);
+		
 	}
 
-	void D3D12Engine::Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect)
+	void D3D12Engine::Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect,bool sw)
 	{
-		DrawPlanes(Context, m_pVideoOutputResourcePreScale);
+		if (!sw)
+			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
 		ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, ScalingFilter, srcRect, destRect);
+
 		//by using g_videoRect as CRect renderrect we get the clear is ok but we lose the overlay which is rendered in the full window
 		//ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, g_videoRect);
 		//Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
 	}
 
-	void D3D12Engine::Noscale(GraphicsContext& Context,CRect dstRect)
+	void D3D12Engine::Noscale(GraphicsContext& Context,CRect dstRect,bool sw)
 	{
 		if (dstRect.Width()>0 && dstRect.Height()>0)
 			Context.SetViewportAndScissor(dstRect.left, dstRect.top, dstRect.Width(), dstRect.Height());
-		DrawPlanes(Context, m_pVideoOutputResource, dstRect);
+		if (!sw)
+			DrawPlanes(Context, m_pVideoOutputResource, dstRect);
+		else
+		{
+			Context.TransitionResource(m_pVideoOutputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			Context.SetViewportAndScissor(dstRect.left, dstRect.top, dstRect.Width(), dstRect.Height());
+			ImageScaling::RenderToBackBuffer(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale);
+		}
 	}
 
 	void D3D12Engine::DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect)
 	{
-		Context.TransitionResource(output, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		ImageScaling::ColorAjust(Context, output, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar, dstRect);
+
+	  Context.TransitionResource(output, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	  ImageScaling::ColorAjust(Context, output, m_pPlaneResource[0], m_pPlaneResource[1], m_pBufferVar, dstRect);
 		Context.SetViewportAndScissor(g_windowRect.left, g_windowRect.top, g_windowRect.Width(), g_windowRect.Height());
 	}
 

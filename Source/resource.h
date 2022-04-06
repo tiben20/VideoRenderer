@@ -5,11 +5,11 @@
 #define IDD_MAINPROPPAGE                102
 #define IDD_INFOPROPPAGE                103
 #define IDS_MAINPROPPAGE_TITLE          104
-#define IDD_MAINPROPPAGE1               104
-#define IDD_D3D12PROPPAGE               104
 #define IDS_INFOPROPPAGE_TITLE          105
 #define IDS_D3D12PROP_TITLE             106
+#define IDD_D3D12PROPPAGE               107
 #define IDI_ICON1                       108
+#define IDI_D3D12_MAIN_TREE             109
 #define IDF_DITHER_32X32_FLOAT16        401
 #define IDF_HLSL_ST2084                 501
 #define IDF_HLSL_HLG                    502
@@ -117,6 +117,35 @@
 #define IDC_COMBO9                      1049
 #define IDC_COMBO10                     1050
 #define IDC_BUTTON1                     1051
+#define IDC_TREE1                       1053
+#define IDC_TREE_MAIN                   1053
+#define IDC_RADIO_DOWNSCALING1          1057
+#define IDC_RADIO_DOWNSCALING2          1058
+#define IDC_RADIO_DOWNSCALING3          1059
+#define IDC_RADIO_DOWNSCALING4          1060
+#define IDC_RADIO_DOWNSCALING5          1061
+#define IDC_RADIO_DOWNSCALING6          1062
+#define IDC_RADIO_UPSCALING1            1069
+#define IDC_RADIO_UPSCALING2            1070
+#define IDC_RADIO_UPSCALING3            1071
+#define IDC_RADIO_UPSCALING4            1072
+#define IDC_RADIO_UPSCALING5            1073
+#define IDC_RADIO_UPSCALING6            1074
+#define IDC_RADIO_DOUBLING1             1075
+#define IDC_RADIO_DOUBLING2             1076
+#define IDC_RADIO_DOUBLING3             1077
+#define IDC_RADIO_DOUBLING4             1078
+#define IDC_RADIO_DOUBLING5             1079
+#define IDC_RADIO_CHROMAUP1             1080
+#define IDC_RADIO_CHROMAUP2             1081
+#define IDC_RADIO_CHROMAUP3             1082
+#define IDC_RADIO_CHROMAUP4             1083
+#define IDC_RADIO_CHROMAUP5             1084
+#define IDC_RADIO_CHROMAUP6             1085
+#define IDC_RADIO_CHROMAUP7             1086
+#define IDC_RADIO_CHROMAUP8             1087
+#define IDC_RADIO_CHROMAUP9             1088
+#define IDC_RADIO_CHROMAUP10            1089
 
 // Next default values for new objects
 // 
@@ -124,7 +153,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1052
+#define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

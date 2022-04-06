@@ -86,14 +86,15 @@ namespace D3D12Engine
 	HRESULT RenderAlphaBitmap(GraphicsContext& Context, Texture resource, D3D12_VIEWPORT vp, RECT alphaBitmapRectSrc);
 	HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, CRect srcRect, UINT srcW, UINT srcH);
 	HRESULT CopySampleSW(TypedBuffer buf1, TypedBuffer buf2, D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2]);
+	HRESULT CopySampleShaderPassSW(Texture buf1, Texture buf2, CRect dstRect);
 	HRESULT CopySample(ID3D12Resource* resource);
 	
 	void ClearBackBuffer(GraphicsContext& Context, CRect windowRect );
 	
 	void DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect = CRect());
-	void Noscale(GraphicsContext& Context, CRect dstRect);
-	void Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
-	void Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect);
+	void Noscale(GraphicsContext& Context, CRect dstRect, bool sw);
+	void Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect, bool sw);
+	void Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect, bool sw);
 
 	
 	void PresentBackBuffer(GraphicsContext& Context);

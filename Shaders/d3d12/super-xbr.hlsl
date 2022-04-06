@@ -34,14 +34,15 @@
 
 */
 
-#if Pass == 0
+#define PASS 0
+#if (PASS == 0)
 	#define wp1   1.0
 	#define wp2   0.0
 	#define wp3   0.0
 	#define wp4   2.0
 	#define wp5  -1.0
 	#define wp6   0.0
-#elif Pass == 1
+#elif (PASS == 1)
 	#define wp1   1.0
 	#define wp2   0.0
 	#define wp3   0.0
@@ -57,7 +58,7 @@
 	#define wp6   0.0
 #endif
 
-#if Pass == 1
+#if (PASS == 1)
 	#define weight1 (XBR_WEIGHT*1.75068/10.0)
 	#define weight2 (XBR_WEIGHT*1.29633/10.0/2.0)
 #else
@@ -65,9 +66,10 @@
 	#define weight2 (XBR_WEIGHT*1.75068/10.0/2.0)
 #endif
 
-#if Pass == 0
-	#define Get(x,y) (tex2D(s0, VAR.texCoord + pixel_size*float2(x,y)).xyz)
-#elif Pass == 1
+#if (PASS == 0)
+	#define Get(x,y) (tex.Sample(s0, VAR.texCoord + pixel_size*float2(x,y)).xyz)
+	//#define Get(x,y) (tex2D(s0, VAR.texCoord + pixel_size*float2(x,y)).xyz)
+#elif (PASS == 1)
 	#define Get(x,y) (tex2D(s0, VAR.texCoord + pixel_size*float2((x)+(y) - 1,(y) - (x))).xyz)
 #else
 	#define Get(x,y) (tex2D(s0, VAR.texCoord - pixel_size*float2(x,y)).xyz)
@@ -143,17 +145,27 @@ out_vertex main_vertex
 		 
 	return OUT;
 }
- 
-float4 main_fragment(in out_vertex VAR, uniform sampler2D s0 : TEXUNIT0, uniform input IN) : COLOR
+//was
+//float4 main_fragment(in out_vertex VAR, uniform sampler2D s0 : TEXUNIT0, uniform input IN) : COLOR
+
+Texture2D tex;
+float4 main(in out_vertex VAR, uniform sampler s0 : TEXUNIT0, uniform input IN) : SV_Target0
 {
 	//Skip pixels on wrong grid
-#if Pass==0
-	if (any(frac(VAR.texCoord*input_size)<(0.5))) return tex2D(s0, VAR.texCoord);
-#elif Pass==1
+    
+#if (PASS==0)
+    
+    if (any(frac(VAR.texCoord * input_size) < (0.5)))
+		return tex.Sample(s0, VAR.texCoord);
+    //return s0( s0, VAR.texCoord);
+	//if (any(frac(VAR.texCoord*input_size)<(0.5))) return tex2D(s0, VAR.texCoord);
+#elif (PASS==1)
 	float2 dir = frac(VAR.texCoord*input_size/2.0) - (0.5);
 	if ((dir.x*dir.y)>0.0) return tex2D(s0, VAR.texCoord);
 #endif
+	//(tex2D(s0, VAR.texCoord + pixel_size*float2(x,y)).xyz)
 
+    
 	float3 P0 = Get(-1,-1);
 	float3 P1 = Get( 2,-1);
 	float3 P2 = Get(-1, 2);

@@ -23,8 +23,17 @@
 #include "Helper.h"
 #include "DisplayConfig.h"
 #include "D3D12PropPage.h"
+#include "PropPage.h"
 
+inline void SetRadioValue(HWND hWnd, int nIDComboBox, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	SendDlgItemMessageW(hWnd, nIDComboBox, msg, wParam, lParam);
+}
 
+inline LRESULT GetRadioValue(HWND hWnd, int nIDComboBox)
+{
+	return SendDlgItemMessage(hWnd, nIDComboBox, BM_GETCHECK, 0, 0);
+}
 
 // CD3D12SettingsPPage
 
@@ -38,10 +47,6 @@ CD3D12SettingsPPage::~CD3D12SettingsPPage()
 {
 	DLog(L"~CD3D12SettingsPPage()");
 
-	if (m_hMonoFont) {
-		DeleteObject(m_hMonoFont);
-		m_hMonoFont = 0;
-	}
 }
 
 HRESULT CD3D12SettingsPPage::OnConnect(IUnknown *pUnk)
@@ -72,75 +77,125 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	// set m_hWnd for CWindow
 	m_hWnd = m_hwnd;
 
-	SetDlgItemTextW(IDC_EDIT2, GetNameAndVersion());
+	m_pVideoRenderer->GetSettings(m_SetsPP);
 
-	// init monospace font
-	LOGFONTW lf = {};
-	HDC hdc = GetWindowDC();
-	lf.lfHeight = -MulDiv(9, GetDeviceCaps(hdc, LOGPIXELSY), 72);
-	ReleaseDC(hdc);
-	lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
-	wcscpy_s(lf.lfFaceName, L"Consolas");
-	m_hMonoFont = CreateFontIndirectW(&lf);
+	int i;
+	for (i = 0; i < 9; i++)
+		SetRadioValue(m_hWnd, IDC_RADIO_CHROMAUP1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.chromaUpsampling == (i)), 0);
+	for (i = 0; i < 5; i++)
+		SetRadioValue(m_hWnd, IDC_RADIO_DOUBLING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscalingDoubling == (i)), 0);
+	for (i = 0; i < 6; i++)
+		SetRadioValue(m_hWnd, IDC_RADIO_UPSCALING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscaling == (i)), 0);
+	for (i = 0; i < 6; i++)
+		SetRadioValue(m_hWnd, IDC_RADIO_DOWNSCALING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageDownscaling == (i)), 0);
 
-	GetDlgItem(IDC_EDIT1).SetFont(m_hMonoFont);
-	ASSERT(m_pVideoRenderer);
+	CheckDlgButton(IDC_CHECK13, m_SetsPP.D3D12Settings.bUseD3D12 ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK17, m_SetsPP.D3D12Settings.bForceD3D12 ? BST_CHECKED : BST_UNCHECKED);
+	//build the tree
+	
+	return S_OK;
+}
 
-	if (!m_pVideoRenderer->GetActive()) {
-		SetDlgItemTextW(IDC_EDIT1, L"filter is not active");
-		return S_OK;
-	}
 
-	std::wstring strInfo(L"Windows ");
-	strInfo.append(GetWindowsVersion());
-	strInfo.append(L"\r\n");
 
-	std::wstring strVP;
-	if (S_OK == m_pVideoRenderer->GetVideoProcessorInfo(strVP)) {
-		str_replace(strVP, L"\n", L"\r\n");
-		strInfo.append(strVP);
-	}
-
-#ifdef _DEBUG
+INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT lValue;
+	BOOL bValue;
+	if (uMsg == WM_COMMAND) 
 	{
-		std::vector<DisplayConfig_t> displayConfigs;
+		const int nID = LOWORD(wParam);
 
-		bool ret = GetDisplayConfigs(displayConfigs);
+		if (nID == IDC_CHECK13)
+		{
+			m_SetsPP.D3D12Settings.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
+			EnableControls();
+			SetDirty();
+			return (LRESULT)1;
+		}
 
-		strInfo.append(L"\r\n");
+		if (nID == IDC_CHECK17)
+		{
+			m_SetsPP.D3D12Settings.bForceD3D12 = IsDlgButtonChecked(IDC_CHECK17) == BST_CHECKED;
+			EnableControls();
+			SetDirty();
+			return (LRESULT)1;
+		}
 
-		for (const auto& dc : displayConfigs) {
-			double freq = (double)dc.refreshRate.Numerator / (double)dc.refreshRate.Denominator;
-			strInfo += fmt::format(L"\r\n{} - {:.3f} Hz", dc.displayName, freq);
-
-			if (dc.bitsPerChannel) { // if bitsPerChannel is not set then colorEncoding and other values are invalid
-				const wchar_t* colenc = ColorEncodingToString(dc.colorEncoding);
-				if (colenc) {
-					strInfo += fmt::format(L" {}", colenc);
-				}
-				strInfo += fmt::format(L" {}-bit", dc.bitsPerChannel);
+		if (IDC_RADIO_DOWNSCALING1 <= nID && nID <= IDC_RADIO_DOWNSCALING6 && HIWORD(wParam) == BN_CLICKED)
+		{
+			//0 based and we got 6 value so 5 - (IDC_RADIO_DOWNSCALING6 - currentvalue)
+			int currentbutton = 5 - (IDC_RADIO_DOWNSCALING6 - nID);
+			lValue = GetRadioValue(m_hWnd, nID);
+			if (currentbutton != (m_SetsPP.D3D12Settings.imageDownscaling))
+			{
+				SetDirty();
+				m_SetsPP.D3D12Settings.imageDownscaling = currentbutton;
 			}
+		}
+		else if (IDC_RADIO_UPSCALING1 <= nID && nID <= IDC_RADIO_UPSCALING6 && HIWORD(wParam) == BN_CLICKED)
+		{
+			int currentbutton = 5 - (IDC_RADIO_UPSCALING6 - nID);
+			lValue = GetRadioValue(m_hWnd, nID);
 
-			const wchar_t* output = OutputTechnologyToString(dc.outputTechnology);
-			if (output) {
-				strInfo += fmt::format(L" {}", output);
+			if (currentbutton != (m_SetsPP.D3D12Settings.imageUpscaling))
+			{
+				SetDirty();
+				m_SetsPP.D3D12Settings.imageUpscaling = currentbutton;
+			}
+		}
+		else if (IDC_RADIO_DOUBLING1 <= nID && nID <= IDC_RADIO_DOUBLING5 && HIWORD(wParam) == BN_CLICKED)
+		{
+			int currentbutton = 4 - (IDC_RADIO_DOUBLING5 - nID);
+			lValue = GetRadioValue(m_hWnd, nID);
+
+			if (currentbutton != (m_SetsPP.D3D12Settings.imageUpscalingDoubling))
+			{
+				
+				SetDirty();
+				m_SetsPP.D3D12Settings.imageUpscalingDoubling = currentbutton;
+			}
+		}
+		else if (IDC_RADIO_CHROMAUP1 <= nID && nID <= IDC_RADIO_CHROMAUP9 && HIWORD(wParam) == BN_CLICKED)
+		{
+			int currentbutton = 9 - (IDC_RADIO_CHROMAUP9 - nID);//IDC_RADIO_CHROMAUP1 + LOWORD(wParam);
+			lValue = GetRadioValue(m_hWnd, nID);
+			
+			if (currentbutton != (m_SetsPP.D3D12Settings.chromaUpsampling))
+			{
+				SetDirty();
+				m_SetsPP.D3D12Settings.chromaUpsampling = currentbutton;
 			}
 		}
 	}
-#endif
 
-	SetDlgItemTextW(IDC_EDIT1, strInfo.c_str());
+
+	return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+}
+
+HRESULT CD3D12SettingsPPage::OnApplyChanges()
+{
+	m_pVideoRenderer->SetSettings(m_SetsPP);
+	m_pVideoRenderer->SaveSettings();
 
 	return S_OK;
 }
 
-INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	if (uMsg == WM_CLOSE) {
-		// fixed Esc handling when EDITTEXT control has ES_MULTILINE property and is in focus
-		return (LRESULT)1;
-	}
 
-	// Let the parent class handle the message.
-	return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+
+void CD3D12SettingsPPage::EnableControls()
+{
+	if (!IsWindows8OrGreater()) { // Windows 7
+		const BOOL bEnable = !m_SetsPP.D3D12Settings.bUseD3D12;
+		int i;
+		for (i = 0; i < 9; i++)
+			GetDlgItem(IDC_RADIO_CHROMAUP1+i).EnableScrollBar(bEnable);
+		for (i = 0; i < 5; i++)
+			GetDlgItem(IDC_RADIO_DOUBLING1 + i).EnableScrollBar(bEnable);
+		for (i = 0; i < 6; i++)
+			GetDlgItem(IDC_RADIO_UPSCALING1 + i).EnableScrollBar(bEnable);
+		for (i = 0; i < 6; i++)
+			GetDlgItem(IDC_RADIO_DOWNSCALING1 + i).EnableScrollBar(bEnable);
+	}
+	
 }
