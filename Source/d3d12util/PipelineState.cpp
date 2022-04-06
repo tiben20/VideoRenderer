@@ -162,7 +162,7 @@ void GraphicsPSO::Finalize()
             PSORef = &s_GraphicsPSOHashMap[HashCode];
         }
         else
-            PSORef = &iter->second;
+            PSORef = &iter->second.p;
     }
 
     if (firstCompile)
