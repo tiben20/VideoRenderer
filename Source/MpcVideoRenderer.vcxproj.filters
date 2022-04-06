@@ -611,13 +611,21 @@
     <FxCompile Include="..\Shaders\d3d11\ps_simple.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Shaders\d3d12\super-xbr.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+    <FxCompile Include="..\Shaders\d3d12\superxbr.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\Info\superxbr3.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\favicon.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Shaders\d3d12\Info\superxbr fast shader.txt">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
+    </Text>
   </ItemGroup>
 </Project>

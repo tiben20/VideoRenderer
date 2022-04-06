@@ -22,23 +22,25 @@
 
 struct VS_INPUT
 {
-float3 position     : POSITION;
-float2 uv           : TEXCOORD;
+    float4 position : POSITION;
+		float4 color : COLOR;
+		float2 texCoord1 : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
-  float4 Pos : SV_POSITION;    // Upper-left and lower-right coordinates in clip space
-  float2 Tex : TEXCOORD0;        // Upper-left and lower-right normalized UVs
-};
+        float4 position : POSITION;
+		float4 color : COLOR;
+		float2 texCoord1 : TEXCOORD0;
+    };
 
-//[RootSignature(Present_RootSig)]
 VS_OUTPUT main( VS_INPUT input)
 {
   VS_OUTPUT output;
   // position w is always 1 for video a video have no depth
-  output.Pos = float4(input.position, 1);
-  output.Tex = float3(input.uv, 0);
+    output.position = input.position;
+    output.texCoord1 = input.texCoord1;
+    output.color = input.color;
   return output;
     // Texture coordinates range [0, 2], but only [0, 1] appears on screen.
     //Tex = float2(uint2(VertID, VertID << 1) & 2);

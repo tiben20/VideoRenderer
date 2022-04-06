@@ -29,8 +29,8 @@
 #include "CompiledShaders/DownScalingFilters.h"
 #include "CompiledShaders/UpscalingFilters.h"
 #include "CompiledShaders/ColorConvertNV12PS.h"
-
-
+#include "CompiledShaders/Superxbr.h"
+#include "CompiledShaders/Superxbr3.h"
 
 
 #include "CompiledShaders/ScreenQuadPresentVS.h"
@@ -52,6 +52,7 @@ namespace ImageScaling
 {
   GraphicsPSO ColorConvertNV12PS(L"Image Scaling: Sharpen Upsample PSO");
   /*Scaling PSO*/
+  GraphicsPSO SuperXbrFiltersPS(L"Image Scaling: Xbr filter PSO");
   GraphicsPSO UpScalingFiltersPS(L"Image Scaling: Upscaling filters PSO");
   GraphicsPSO DownScalingFiltersPS(L"Image Scaling: DownScaling filters PSO");
   GraphicsPSO SubPicPS(L"SubPic PSO");
@@ -154,11 +155,25 @@ namespace ImageScaling
     UpScalingFiltersPS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
     UpScalingFiltersPS.Finalize();
 
+    
+    //Vertex Shader - Pixel Shader linkage error : Signatures between stages are incompatible.The input stage requires Semantic / Index(POSITION, 0) as input, but it is not provided by the output stage.[STATE_CREATION ERROR #666: CREATEGRAPHICSPIPELINESTATE_SHADER_LINKAGE_SEMANTICNAME_NOT_FOUND]
+    //Vertex Shader - Pixel Shader linkage error : Signatures between stages are incompatible.The input stage requires Semantic / Index(COLOR, 0) as input, but it is not provided by the output stage.[STATE_CREATION ERROR #666: CREATEGRAPHICSPIPELINESTATE_SHADER_LINKAGE_SEMANTICNAME_NOT_FOUND]
+    //Vertex Shader - Pixel Shader linkage error : Signatures between stages are incompatible.Semantic 'TEXCOORD' is defined for mismatched hardware registers between the output stageand input stage.[STATE_CREATION ERROR #660: CREATEGRAPHICSPIPELINESTATE_SHADER_LINKAGE_REGISTERINDEX]
+    SuperXbrFiltersPS.SetRootSignature(s_PresentRSScaling);
+    SuperXbrFiltersPS.SetRasterizerState(D3D12Engine::RasterizerDefault);
+    SuperXbrFiltersPS.SetBlendState(D3D12Engine::BlendDisable);
+    SuperXbrFiltersPS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
+    SuperXbrFiltersPS.SetSampleMask(0xFFFFFFFF);
+    SuperXbrFiltersPS.SetInputLayout(0, nullptr);
+    SuperXbrFiltersPS.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+    SuperXbrFiltersPS.SetVertexShader(g_pScreenQuadPresentVS, sizeof(g_pScreenQuadPresentVS));
+    SuperXbrFiltersPS.SetPixelShader(g_psuperxbr, sizeof(g_psuperxbr));
+    SuperXbrFiltersPS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
+    SuperXbrFiltersPS.Finalize();
+
     ColorConvertNV12PS.SetRootSignature(s_PresentRSColor);
-    //BilinearUpsamplePS2.SetRasterizerState(D3D12Engine::RasterizerDefault);
     ColorConvertNV12PS.SetRasterizerState(D3D12Engine::RasterizerDefault);
     ColorConvertNV12PS.SetBlendState(D3D12Engine::BlendDisable);
-    //BilinearUpsamplePS2.SetBlendState(D3D12Engine::BlendDisable);
     ColorConvertNV12PS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
     ColorConvertNV12PS.SetSampleMask(0xFFFFFFFF);
     ColorConvertNV12PS.SetInputLayout(0, nullptr);
@@ -375,8 +390,52 @@ namespace ImageScaling
     Context.Draw(3);
   }
 
+  void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect)
+  {
+    Context.SetRootSignature(s_PresentRSScaling);
+    Context.SetPipelineState(SuperXbrFiltersPS);
+    Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    Context.SetRenderTarget(dest.GetRTV());
+    Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
+    Context.SetDynamicDescriptor(0, 0, source.GetSRV());
+
+    __declspec(align(16)) struct CONSTANT_DOWNSCALE_BUFFERINT {
+      DirectX::XMFLOAT4 arg0;
+      DirectX::XMFLOAT4 size0;
+      int pass;
+      int fastmethod;
+    };
+
+    CONSTANT_DOWNSCALE_BUFFERINT bufconst;
+    bufconst.pass = 0;
+    bufconst.arg0.x = 0.6f;
+    bufconst.arg0.y = 0.6f;
+    bufconst.arg0.z = 1.0f;
+    bufconst.arg0.w = 1.0f;
+    bufconst.size0.x = destRect.Width();
+    bufconst.size0.y = destRect.Height();
+    bufconst.size0.z = 1.0f / destRect.Width();
+    bufconst.size0.w = 1.0f / destRect.Height();
+    bufconst.fastmethod = 0;
+    Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+    Context.Draw(3);
+    bufconst.pass = 1;
+    Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+    Context.Draw(3);
+    
+
+  }
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect)
   {
+    if (ScalingFilter == 6)
+    {
+      UpscaleXbr(Context, dest, source, srcRect, destRect);
+      return;
+    }
+    
+    
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(UpScalingFiltersPS);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -407,6 +466,7 @@ namespace ImageScaling
     s_SubPicRS.Free();
     ColorConvertNV12PS.FreePSO();
     UpScalingFiltersPS.FreePSO();
+    SuperXbrFiltersPS.FreePSO();
     DownScalingFiltersPS.FreePSO();
     SubPicPS.FreePSO();
     VideoRessourceCopyPS.FreePSO();

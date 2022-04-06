@@ -100,21 +100,40 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 	return MH_CreateHook(*ppSystemFunction, pHookFunction, reinterpret_cast<LPVOID*>(ppSystemFunction)) == MH_OK;
 }
 
-static const wchar_t* s_UpscalingName[5] = {
+static const wchar_t* s_ChromaUpscalingName[9] = {
 	{L"Nearest-neighbor"  },
-	{L"Mitchell-Netravali"},
-	{L"Catmull-Rom"       },
-	{L"Lanczos2"          },
-	{L"Lanczos3"          },
+	{L"Bilinear"},
+	{L"Cubic"       },
+	{L"Lanczos"          },
+	{L"Spline"          },
+	{L"Jinc"          },
+	{L"Bilateral"          },
+	{L"Reconstruction"          },
+	{L"super-xbr"          },
 };
 
-static const wchar_t* s_DownscalingName[6] = {
-	{ L"Box"          },
-	{L"Bilinear"     },
-	{L"Hamming"      },
-	{L"Bicubic"      },
-	{L"Bicubic sharp"},
-	{L"Lanczos"      }
+static const wchar_t* s_UpscalingDoubling[1] = {
+	{L"super-xbr"  },
+};
+
+static const wchar_t* s_UpscalingName[6] = {
+	{L"Bilinear"  },
+	{L"DXVA2"},
+	{L"Cubic"       },
+	{L"Lanczos"          },
+	{L"Spline"          },
+	{L"Jinc"          },
+};
+
+static const wchar_t* s_DownscalingName[7] = {
+	{L"Nearest-neighbor"  },
+  {L"DXVA2"},
+	{L"Cubic"     },
+	{L"Lanczos"      },
+	{L"Spline"          },
+	{L"Jinc"          },
+	{L"SSIM"          },
+	
 };
 
 using namespace D3D12Engine;

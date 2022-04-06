@@ -131,21 +131,22 @@
 #define IDC_RADIO_UPSCALING4            1072
 #define IDC_RADIO_UPSCALING5            1073
 #define IDC_RADIO_UPSCALING6            1074
-#define IDC_RADIO_DOUBLING1             1075
-#define IDC_RADIO_DOUBLING2             1076
-#define IDC_RADIO_DOUBLING3             1077
-#define IDC_RADIO_DOUBLING4             1078
-#define IDC_RADIO_DOUBLING5             1079
-#define IDC_RADIO_CHROMAUP1             1080
-#define IDC_RADIO_CHROMAUP2             1081
-#define IDC_RADIO_CHROMAUP3             1082
-#define IDC_RADIO_CHROMAUP4             1083
-#define IDC_RADIO_CHROMAUP5             1084
-#define IDC_RADIO_CHROMAUP6             1085
-#define IDC_RADIO_CHROMAUP7             1086
-#define IDC_RADIO_CHROMAUP8             1087
-#define IDC_RADIO_CHROMAUP9             1088
-#define IDC_RADIO_CHROMAUP10            1089
+#define IDC_RADIO_UPSCALING7            1075
+#define IDC_RADIO_DOUBLING1             1076
+#define IDC_RADIO_DOUBLING2             1077
+#define IDC_RADIO_DOUBLING3             1078
+#define IDC_RADIO_DOUBLING4             1079
+#define IDC_RADIO_DOUBLING5             1080
+#define IDC_RADIO_CHROMAUP1             1081
+#define IDC_RADIO_CHROMAUP2             1082
+#define IDC_RADIO_CHROMAUP3             1083
+#define IDC_RADIO_CHROMAUP4             1084
+#define IDC_RADIO_CHROMAUP5             1085
+#define IDC_RADIO_CHROMAUP6             1086
+#define IDC_RADIO_CHROMAUP7             1087
+#define IDC_RADIO_CHROMAUP8             1088
+#define IDC_RADIO_CHROMAUP9             1089
+#define IDC_RADIO_CHROMAUP10            1090
 
 // Next default values for new objects
 // 

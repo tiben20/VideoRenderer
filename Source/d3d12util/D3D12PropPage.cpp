@@ -82,9 +82,9 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	int i;
 	for (i = 0; i < 9; i++)
 		SetRadioValue(m_hWnd, IDC_RADIO_CHROMAUP1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.chromaUpsampling == (i)), 0);
-	for (i = 0; i < 5; i++)
-		SetRadioValue(m_hWnd, IDC_RADIO_DOUBLING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscalingDoubling == (i)), 0);
-	for (i = 0; i < 6; i++)
+	//for (i = 0; i < 5; i++)
+		//SetRadioValue(m_hWnd, IDC_RADIO_DOUBLING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscalingDoubling == (i)), 0);
+	for (i = 0; i < 7; i++)
 		SetRadioValue(m_hWnd, IDC_RADIO_UPSCALING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscaling == (i)), 0);
 	for (i = 0; i < 6; i++)
 		SetRadioValue(m_hWnd, IDC_RADIO_DOWNSCALING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageDownscaling == (i)), 0);
@@ -133,9 +133,9 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				m_SetsPP.D3D12Settings.imageDownscaling = currentbutton;
 			}
 		}
-		else if (IDC_RADIO_UPSCALING1 <= nID && nID <= IDC_RADIO_UPSCALING6 && HIWORD(wParam) == BN_CLICKED)
+		else if (IDC_RADIO_UPSCALING1 <= nID && nID <= IDC_RADIO_UPSCALING7 && HIWORD(wParam) == BN_CLICKED)
 		{
-			int currentbutton = 5 - (IDC_RADIO_UPSCALING6 - nID);
+			int currentbutton = 6 - (IDC_RADIO_UPSCALING7 - nID);
 			lValue = GetRadioValue(m_hWnd, nID);
 
 			if (currentbutton != (m_SetsPP.D3D12Settings.imageUpscaling))
@@ -144,7 +144,7 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				m_SetsPP.D3D12Settings.imageUpscaling = currentbutton;
 			}
 		}
-		else if (IDC_RADIO_DOUBLING1 <= nID && nID <= IDC_RADIO_DOUBLING5 && HIWORD(wParam) == BN_CLICKED)
+		/*else if (IDC_RADIO_DOUBLING1 <= nID && nID <= IDC_RADIO_DOUBLING5 && HIWORD(wParam) == BN_CLICKED)
 		{
 			int currentbutton = 4 - (IDC_RADIO_DOUBLING5 - nID);
 			lValue = GetRadioValue(m_hWnd, nID);
@@ -155,7 +155,7 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				SetDirty();
 				m_SetsPP.D3D12Settings.imageUpscalingDoubling = currentbutton;
 			}
-		}
+		}*/
 		else if (IDC_RADIO_CHROMAUP1 <= nID && nID <= IDC_RADIO_CHROMAUP9 && HIWORD(wParam) == BN_CLICKED)
 		{
 			int currentbutton = 9 - (IDC_RADIO_CHROMAUP9 - nID);//IDC_RADIO_CHROMAUP1 + LOWORD(wParam);
