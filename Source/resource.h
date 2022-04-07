@@ -84,6 +84,7 @@
 #define IDF_PSH11_TEST                  900
 #define IDC_EDIT1                       1001
 #define IDC_EDIT2                       1002
+#define IDC_EDIT3                       1003
 #define IDC_STATIC1                     1011
 #define IDC_STATIC2                     1012
 #define IDC_STATIC3                     1013
@@ -125,6 +126,10 @@
 #define IDC_RADIO_DOWNSCALING4          1060
 #define IDC_RADIO_DOWNSCALING5          1061
 #define IDC_RADIO_DOWNSCALING6          1062
+#define IDC_SLIDER1                     1064
+#define IDC_STATIC_XBR_STR              1065
+#define IDC_SLIDER2                     1066
+#define IDC_STATIC_XBR_STR2             1067
 #define IDC_RADIO_UPSCALING1            1069
 #define IDC_RADIO_UPSCALING2            1070
 #define IDC_RADIO_UPSCALING3            1071
@@ -134,7 +139,9 @@
 #define IDC_RADIO_UPSCALING7            1075
 #define IDC_RADIO_DOUBLING1             1076
 #define IDC_RADIO_DOUBLING2             1077
+#define IDC_SLIDER3                     1077
 #define IDC_RADIO_DOUBLING3             1078
+#define IDC_STATIC_XBR_STR3             1078
 #define IDC_RADIO_DOUBLING4             1079
 #define IDC_RADIO_DOUBLING5             1080
 #define IDC_RADIO_CHROMAUP1             1081
@@ -154,7 +161,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1058
+#define _APS_NEXT_CONTROL_VALUE         1066
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -74,6 +74,11 @@ struct VPEnableFormats_t {
 	bool bOther;
 };
 
+struct superxbrConfig_t{
+	int iStrength;//0 to 5
+	float fSharp; // 0 to 1.5
+	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
+};
 struct D3D12Settings_t {
 	bool bUseD3D12;
 	bool bForceD3D12;
@@ -82,6 +87,7 @@ struct D3D12Settings_t {
 	int imageDownscaling;
 	int imageUpscaling;
 	int imageUpscalingDoubling;
+	superxbrConfig_t xbrConfig;
 };
 
 struct Settings_t {

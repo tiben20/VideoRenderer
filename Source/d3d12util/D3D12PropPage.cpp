@@ -35,6 +35,100 @@ inline LRESULT GetRadioValue(HWND hWnd, int nIDComboBox)
 	return SendDlgItemMessage(hWnd, nIDComboBox, BM_GETCHECK, 0, 0);
 }
 
+inline int GetLineSize(HWND hWnd, int nID)
+{
+	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETLINESIZE, 0, 0L);
+}
+
+inline int SetLineSize(HWND hWnd, int nID, int nSize)
+{
+	return (int)SendDlgItemMessageW(hWnd,nID, TBM_SETLINESIZE, 0, nSize);
+}
+
+inline int GetPageSize(HWND hWnd, int nID)
+{
+	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETPAGESIZE, 0, 0L);
+}
+
+inline int SetPageSize(HWND hWnd, int nID,  int nSize)
+{
+	return (int)SendDlgItemMessageW(hWnd,nID, TBM_SETPAGESIZE, 0, nSize);
+}
+
+inline int GetRangeMin(HWND hWnd,int nID )
+{
+	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETRANGEMIN, 0, 0L);
+}
+
+inline int GetPos(HWND hWnd, int nID)
+{
+	return (int)SendDlgItemMessageW(hWnd, nID, TBM_GETPOS, 0, 0L);
+}
+
+inline void SetRangeMinMax(HWND hWnd, int nID, int nMin, int nMax, BOOL bRedraw = FALSE)
+{
+	SendDlgItemMessageW(hWnd,nID, TBM_SETRANGEMIN, bRedraw, nMin);
+	SendDlgItemMessageW(hWnd, nID, TBM_SETRANGEMAX, bRedraw, nMax);
+}
+
+inline void SetRange(HWND hWnd, int nID, int nMin, int nMax, BOOL bRedraw = TRUE)
+{
+	SendDlgItemMessageW(hWnd,nID, TBM_SETRANGE, bRedraw, MAKELPARAM(nMin, nMax));
+}
+
+inline int GetSelStart(HWND hWnd, int nID)
+{
+	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETSELSTART, 0, 0L);
+}
+
+inline int GetSelEnd(HWND hWnd, int nID)
+{
+	return (int)SendDlgItemMessageW(hWnd, nID, TBM_GETSELEND, 0, 0L);
+}
+
+inline void SetSelStart(HWND hWnd, int nID, int nMin, BOOL bRedraw = FALSE)
+{
+	SendDlgItemMessageW(hWnd,nID, TBM_SETSELSTART, bRedraw, (LPARAM)nMin);
+}
+
+inline void SetSelEnd(HWND hWnd, int nID, int nMax, BOOL bRedraw = FALSE)
+{
+	SendDlgItemMessageW(hWnd, nID, TBM_SETSELEND, bRedraw, (LPARAM)nMax);
+}
+
+inline void GetSliderSelection(HWND hWnd, int nID,int& nMin, int& nMax)
+{
+	nMin = GetSelStart(hWnd,nID);
+	nMax = GetSelEnd(hWnd, nID);
+}
+
+inline void SetSliderSelection(HWND hWnd, int nID, int nMin, int nMax, BOOL bRedraw = TRUE)
+{
+	SetSelStart(hWnd,nID,nMin, FALSE);
+	SetSelEnd(hWnd, nID, nMax, bRedraw);
+}
+
+inline void SetPos(HWND hWnd, int nID, int nPos)
+{
+	SendDlgItemMessageW(hWnd, nID, TBM_SETPOS, TRUE, nPos);
+}
+
+inline void SetEditModify(HWND hWnd, int nID, bool bModified = TRUE)
+{
+	SendDlgItemMessageW(hWnd, nID, EM_SETMODIFY, bModified, 0L);
+}
+
+template<typename T> inline void SetEditText(HWND hWnd, int nID, T value)
+{
+	
+	std::wstring str = fmt::format(L"{}", value);
+	SendDlgItemMessageW(hWnd, nID, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(str.c_str()));
+}
+
+inline int GetSliderID(HWND hWnd)
+{
+	return GetDlgCtrlID(hWnd);
+}
 // CD3D12SettingsPPage
 
 CD3D12SettingsPPage::CD3D12SettingsPPage(LPUNKNOWN lpunk, HRESULT* phr) :
@@ -91,17 +185,89 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 
 	CheckDlgButton(IDC_CHECK13, m_SetsPP.D3D12Settings.bUseD3D12 ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_CHECK17, m_SetsPP.D3D12Settings.bForceD3D12 ? BST_CHECKED : BST_UNCHECKED);
-	//build the tree
 	
+	SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0,5);//str default 1
+	SetPos(m_hWnd, IDC_SLIDER1, (m_SetsPP.D3D12Settings.xbrConfig.iStrength));
+	SetEditText(m_hWnd, IDC_EDIT1, m_SetsPP.D3D12Settings.xbrConfig.iStrength);
+	SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
+	SetPos(m_hWnd, IDC_SLIDER2, (m_SetsPP.D3D12Settings.xbrConfig.fSharp * 10));
+	SetEditText(m_hWnd, IDC_EDIT2, m_SetsPP.D3D12Settings.xbrConfig.fSharp);
+	SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
+	SetPos(m_hWnd, IDC_SLIDER3, (m_SetsPP.D3D12Settings.xbrConfig.iFactor));
+	
+	SetEditText(m_hWnd, IDC_EDIT3, m_SetsPP.D3D12Settings.xbrConfig.iStrength);
 	return S_OK;
 }
-
 
 
 INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT lValue;
 	BOOL bValue;
+	if (uMsg == WM_HSCROLL)
+	{
+		
+		int cValue = HIWORD(wParam);
+		const int nID = GetSliderID((HWND)lParam);
+		//cValue
+		if (cValue == 0)
+		{
+			switch (nID)
+			{
+			case IDC_SLIDER1:
+				cValue = GetPos(m_hWnd, IDC_SLIDER1);
+				break;
+			case IDC_SLIDER2:
+				cValue = GetPos(m_hWnd, IDC_SLIDER2);
+				break;
+			case IDC_SLIDER3:
+				cValue = GetPos(m_hWnd, IDC_SLIDER3);
+				break;
+			}
+		}
+		if (nID == IDC_SLIDER1 && cValue != m_SetsPP.D3D12Settings.xbrConfig.iStrength)
+		{
+			//cValue != m_SetsPP.D3D12Settings.xbrConfig.iStrength)
+				m_SetsPP.D3D12Settings.xbrConfig.iStrength = cValue;
+				SetDirty();
+				SetEditText(m_hWnd, IDC_EDIT1, m_SetsPP.D3D12Settings.xbrConfig.iStrength);
+				return 0;
+		}
+		else if (nID == IDC_SLIDER2 && cValue != m_SetsPP.D3D12Settings.xbrConfig.fSharp)
+		{
+			m_SetsPP.D3D12Settings.xbrConfig.fSharp = (float)cValue/10;
+			SetDirty();
+			SetEditText(m_hWnd, IDC_EDIT2, m_SetsPP.D3D12Settings.xbrConfig.fSharp);
+			return 0;
+		}
+		else if (nID == IDC_SLIDER3 && cValue != m_SetsPP.D3D12Settings.xbrConfig.iFactor)
+		{
+			m_SetsPP.D3D12Settings.xbrConfig.iFactor = cValue;
+			SetDirty();
+			int fact;
+			switch (m_SetsPP.D3D12Settings.xbrConfig.iFactor)
+			{
+			case 0:
+				fact = 2;
+				break;
+			case 1:
+				fact = 4;
+				break;
+			case 2:
+				fact = 8; 
+				break;
+			case 3:
+				fact = 16;
+				break;
+			default:
+				fact = 2;
+				break;
+			}
+			SetEditText(m_hWnd, IDC_EDIT3, fact);
+			return 0;
+			
+		}
+	}
 	if (uMsg == WM_COMMAND) 
 	{
 		const int nID = LOWORD(wParam);
@@ -177,7 +343,7 @@ HRESULT CD3D12SettingsPPage::OnApplyChanges()
 {
 	m_pVideoRenderer->SetSettings(m_SetsPP);
 	m_pVideoRenderer->SaveSettings();
-
+	
 	return S_OK;
 }
 

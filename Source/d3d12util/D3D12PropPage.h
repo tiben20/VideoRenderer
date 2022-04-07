@@ -23,6 +23,7 @@
 #include "IVideoRenderer.h"
 #include <map>
 
+
 // CD3D12SettingsPPage
 
 class __declspec(uuid("465D2B19-DE41-4425-8666-FB7FF0DAF122"))
@@ -52,5 +53,12 @@ private:
 			m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
 		}
 	}
+	//CTrackBarCtrl ctrl_slider;
 
+	HTREEITEM m_pTreeRoot;
+	HTREEITEM m_pTreeGeneral;
+	HTREEITEM m_pTreeUpscale;
+	HTREEITEM m_pTreeDownscale;
+	HTREEITEM m_pTreeChroma;
+	
 };

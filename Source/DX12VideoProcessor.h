@@ -93,7 +93,7 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	bool m_bSWRendering = false;
-	
+	superxbrConfig_t m_pXbrConfig;
 
 
 	bool resetquad = false;
@@ -211,7 +211,7 @@ private:
 	void CreateSubPicSurface();
 public:
 	HRESULT SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice);
-	
+	void UpdateDisplayInfo(const DisplayConfig_t& dc);
 
 	// IMFVideoProcessor
 	STDMETHODIMP SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues* pValues) override;

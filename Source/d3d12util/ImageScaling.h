@@ -21,7 +21,7 @@
  */
 
 #pragma once
-
+#include "IVideoRenderer.h"
 class GraphicsContext;
 class ColorBuffer;
 class TypedBuffer;
@@ -73,5 +73,6 @@ namespace ImageScaling
 
   void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect,CRect destRect);
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect);
+  void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect, superxbrConfig_t config);
 
 }

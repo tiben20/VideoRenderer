@@ -71,8 +71,9 @@ void Texture::Create2D( size_t RowPitchBytes, size_t Width, size_t Height, DXGI_
     HeapProps.CreationNodeMask = 1;
     HeapProps.VisibleNodeMask = 1;
 
-    EXECUTE_ASSERT(S_OK == g_Device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
-        m_UsageState, nullptr, MY_IID_PPV_ARGS(&m_pResource)));
+    if (FAILED(g_Device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
+      m_UsageState, nullptr, MY_IID_PPV_ARGS(&m_pResource))))
+      return;
 
     m_pResource->SetName(L"Texture");
 
@@ -80,9 +81,14 @@ void Texture::Create2D( size_t RowPitchBytes, size_t Width, size_t Height, DXGI_
     texResource.pData = InitialData;
     texResource.RowPitch = RowPitchBytes;
     texResource.SlicePitch = RowPitchBytes * Height;
-
+    if (m_UsageState == D3D12_RESOURCE_STATE_GENERIC_READ)
+    {
+      GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Create texture transit");
+      pVideoContext.TransitionResource(*this, D3D12_RESOURCE_STATE_COPY_DEST);
+      pVideoContext.Finish(true);
+    }
     CommandContext::InitializeTexture(*this, 1, &texResource);
-
+    
     if (m_hCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
         m_hCpuDescriptorHandle = D3D12Engine::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     g_Device->CreateShaderResourceView(m_pResource, nullptr, m_hCpuDescriptorHandle);

@@ -116,23 +116,24 @@ static const wchar_t* s_UpscalingDoubling[1] = {
 	{L"super-xbr"  },
 };
 
-static const wchar_t* s_UpscalingName[6] = {
-	{L"Bilinear"  },
-	{L"DXVA2"},
-	{L"Cubic"       },
-	{L"Lanczos"          },
-	{L"Spline"          },
-	{L"Jinc"          },
+static const wchar_t* s_UpscalingName[7] = {
+	{L"Upscaling Bilinear#0"  },
+	{L"Upscaling DXVA2#1"},
+	{L"Upscaling Cubic#2"       },
+	{L"Upscaling Lanczos#3"          },
+	{L"Upscaling Spline#4"          },
+	{L"Upscaling Jinc#5"          },
+	{L"Upscaling super-xbr#6"          },
 };
 
 static const wchar_t* s_DownscalingName[7] = {
-	{L"Nearest-neighbor"  },
-  {L"DXVA2"},
-	{L"Cubic"     },
-	{L"Lanczos"      },
-	{L"Spline"          },
-	{L"Jinc"          },
-	{L"SSIM"          },
+	{L"Downscaling Nearest-neighbor#0"  },
+  {L"Downscaling DXVA2#1"},
+	{L"Downscaling Cubic#2"     },
+	{L"Downscaling Lanczos#3"      },
+	{L"Downscaling Spline#4"          },
+	{L"Downscaling Jinc#5"          },
+	{L"Downscaling SSIM#6"          },
 	
 };
 
@@ -159,6 +160,7 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	m_bHdrPassthrough = config.bHdrPassthrough;
 	m_iHdrToggleDisplay = config.iHdrToggleDisplay;
 	m_bConvertToSdr = config.bConvertToSdr;
+	m_pXbrConfig = config.D3D12Settings.xbrConfig;
 
 	m_nCurrentAdapter = -1;
 	m_pDisplayMode = &m_DisplayMode;
@@ -679,6 +681,36 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	return hr;
 }
 
+void CDX12VideoProcessor::UpdateDisplayInfo(const DisplayConfig_t& dc)
+{
+	std::wstring str;
+	m_strStatsDispInfo = L"Display ";
+	if (dc.width && dc.height && dc.refreshRate.Numerator) {
+		double freq = (double)dc.refreshRate.Numerator / (double)dc.refreshRate.Denominator;
+		str = fmt::format(L"{:.5f}", freq);
+		if (dc.scanLineOrdering >= DISPLAYCONFIG_SCANLINE_ORDERING_INTERLACED)
+			str += 'i';
+		str.append(L" Hz");
+	}
+	if (str.size()) {
+		m_strStatsDispInfo.append(str);
+		str.clear();
+
+		if (dc.bitsPerChannel) { // if bitsPerChannel is not set then colorEncoding and other values are invalid
+			const wchar_t* colenc = ColorEncodingToString(dc.colorEncoding);
+			if (colenc) {
+				str = fmt::format(L" Color: {} {}-bit", colenc, dc.bitsPerChannel);
+				if (dc.advancedColor.advancedColorSupported) {
+					str.append(L" HDR10: ");
+					str.append(dc.advancedColor.advancedColorEnabled ? L"on" : L"off");
+				}
+			}
+		}
+		m_strStatsDispInfo.append(str);
+	}
+	else
+		m_strStatsDispInfo.append(D3DDisplayModeToString(*m_pDisplayMode));
+}
 
 HRESULT CDX12VideoProcessor::SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice)
 {
@@ -988,6 +1020,7 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	bool changeResizeStats = false;
 
 	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
+	m_pXbrConfig = config.D3D12Settings.xbrConfig;
 	// settings that do not require preparation
 	m_bShowStats = config.bShowStats;
 	m_bDeintDouble = config.bDeintDouble;
@@ -1331,7 +1364,7 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
-	str += fmt::format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
+	
 	//TODO interlace
 	wchar_t frametype = (m_SampleFormat != D3D12_VIDEO_FIELD_TYPE_NONE) ? 'i' : 'p';
 	str += fmt::format(
@@ -1349,6 +1382,20 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	if (m_srcRectWidth != dstW || m_srcRectHeight != dstH)
 	{
 		str += L' ';
+		const int w2 = m_videoRect.Width();
+		const int h2 = m_videoRect.Height();
+		const int k = m_bInterpolateAt50pct ? 2 : 1;
+		int w1, h1;
+		w1 = m_srcRectWidth;
+		h1 = m_srcRectHeight;
+		m_strShaderX = (w1 == w2) ? nullptr
+			: (w1 > k * w2)
+			? s_DownscalingName[m_iDownscaling12]
+			: s_UpscalingName[m_iUpscaling12];
+		m_strShaderY = (h1 == h2) ? nullptr
+			: (h1 > k * h2)
+			? s_DownscalingName[m_iDownscaling12]
+			: s_UpscalingName[m_iUpscaling12];
 		if (m_strShaderX)
 		{
 			str.append(m_strShaderX);
@@ -1533,7 +1580,7 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 		if( rSrc.Width()>dstRect.Width() || rSrc.Height() > dstRect.Height())
 			D3D12Engine::Downscale(pVideoContext, m_iDownscaling12, srcRect,dstRect, m_bSWRendering);
 		else
-			D3D12Engine::Upscale(pVideoContext, m_iUpscaling12, srcRect, dstRect,m_bSWRendering);
+			D3D12Engine::Upscale(pVideoContext, m_iUpscaling12, srcRect, dstRect,m_bSWRendering,m_pXbrConfig);
 	}
 	else
 	{
@@ -1609,11 +1656,11 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 {
 	if (m_srcParams.cformat)
 	{
-		m_strStatsHeader = fmt::format(L"MPC VR {}, Direct3D 12", _CRT_WIDE(VERSION_STR));
+		m_strStatsHeader = fmt::format(L"MPC VR, D3D12 ");
 		if (m_bSWRendering)
-			m_strStatsHeader += L"\nSoftware copy to d3d12 surface";
+			m_strStatsHeader += L"Sw to d3d12 Texture\n";
 		else
-			m_strStatsHeader += L"\nD3D12 texture directly rendered to display";
+			m_strStatsHeader += L"hw D3D12 texture input\n";
 		UpdateStatsInputFmt();
 
 		m_strStatsVProc = fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(D3D12Engine::GetInternalFormat()));
@@ -1681,6 +1728,7 @@ STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetAlphaBitmap(const MFVid
 			if (m_pAlphaBitmapTexture.GetWidth() != 0)
 				m_pAlphaBitmapTexture.Destroy();
 			m_pAlphaBitmapTexture.Create2D(bm.bmWidthBytes, bm.bmWidth, bm.bmHeight, DXGI_FORMAT_B8G8R8A8_UNORM, bm.bmBits);
+			
 		}
 		else
 		{
@@ -1688,6 +1736,11 @@ STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetAlphaBitmap(const MFVid
 			texResource.pData = bm.bmBits;
 			texResource.RowPitch = bm.bmWidthBytes;
 			texResource.SlicePitch = bm.bmWidthBytes * bm.bmHeight;
+			//need to transit the resource if we don't have a state error
+			GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Alphabitmaptransit");
+			pVideoContext.TransitionResource(m_pAlphaBitmapTexture, D3D12_RESOURCE_STATE_COPY_DEST);
+			pVideoContext.Finish(true);
+			
 			CommandContext::InitializeTexture(m_pAlphaBitmapTexture, 1, &texResource);
 		}
 		hr = S_OK;

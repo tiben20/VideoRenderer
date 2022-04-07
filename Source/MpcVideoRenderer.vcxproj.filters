@@ -46,11 +46,11 @@
     <Filter Include="Header Files\d3d12\d3d12helper\Utility">
       <UniqueIdentifier>{2c9ab5d2-efa7-48cb-8ca7-4557b0f734f4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\shaders\Includes">
-      <UniqueIdentifier>{93403f00-281f-45a6-97d4-add60c4acf57}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\d3d12\d3d12helper\shaders\Scaling">
       <UniqueIdentifier>{6d5c20ea-477b-42da-a50c-693878787e6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\Rendering\Includes">
+      <UniqueIdentifier>{93403f00-281f-45a6-97d4-add60c4acf57}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -496,46 +496,49 @@
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </None>
     <None Include="..\Shaders\d3d12\ColorSpaceUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\CommonRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\GenerateMipsCS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\PresentRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\ShaderUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\TextRS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\SSAORS.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\ToneMappingUtility.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\PixelPacking.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\PixelPacking_Velocity.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\PixelPacking_R11G11B10.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\PixelPacking_RGBE.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\PixelPacking_RGBM.hlsli">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
     </None>
     <None Include="..\Shaders\d3d12\super-xbr-params.inc">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Includes</Filter>
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Includes</Filter>
+    </None>
+    <None Include="..\Shaders\d3d12\superxbr.hlsli">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -612,9 +615,6 @@
       <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\Shaders\d3d12\superxbr.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Shaders\d3d12\Info\superxbr3.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
     </FxCompile>
   </ItemGroup>

@@ -174,6 +174,10 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D12, dw)) {
 			m_Sets.D3D12Settings.bUseD3D12 = !!dw;
 		}
+		//dont want to make registry value if not used
+		m_Sets.D3D12Settings.xbrConfig.iStrength = 2;
+		m_Sets.D3D12Settings.xbrConfig.iFactor = 0;
+		m_Sets.D3D12Settings.xbrConfig.fSharp = 1.5f;
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ShowStatistics, dw)) {
 			m_Sets.bShowStats = !!dw;
 		}
@@ -223,7 +227,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 			m_Sets.D3D12Settings.chromaUpsampling = discard<int>(dw, CHROMA_Bilinear, CHROMA_Nearest, CHROMA_CatmullRom);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Upscaling12, dw)) {
-			m_Sets.D3D12Settings.imageUpscaling = discard<int>(dw, UPSCALE_CatmullRom, UPSCALE_Nearest, UPSCALE_Lanczos3);
+			m_Sets.D3D12Settings.imageUpscaling = discard<int>(dw, UPSCALE_CatmullRom, UPSCALE_Nearest, 6);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling12, dw)) {
 			m_Sets.D3D12Settings.imageDownscaling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
@@ -621,8 +625,13 @@ void CMpcVideoRenderer::UpdateDisplayInfo()
 	} else {
 		m_bPrimaryDisplay = false;
 	}
-
-	m_VideoProcessor->SetDisplayInfo(m_DisplayConfig, m_bPrimaryDisplay, m_bIsFullscreen);
+	if (m_VideoProcessor->Type() == VP_DX12)
+	{
+		CDX12VideoProcessor *proc = (CDX12VideoProcessor*)m_VideoProcessor;
+		proc->UpdateDisplayInfo(m_DisplayConfig);
+	}
+	else
+		m_VideoProcessor->SetDisplayInfo(m_DisplayConfig, m_bPrimaryDisplay, m_bIsFullscreen);
 }
 
 void CMpcVideoRenderer::OnDisplayModeChange(const bool bReset/* = false*/)

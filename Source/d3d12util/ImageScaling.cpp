@@ -390,8 +390,17 @@ namespace ImageScaling
     Context.Draw(3);
   }
 
-  void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect)
+  DirectX::XMFLOAT4 CreateFloat4(int width, int height)
   {
+    float x = (float)width;
+    float y = (float)height;
+    float z = (float)1 / width;
+    float w = (float)1 / height;
+    return { x,y,z,w};
+  }
+  void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect, superxbrConfig_t config)
+  {
+    //Context, dest, source, srcRect, destRect
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(SuperXbrFiltersPS);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -400,6 +409,25 @@ namespace ImageScaling
     Context.SetRenderTarget(dest.GetRTV());
     Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
     Context.SetDynamicDescriptor(0, 0, source.GetSRV());
+    int fact;
+    switch (config.iFactor)
+    {
+    case 0:
+      fact = 2;
+      break;
+    case 1:
+      fact = 4;
+      break;
+    case 2:
+      fact = 8;
+      break;
+    case 3:
+      fact = 16;
+      break;
+    default:
+      fact = 2;
+      break;
+    }
 
     __declspec(align(16)) struct CONSTANT_DOWNSCALE_BUFFERINT {
       DirectX::XMFLOAT4 arg0;
@@ -407,35 +435,101 @@ namespace ImageScaling
       int pass;
       int fastmethod;
     };
+    int w, h;
 
+  
+      
+    w = srcRect.Width() * ((fact > 2) ? 2 : 2);
+    h = srcRect.Height() * fact;
     CONSTANT_DOWNSCALE_BUFFERINT bufconst;
     bufconst.pass = 0;
-    bufconst.arg0.x = 0.6f;
-    bufconst.arg0.y = 0.6f;
+    bufconst.arg0.x = (float)config.iStrength;
+    bufconst.arg0.y = config.fSharp;
     bufconst.arg0.z = 1.0f;
     bufconst.arg0.w = 1.0f;
-    bufconst.size0.x = destRect.Width();
-    bufconst.size0.y = destRect.Height();
-    bufconst.size0.z = 1.0f / destRect.Width();
-    bufconst.size0.w = 1.0f / destRect.Height();
+
+    bufconst.size0 = CreateFloat4(w, h);
+    
     bufconst.fastmethod = 0;
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
     Context.Draw(3);
     bufconst.pass = 1;
+    bufconst.size0 = CreateFloat4((int)w/2, (int)h/2);
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
     Context.Draw(3);
-    
+    bufconst.pass = 2;
+    Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+    Context.Draw(3);
+    if (fact >= 4)
+    {
+      w = srcRect.Width() * 4;
+      h = srcRect.Height() * 4;
+      bufconst.pass = 0;
+      bufconst.arg0.x = (float)config.iStrength;
+      bufconst.arg0.y = config.fSharp;
+      bufconst.arg0.z = 1.0f;
+      bufconst.arg0.w = 1.0f;
+      bufconst.size0 = CreateFloat4(w, h);
 
+      bufconst.fastmethod = 0;
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+      bufconst.pass = 1;
+      bufconst.size0 = CreateFloat4((int)w / 2, (int)h / 2);
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+      bufconst.pass = 2;
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+    }
+    if (fact >= 8)
+    {
+      w = srcRect.Width() * 8;
+      h = srcRect.Height() * 8;
+      bufconst.pass = 0;
+      bufconst.arg0.x = (float)config.iStrength;
+      bufconst.arg0.y = config.fSharp;
+      bufconst.arg0.z = 1.0f;
+      bufconst.arg0.w = 1.0f;
+      bufconst.size0 = CreateFloat4(w, h);
+
+      bufconst.fastmethod = 0;
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+      bufconst.pass = 1;
+      bufconst.size0 = CreateFloat4((int)w / 2, (int)h / 2);
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+      bufconst.pass = 2;
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+    }
+    if (fact >= 16)
+    {
+      w = srcRect.Width() * 16;
+      h = srcRect.Height() * 16;
+      bufconst.pass = 0;
+      bufconst.arg0.x = (float)config.iStrength;
+      bufconst.arg0.y = config.fSharp;
+      bufconst.arg0.z = 1.0f;
+      bufconst.arg0.w = 1.0f;
+      bufconst.size0 = CreateFloat4(w, h);
+
+      bufconst.fastmethod = 0;
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+      bufconst.pass = 1;
+      bufconst.size0 = CreateFloat4((int)w / 2, (int)h / 2);
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+      bufconst.pass = 2;
+      Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
+      Context.Draw(3);
+    }
+    Upscale(Context, dest, source, 2, srcRect, destRect);
   }
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect)
   {
-    if (ScalingFilter == 6)
-    {
-      UpscaleXbr(Context, dest, source, srcRect, destRect);
-      return;
-    }
-    
-    
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(UpScalingFiltersPS);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
