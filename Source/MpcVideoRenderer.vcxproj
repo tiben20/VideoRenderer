@@ -91,6 +91,8 @@
     <ClCompile Include="d3d12util\ReadbackBuffer.cpp" />
     <ClCompile Include="d3d12util\RootSignature.cpp" />
     <ClCompile Include="d3d12util\SamplerManager.cpp" />
+    <ClCompile Include="d3d12util\Scaler.cpp" />
+    <ClCompile Include="d3d12util\ScalerManager.cpp" />
     <ClCompile Include="d3d12util\SystemTime.cpp" />
     <ClCompile Include="d3d12util\TextRenderer.cpp" />
     <ClCompile Include="d3d12util\Texture.cpp" />
@@ -168,6 +170,8 @@
     <ClInclude Include="d3d12util\ReadbackBuffer.h" />
     <ClInclude Include="d3d12util\RootSignature.h" />
     <ClInclude Include="d3d12util\SamplerManager.h" />
+    <ClInclude Include="d3d12util\Scaler.h" />
+    <ClInclude Include="d3d12util\ScalerManager.h" />
     <ClInclude Include="d3d12util\SystemTime.h" />
     <ClInclude Include="d3d12util\TextRenderer.h" />
     <ClInclude Include="d3d12util\Texture.h" />

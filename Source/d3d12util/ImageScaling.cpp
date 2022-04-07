@@ -22,6 +22,7 @@
 
 #include "stdafx.h"
 #include "ImageScaling.h"
+#include "scaler.h"
 #include "BufferManager.h"
 #include "CommandContext.h"
 #include "EngineTuning.h"
@@ -65,7 +66,14 @@ namespace ImageScaling
   RootSignature s_PresentRSColor;
   RootSignature s_PresentRSScaling;
   RootSignature s_SubPicRS;
-  
+  std::vector<CD3D12Scaler*> m_pScalers;
+  CD3D12Scaler* scaler;
+  //CD3D12Scaler* m_pDxScaler;
+  CD3D12Scaler* m_pCubicScaler;
+  CD3D12Scaler* m_pLanczos;
+  CD3D12Scaler* m_pSpline;
+  CD3D12Scaler* m_pJinc;
+  CD3D12Scaler* m_pBilinearScaler;
 
   void Initialize(DXGI_FORMAT DestFormat)
   {
@@ -183,9 +191,51 @@ namespace ImageScaling
     ColorConvertNV12PS.SetRenderTargetFormat(DestFormat, DXGI_FORMAT_UNKNOWN);
     ColorConvertNV12PS.Finalize();
 
+    CD3D12Scaler* scaler = new CD3D12Scaler(L"superxbr");
+    scaler->AddConfig(L"strength", 2.0f);
+    scaler->AddConfig(L"sharp", 1.0f);
+    scaler->AddConfig(L"pass", 0);
+    scaler->AddConfig(L"fastmethod", 0);
+    scaler->AddConfig(L"factor", 16);
+    m_pScalers.push_back(scaler);
   }
 
+  void SetSuperXbrConfig(std::wstring name, int value)
+  {
+    for (CD3D12Scaler* i : m_pScalers)
+    {
+      if (i->Name() == name)
+      {
+        i->SetConfigInt(name, value);
+        break;
+      }
+    }
+    
+  }
 
+  void SetSuperXbrConfig(std::wstring name, float value)
+  {
+    for (CD3D12Scaler* i : m_pScalers)
+    {
+      if (i->Name() == name)
+      {
+        i->SetConfigFloat(name, value);
+        break;
+      }
+    }
+    
+  }
+
+  CD3D12Scaler* GetScaler(std::wstring name)
+  {
+    for (CD3D12Scaler* i : m_pScalers)
+    {
+      if (i->Name() == name)
+      {
+        return i;
+      }
+    }
+  }
 
   HRESULT CreateVertex(const UINT srcW, const UINT srcH, const RECT& srcRect, VERTEX_SUBPIC vertices[4])
   {
@@ -400,6 +450,77 @@ namespace ImageScaling
   }
   void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect, superxbrConfig_t config)
   {
+    Context.SetRootSignature(s_PresentRSScaling);
+    Context.SetPipelineState(SuperXbrFiltersPS);
+    //need to reset the pass
+    CD3D12Scaler* scaler = GetScaler(L"superxbr");
+    int w, h, w2,h2;
+    
+    w = srcRect.Width() * 2;
+    h = srcRect.Height() * 2;
+    int fact;
+    switch (scaler->GetConfigInt(L"factor"))
+    {
+    case 0:
+      fact = 2;
+      break;
+    case 1:
+      fact = 4;
+      break;
+    case 2:
+      fact = 8;
+      break;
+    case 3:
+      fact = 16;
+      break;
+    default:
+      fact = 2;
+      break;
+    }
+    scaler->SetConfigInt(L"pass", 0);
+    scaler->ShaderPass(Context, dest, source, (w/2), (h/2));
+    scaler->SetConfigInt(L"pass", 1);
+    scaler->ShaderPass(Context, dest, source, w , h);
+    scaler->SetConfigInt(L"pass", 2);
+    scaler->ShaderPass(Context, dest, source, w, h);
+
+    if (fact >= 4)
+    {
+      w2 = w * 4;
+      h2 = h * 4;
+      scaler->SetConfigInt(L"pass", 0);
+      scaler->ShaderPass(Context, dest, source, (w2/2), (h2/2));
+      scaler->SetConfigInt(L"pass", 1);
+      scaler->ShaderPass(Context, dest, source, w2,h2);
+      scaler->SetConfigInt(L"pass", 2);
+      scaler->ShaderPass(Context, dest, source, w2,h2);
+    }
+
+    if (fact >= 8)
+    {
+      w2 = w * 8;
+      h2 = h * 8;
+      scaler->SetConfigInt(L"pass", 0);
+      scaler->ShaderPass(Context, dest, source, (w2 / 2), (h2 / 2));
+      scaler->SetConfigInt(L"pass", 1);
+      scaler->ShaderPass(Context, dest, source, w2, h2);
+      scaler->SetConfigInt(L"pass", 2);
+      scaler->ShaderPass(Context, dest, source, w2, h2);
+    }
+
+    if (fact >= 16)
+    {
+      w2 = w * 16;
+      h2 = h * 16;
+      scaler->SetConfigInt(L"pass", 0);
+      scaler->ShaderPass(Context, dest, source, (w2 / 2), (h2 / 2));
+      scaler->SetConfigInt(L"pass", 1);
+      scaler->ShaderPass(Context, dest, source, w2, h2);
+      scaler->SetConfigInt(L"pass", 2);
+      scaler->ShaderPass(Context, dest, source, w2, h2);
+    }
+    scaler->Done();
+    return;
     //Context, dest, source, srcRect, destRect
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(SuperXbrFiltersPS);
@@ -407,9 +528,12 @@ namespace ImageScaling
     Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.SetRenderTarget(dest.GetRTV());
-    Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
+    
+    //Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
+    //if scaling not in a square
+    Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
     Context.SetDynamicDescriptor(0, 0, source.GetSRV());
-    int fact;
+    //int fact;
     switch (config.iFactor)
     {
     case 0:
@@ -430,12 +554,12 @@ namespace ImageScaling
     }
 
     __declspec(align(16)) struct CONSTANT_DOWNSCALE_BUFFERINT {
-      DirectX::XMFLOAT4 arg0;
       DirectX::XMFLOAT4 size0;
+      DirectX::XMFLOAT2 arg0;
       int pass;
       int fastmethod;
     };
-    int w, h;
+    //int w, h;
 
   
       
@@ -445,14 +569,15 @@ namespace ImageScaling
     bufconst.pass = 0;
     bufconst.arg0.x = (float)config.iStrength;
     bufconst.arg0.y = config.fSharp;
-    bufconst.arg0.z = 1.0f;
-    bufconst.arg0.w = 1.0f;
 
     bufconst.size0 = CreateFloat4(w, h);
     
     bufconst.fastmethod = 0;
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
     Context.Draw(3);
+    //after first pass set dest as source
+    Context.SetDynamicDescriptor(0, 0, dest.GetSRV());
+    
     bufconst.pass = 1;
     bufconst.size0 = CreateFloat4((int)w/2, (int)h/2);
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
@@ -467,8 +592,6 @@ namespace ImageScaling
       bufconst.pass = 0;
       bufconst.arg0.x = (float)config.iStrength;
       bufconst.arg0.y = config.fSharp;
-      bufconst.arg0.z = 1.0f;
-      bufconst.arg0.w = 1.0f;
       bufconst.size0 = CreateFloat4(w, h);
 
       bufconst.fastmethod = 0;
@@ -489,8 +612,6 @@ namespace ImageScaling
       bufconst.pass = 0;
       bufconst.arg0.x = (float)config.iStrength;
       bufconst.arg0.y = config.fSharp;
-      bufconst.arg0.z = 1.0f;
-      bufconst.arg0.w = 1.0f;
       bufconst.size0 = CreateFloat4(w, h);
 
       bufconst.fastmethod = 0;
@@ -511,8 +632,6 @@ namespace ImageScaling
       bufconst.pass = 0;
       bufconst.arg0.x = (float)config.iStrength;
       bufconst.arg0.y = config.fSharp;
-      bufconst.arg0.z = 1.0f;
-      bufconst.arg0.w = 1.0f;
       bufconst.size0 = CreateFloat4(w, h);
 
       bufconst.fastmethod = 0;
@@ -526,14 +645,15 @@ namespace ImageScaling
       Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFERINT), &bufconst);
       Context.Draw(3);
     }
-    Upscale(Context, dest, source, 2, srcRect, destRect);
+    Upscale(Context, dest, dest, 2, srcRect, destRect);
   }
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int ScalingFilter, CRect srcRect, CRect destRect)
   {
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(UpScalingFiltersPS);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    if (dest.GetSRV().ptr != source.GetSRV().ptr)
+      Context.TransitionResource(source, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.SetRenderTarget(dest.GetRTV());
     Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
@@ -564,6 +684,11 @@ namespace ImageScaling
     DownScalingFiltersPS.FreePSO();
     SubPicPS.FreePSO();
     VideoRessourceCopyPS.FreePSO();
+    m_pScalers.clear();
+    
+    //delete scaler;
+    //scaler = nullptr;
+    
   }
 }
 

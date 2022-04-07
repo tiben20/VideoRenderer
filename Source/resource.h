@@ -85,6 +85,9 @@
 #define IDC_EDIT1                       1001
 #define IDC_EDIT2                       1002
 #define IDC_EDIT3                       1003
+#define IDC_EDIT4                       1004
+#define IDC_EDIT5                       1005
+#define IDC_EDIT6                       1006
 #define IDC_STATIC1                     1011
 #define IDC_STATIC2                     1012
 #define IDC_STATIC3                     1013
@@ -130,6 +133,7 @@
 #define IDC_STATIC_XBR_STR              1065
 #define IDC_SLIDER2                     1066
 #define IDC_STATIC_XBR_STR2             1067
+#define IDC_COMBO_OPTIONS               1068
 #define IDC_RADIO_UPSCALING1            1069
 #define IDC_RADIO_UPSCALING2            1070
 #define IDC_RADIO_UPSCALING3            1071
@@ -137,13 +141,13 @@
 #define IDC_RADIO_UPSCALING5            1073
 #define IDC_RADIO_UPSCALING6            1074
 #define IDC_RADIO_UPSCALING7            1075
-#define IDC_RADIO_DOUBLING1             1076
-#define IDC_RADIO_DOUBLING2             1077
-#define IDC_SLIDER3                     1077
-#define IDC_RADIO_DOUBLING3             1078
+#define IDC_RADIO_UPSCALING8            1076
+#define IDC_RADIO_UPSCALING9            1077
 #define IDC_STATIC_XBR_STR3             1078
 #define IDC_RADIO_DOUBLING4             1079
+#define IDC_SLIDER4                     1079
 #define IDC_RADIO_DOUBLING5             1080
+#define IDC_STATIC_XBR_STR4             1080
 #define IDC_RADIO_CHROMAUP1             1081
 #define IDC_RADIO_CHROMAUP2             1082
 #define IDC_RADIO_CHROMAUP3             1083
@@ -154,6 +158,14 @@
 #define IDC_RADIO_CHROMAUP8             1088
 #define IDC_RADIO_CHROMAUP9             1089
 #define IDC_RADIO_CHROMAUP10            1090
+#define IDC_SLIDER5                     1090
+#define IDC_SLIDER3                     1091
+#define IDC_RADIO_DOUBLING1             1092
+#define IDC_STATIC_XBR_STR5             1092
+#define IDC_RADIO_DOUBLING2             1093
+#define IDC_SLIDER6                     1093
+#define IDC_RADIO_DOUBLING3             1094
+#define IDC_STATIC_XBR_STR6             1094
 
 // Next default values for new objects
 // 
@@ -161,7 +173,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1066
+#define _APS_NEXT_CONTROL_VALUE         1069
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

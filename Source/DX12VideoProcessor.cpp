@@ -42,7 +42,7 @@
 #include "TextRenderer.h"
 #include "math/Common.h"
 #include "../external/minhook/include/MinHook.h"
-
+#include "Scaler.h"
 #include "DX12VideoProcessor.h"
 #pragma comment( lib, "d3d12.lib" )
 #pragma comment(lib, "dxguid.lib")
@@ -142,6 +142,7 @@ using namespace D3D12Engine;
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
+	
 	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
 	m_bShowStats = config.bShowStats;
 	m_iResizeStats = config.iResizeStats;
@@ -210,7 +211,8 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	m_pIndexBuffer.Destroy();
 	m_pViewpointShaderConstant.Destroy();
 	m_pPixelShaderConstants.Destroy();
-	
+	m_pTexturePlane1.Destroy();
+	m_pTexturePlane2.Destroy();
 	ReleaseDevice();
 	MH_RemoveHook(SetWindowPos);
 	MH_RemoveHook(SetWindowLongA);
@@ -617,10 +619,38 @@ HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 	Texture texture1;
 	Texture texture2;
 	
+	if (m_pTexturePlane1.GetWidth()>0)
+	{
+#if 0
+		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Create texture transit");
+		pVideoContext.TransitionResource(m_pTexturePlane1, D3D12_RESOURCE_STATE_COPY_DEST);
+		pVideoContext.TransitionResource(m_pTexturePlane2, D3D12_RESOURCE_STATE_COPY_DEST);
+		pVideoContext.Finish(true);
+		D3D12_SUBRESOURCE_DATA texResource1;
+		texResource1.pData = srcData;
+		texResource1.RowPitch = srcPitch;
+		texResource1.SlicePitch = srcPitch * m_srcHeight;
+		CommandContext::InitializeTexture(m_pTexturePlane1, 1, &texResource1);
+		D3D12_SUBRESOURCE_DATA texResource2;
+		texResource2.pData = srcData + firstplane;
+		texResource2.RowPitch = srcPitch;
+		texResource2.SlicePitch = srcPitch * layoutplane[1].Footprint.Height;
+		CommandContext::InitializeTexture(m_pTexturePlane2, 1, &texResource2);
+#endif
+		m_pTexturePlane1.Destroy();
+		m_pTexturePlane2.Destroy();
+		m_pTexturePlane1.Create2D(srcPitch, m_srcWidth, m_srcHeight, m_srcParams.pDX11Planes->FmtPlane1, srcData);
+		m_pTexturePlane2.Create2D(srcPitch, layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, m_srcParams.pDX11Planes->FmtPlane2, srcData + firstplane);
+	}
+	else
+	{
+		m_pTexturePlane1.Create2D(srcPitch, m_srcWidth, m_srcHeight, m_srcParams.pDX11Planes->FmtPlane1, srcData);
+		m_pTexturePlane2.Create2D(srcPitch, layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, m_srcParams.pDX11Planes->FmtPlane2, srcData + firstplane);
+	}
+	
 	//TODO 1 plane or 3 planes
-	texture1.Create2D(srcPitch, m_srcWidth, m_srcHeight, m_srcParams.pDX11Planes->FmtPlane1, srcData);
-	texture2.Create2D(srcPitch, layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, m_srcParams.pDX11Planes->FmtPlane2, srcData + firstplane);
-	hr = CopySampleShaderPassSW(texture1, texture2, m_srcRect);
+	
+	hr = CopySampleShaderPassSW(m_pTexturePlane1, m_pTexturePlane2, m_srcRect);
 	if (!m_bSWRendering)
 	{
 		m_bSWRendering = true;
@@ -1018,6 +1048,12 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	bool changeDowndcalingShader = false;
 	bool changeNumTextures = false;
 	bool changeResizeStats = false;
+	if (m_pXbrConfig.fSharp != config.D3D12Settings.xbrConfig.fSharp)
+		ImageScaling::SetSuperXbrConfig(L"sharp",config.D3D12Settings.xbrConfig.fSharp);
+	if (m_pXbrConfig.iStrength != config.D3D12Settings.xbrConfig.iStrength)
+		ImageScaling::SetSuperXbrConfig(L"strength", config.D3D12Settings.xbrConfig.iStrength);
+	if (m_pXbrConfig.iFactor != config.D3D12Settings.xbrConfig.iFactor)
+		ImageScaling::SetSuperXbrConfig(L"factor", config.D3D12Settings.xbrConfig.iFactor);
 
 	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
 	m_pXbrConfig = config.D3D12Settings.xbrConfig;
@@ -1492,6 +1528,7 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	uint64_t tick2 = GetPreciseTick();
 
 	GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
+
 	//Clear our output resource
 	if (!m_windowRect.IsRectEmpty())
 		D3D12Engine::ClearBackBuffer(pVideoContext,m_windowRect);

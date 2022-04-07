@@ -44,6 +44,7 @@ private:
 	HRESULT OnActivate() override;
 	INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	HRESULT OnApplyChanges();
+	void UpdateCurrentScaler();
 
 	void SetDirty()
 	{

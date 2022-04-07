@@ -81,12 +81,7 @@ void Texture::Create2D( size_t RowPitchBytes, size_t Width, size_t Height, DXGI_
     texResource.pData = InitialData;
     texResource.RowPitch = RowPitchBytes;
     texResource.SlicePitch = RowPitchBytes * Height;
-    if (m_UsageState == D3D12_RESOURCE_STATE_GENERIC_READ)
-    {
-      GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Create texture transit");
-      pVideoContext.TransitionResource(*this, D3D12_RESOURCE_STATE_COPY_DEST);
-      pVideoContext.Finish(true);
-    }
+
     CommandContext::InitializeTexture(*this, 1, &texResource);
     
     if (m_hCpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)

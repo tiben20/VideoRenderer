@@ -22,23 +22,6 @@
  *
  */
 
-//#pragma parameter XBR_EDGE_STR "Xbr - Edge Strength p0" 1.0 0.0 5.0 0.2
-//#pragma parameter XBR_WEIGHT "Xbr - Filter Weight" 1.0 0.00 1.50 0.01
-
-/*float4 args0 : register(c2);
-float4 size0 : register(c3);
-
-#define XBR_EDGE_STR args0[0]
-#define XBR_WEIGHT args0[1]
-
-#define input_size (size0.xy)
-#define pixel_size (size0.zw)*/
-
-
-/* COMPATIBILITY
-	 - HLSL compilers
-	 - Cg   compilers
-*/
 #include "superxbr.hlsli"
 
 #define XBR_EDGE_STR args0[0]
@@ -50,10 +33,12 @@ Texture2D tex : register(t0);
 SamplerState samp : register(s0);
 cbuffer PS_CONSTANTS : register(b0)
 {
-    float4 args0;
     float4 size0;
+    float4 args0;
     int PASSNUMBER;
     int FAST_METHOD;
+    int padding0;
+    int padding1;
 };
 float GetWeight(int idx, int thepass)
 {

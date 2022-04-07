@@ -35,26 +35,6 @@ inline LRESULT GetRadioValue(HWND hWnd, int nIDComboBox)
 	return SendDlgItemMessage(hWnd, nIDComboBox, BM_GETCHECK, 0, 0);
 }
 
-inline int GetLineSize(HWND hWnd, int nID)
-{
-	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETLINESIZE, 0, 0L);
-}
-
-inline int SetLineSize(HWND hWnd, int nID, int nSize)
-{
-	return (int)SendDlgItemMessageW(hWnd,nID, TBM_SETLINESIZE, 0, nSize);
-}
-
-inline int GetPageSize(HWND hWnd, int nID)
-{
-	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETPAGESIZE, 0, 0L);
-}
-
-inline int SetPageSize(HWND hWnd, int nID,  int nSize)
-{
-	return (int)SendDlgItemMessageW(hWnd,nID, TBM_SETPAGESIZE, 0, nSize);
-}
-
 inline int GetRangeMin(HWND hWnd,int nID )
 {
 	return (int)SendDlgItemMessageW(hWnd,nID, TBM_GETRANGEMIN, 0, 0L);
@@ -118,6 +98,11 @@ inline void SetEditModify(HWND hWnd, int nID, bool bModified = TRUE)
 	SendDlgItemMessageW(hWnd, nID, EM_SETMODIFY, bModified, 0L);
 }
 
+inline void ResetContent(HWND hWnd, int nID)
+{
+	SendDlgItemMessageW(hWnd, nID, CB_RESETCONTENT, 0, 0L);
+}
+
 template<typename T> inline void SetEditText(HWND hWnd, int nID, T value)
 {
 	
@@ -135,6 +120,11 @@ CD3D12SettingsPPage::CD3D12SettingsPPage(LPUNKNOWN lpunk, HRESULT* phr) :
 	CBasePropertyPage(L"D3D12Prop", lpunk, IDD_D3D12PROPPAGE, IDS_D3D12PROP_TITLE)
 {
 	DLog(L"CD3D12SettingsPPage()");
+	m_pTreeRoot = 0;
+	m_pTreeGeneral = 0;
+	m_pTreeUpscale = 0;
+	m_pTreeDownscale = 0;
+	m_pTreeChroma = 0;
 }
 
 CD3D12SettingsPPage::~CD3D12SettingsPPage()
@@ -187,19 +177,154 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	CheckDlgButton(IDC_CHECK17, m_SetsPP.D3D12Settings.bForceD3D12 ? BST_CHECKED : BST_UNCHECKED);
 	
 	SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0,5);//str default 1
+	SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
+	SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
 	SetPos(m_hWnd, IDC_SLIDER1, (m_SetsPP.D3D12Settings.xbrConfig.iStrength));
 	SetEditText(m_hWnd, IDC_EDIT1, m_SetsPP.D3D12Settings.xbrConfig.iStrength);
-	SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
 	SetPos(m_hWnd, IDC_SLIDER2, (m_SetsPP.D3D12Settings.xbrConfig.fSharp * 10));
 	SetEditText(m_hWnd, IDC_EDIT2, m_SetsPP.D3D12Settings.xbrConfig.fSharp);
-	SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
 	SetPos(m_hWnd, IDC_SLIDER3, (m_SetsPP.D3D12Settings.xbrConfig.iFactor));
-	
 	SetEditText(m_hWnd, IDC_EDIT3, m_SetsPP.D3D12Settings.xbrConfig.iStrength);
+	//SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"XBR");
+	
+	UpdateCurrentScaler();
 	return S_OK;
 }
 
-
+void CD3D12SettingsPPage::UpdateCurrentScaler()
+{
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, L"");
+	GetDlgItem(IDC_SLIDER1).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER2).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER3).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER4).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER5).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER6).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_COMBO_OPTIONS).ShowWindow(SW_HIDE);
+	
+	GetDlgItem(IDC_EDIT1).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT2).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT3).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT4).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT5).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT6).ShowWindow(SW_HIDE);
+	ResetContent(m_hWnd, IDC_COMBO_OPTIONS);
+	//bilinear
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 0)
+	{
+		
+	}
+	//DXVA2
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 1)
+	{
+		
+	}
+	//Bicubuic
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 2)
+	{
+		//no options
+		GetDlgItem(IDC_COMBO_OPTIONS).ShowWindow(SW_SHOW);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Mitchel-Netravali", 0);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 50 / Catmull-Rom", 1);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 60", 2);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 75", 3);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 100", 4);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 125", 5);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 150", 6);
+		//
+		//ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 60", 2);
+		//ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 60", 2);
+	}
+	//lanczso
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 3)
+	{
+		GetDlgItem(IDC_COMBO_OPTIONS).ShowWindow(SW_SHOW);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"3 Taps", 0);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"4 Taps", 1);
+	}
+	//Spline
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 4)
+	{
+		GetDlgItem(IDC_COMBO_OPTIONS).ShowWindow(SW_SHOW);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"3 Taps", 0);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"4 Taps", 1);
+	}
+	//Jinc
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 5)
+	{
+		
+	}
+	//super xbr
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 6)
+	{
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Strength");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Sharp");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Factor");
+		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
+		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0, 5);//str default 1
+		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
+		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
+	}
+	//Super res
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 7)
+	{
+		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 1, 5);//passes
+		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 10);//float 0 to 1
+		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 10);//float 0 to 1
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Passes");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Strength");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Smoothness");
+		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_COMBO_OPTIONS).ShowWindow(SW_SHOW);
+		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"spline resize", 0);
+		//dither tools
+		//planar upscale
+	}
+	//Super res + xbr
+	if (m_SetsPP.D3D12Settings.imageUpscaling == 8)
+	{
+		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0, 5);//str default 1
+		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
+		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
+		SetRangeMinMax(m_hWnd, IDC_SLIDER4, 1, 5); //passes
+		SetRangeMinMax(m_hWnd, IDC_SLIDER5, 0, 10);//float 0 to 1
+		SetRangeMinMax(m_hWnd, IDC_SLIDER6, 0, 10);//float 0 to 1
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Xbr Strength");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Sharp");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Factor");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, L"Xbr Strength");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, L"Sharp");
+		SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, L"Factor");
+		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER4).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER5).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_SLIDER6).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT4).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT5).ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_EDIT6).ShowWindow(SW_SHOW);
+	}
+	
+}
 INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT lValue;
@@ -299,16 +424,19 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				m_SetsPP.D3D12Settings.imageDownscaling = currentbutton;
 			}
 		}
-		else if (IDC_RADIO_UPSCALING1 <= nID && nID <= IDC_RADIO_UPSCALING7 && HIWORD(wParam) == BN_CLICKED)
+		else if (IDC_RADIO_UPSCALING1 <= nID && nID <= IDC_RADIO_UPSCALING9 && HIWORD(wParam) == BN_CLICKED)
 		{
-			int currentbutton = 6 - (IDC_RADIO_UPSCALING7 - nID);
+			int currentbutton = 8 - (IDC_RADIO_UPSCALING9 - nID);
 			lValue = GetRadioValue(m_hWnd, nID);
 
 			if (currentbutton != (m_SetsPP.D3D12Settings.imageUpscaling))
 			{
-				SetDirty();
 				m_SetsPP.D3D12Settings.imageUpscaling = currentbutton;
+				UpdateCurrentScaler();
+				SetDirty();
+				
 			}
+
 		}
 		/*else if (IDC_RADIO_DOUBLING1 <= nID && nID <= IDC_RADIO_DOUBLING5 && HIWORD(wParam) == BN_CLICKED)
 		{

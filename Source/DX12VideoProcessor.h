@@ -90,6 +90,9 @@ private:
 	UploadBuffer m_pViewpointShaderConstant;
 	UploadBuffer m_pPixelShaderConstants;
 	Texture      m_pAlphaBitmapTexture;
+	Texture m_pTexturePlane1;
+	Texture m_pTexturePlane2;
+
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	bool m_bSWRendering = false;
