@@ -86,6 +86,7 @@
     <ClCompile Include="d3d12util\ImageScaling.cpp" />
     <ClCompile Include="d3d12util\LinearAllocator.cpp" />
     <ClCompile Include="d3d12util\math\Random.cpp" />
+    <ClCompile Include="d3d12util\OptionsFile.cpp" />
     <ClCompile Include="d3d12util\PipelineState.cpp" />
     <ClCompile Include="d3d12util\PixelBuffer.cpp" />
     <ClCompile Include="d3d12util\ReadbackBuffer.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="d3d12util\math\Scalar.h" />
     <ClInclude Include="d3d12util\math\Transform.h" />
     <ClInclude Include="d3d12util\math\Vector.h" />
+    <ClInclude Include="d3d12util\OptionsFile.h" />
     <ClInclude Include="d3d12util\PipelineState.h" />
     <ClInclude Include="d3d12util\PixelBuffer.h" />
     <ClInclude Include="d3d12util\ReadbackBuffer.h" />

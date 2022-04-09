@@ -37,6 +37,7 @@
 #include "uploadbuffer.h"
 #include "ImageScaling.h"
 #include "GeometryRenderer.h"
+
 #define TEST_SHADER 0
 
 
@@ -96,7 +97,7 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	bool m_bSWRendering = false;
-	superxbrConfig_t m_pXbrConfig;
+	
 
 
 	bool resetquad = false;
@@ -110,11 +111,7 @@ private:
 	GraphRectangle m_Rect3D;
 	GraphRectangle m_Underlay;
 	std::vector<GraphLine> m_Lines;
-	
-	int  m_iChromaScaling12 = CHROMA_Bilinear;
-	int  m_iUpscaling12 = UPSCALE_CatmullRom; // interpolation
-	int  m_iDownscaling12 = DOWNSCALE_Hamming;  // convolution
-	int  m_iUpscalingDoubling = 0;
+
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX12VideoProcessor() override;
@@ -150,12 +147,7 @@ private:
 	
 
 	bool HandleHDRToggle();
-
-	
-
-
 	bool m_bForceD3D12 = false;
-
 	struct HDRMetadata {
 		DXGI_HDR_METADATA_HDR10 hdr10 = {};
 		bool bValid = false;
@@ -213,6 +205,7 @@ private:
 	HRESULT CreateDevice();
 	void CreateSubPicSurface();
 public:
+	
 	HRESULT SetDevice(ID3D12Device* pDevice, const bool bDecoderDevice);
 	void UpdateDisplayInfo(const DisplayConfig_t& dc);
 

@@ -150,10 +150,6 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	m_VPFormats = config.VPFmts;
 	m_bDeintDouble = config.bDeintDouble;
 	m_bVPScaling = config.bVPScaling;
-	m_iChromaScaling12 = config.D3D12Settings.chromaUpsampling;
-	m_iUpscaling12 = config.D3D12Settings.imageUpscaling;
-	m_iDownscaling12 = config.D3D12Settings.imageDownscaling;
-	m_iUpscalingDoubling = config.D3D12Settings.imageUpscalingDoubling;
 	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
 	m_bUseDither = config.bUseDither;
 	m_iSwapEffect = config.iSwapEffect;
@@ -161,7 +157,7 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	m_bHdrPassthrough = config.bHdrPassthrough;
 	m_iHdrToggleDisplay = config.iHdrToggleDisplay;
 	m_bConvertToSdr = config.bConvertToSdr;
-	m_pXbrConfig = config.D3D12Settings.xbrConfig;
+	
 
 	m_nCurrentAdapter = -1;
 	m_pDisplayMode = &m_DisplayMode;
@@ -189,6 +185,7 @@ CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 
 CDX12VideoProcessor::~CDX12VideoProcessor()
 {
+	
 	D3D12Engine::g_CommandManager.IdleGPU();
 	CommandContext::DestroyAllContexts();
 	D3D12Engine::g_CommandManager.Shutdown();
@@ -202,7 +199,7 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	D3D12Engine::DestroyRenderingBuffers();
 
 	D3D12Engine::ReleaseEngine();
-
+	
 	TextRenderer::Shutdown();
 	GeometryRenderer::Shutdown();
 	ReleaseSwapChain();
@@ -216,6 +213,7 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	ReleaseDevice();
 	MH_RemoveHook(SetWindowPos);
 	MH_RemoveHook(SetWindowLongA);
+	
 }
 
 
@@ -1048,15 +1046,11 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	bool changeDowndcalingShader = false;
 	bool changeNumTextures = false;
 	bool changeResizeStats = false;
-	if (m_pXbrConfig.fSharp != config.D3D12Settings.xbrConfig.fSharp)
-		ImageScaling::SetSuperXbrConfig(L"sharp",config.D3D12Settings.xbrConfig.fSharp);
-	if (m_pXbrConfig.iStrength != config.D3D12Settings.xbrConfig.iStrength)
-		ImageScaling::SetSuperXbrConfig(L"strength", config.D3D12Settings.xbrConfig.iStrength);
-	if (m_pXbrConfig.iFactor != config.D3D12Settings.xbrConfig.iFactor)
-		ImageScaling::SetSuperXbrConfig(L"factor", config.D3D12Settings.xbrConfig.iFactor);
+	//TODO
+	//add config for internal scaler
 
 	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
-	m_pXbrConfig = config.D3D12Settings.xbrConfig;
+	
 	// settings that do not require preparation
 	m_bShowStats = config.bShowStats;
 	m_bDeintDouble = config.bDeintDouble;
@@ -1094,25 +1088,6 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 		changeTextures = true;
 		changeVP = true; // temporary solution
 	}
-	if (config.D3D12Settings.imageUpscalingDoubling != m_iUpscalingDoubling) {
-		m_iUpscalingDoubling = config.D3D12Settings.imageUpscalingDoubling;
-		changeConvertShader = true;
-		//changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
-	}
-	if (config.iChromaScaling != m_iChromaScaling12) {
-		m_iChromaScaling12 = config.D3D12Settings.chromaUpsampling;
-		changeConvertShader = true;
-		//changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
-	}
-	if (config.iUpscaling != m_iUpscaling12) {
-		m_iUpscaling12 = config.D3D12Settings.imageUpscaling;
-		changeUpscalingShader = true;
-	}
-	if (config.iDownscaling != m_iDownscaling12) {
-		m_iDownscaling12 = config.D3D12Settings.imageDownscaling;
-		changeDowndcalingShader = true;
-	}
-
 	if (config.bUseDither != m_bUseDither) {
 		m_bUseDither = config.bUseDither;
 		changeNumTextures = D3D12Engine::GetInternalFormat() != DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -1284,12 +1259,12 @@ void CDX12VideoProcessor::UpdateRenderRect()
 	}
 	m_strShaderX = (w1 == w2) ? nullptr
 		: (w1 > k * w2)
-		? s_DownscalingName[m_iDownscaling12]
-		: s_UpscalingName[m_iUpscaling12];
+		? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
+		: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
 		m_strShaderY = (h1 == h2) ? nullptr
 		: (h1 > k * h2)
-		? s_DownscalingName[m_iDownscaling12]
-		: s_UpscalingName[m_iUpscaling12];
+		? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
+		: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
 }
 
 void CDX12VideoProcessor::SetGraphSize()
@@ -1426,12 +1401,12 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 		h1 = m_srcRectHeight;
 		m_strShaderX = (w1 == w2) ? nullptr
 			: (w1 > k * w2)
-			? s_DownscalingName[m_iDownscaling12]
-			: s_UpscalingName[m_iUpscaling12];
+			? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
+			: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
 		m_strShaderY = (h1 == h2) ? nullptr
 			: (h1 > k * h2)
-			? s_DownscalingName[m_iDownscaling12]
-			: s_UpscalingName[m_iUpscaling12];
+			? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
+			: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
 		if (m_strShaderX)
 		{
 			str.append(m_strShaderX);
@@ -1615,9 +1590,9 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 	if (rSrc.Width() != dstRect.Width() && rSrc.Height() != dstRect.Height())
 	{
 		if( rSrc.Width()>dstRect.Width() || rSrc.Height() > dstRect.Height())
-			D3D12Engine::Downscale(pVideoContext, m_iDownscaling12, srcRect,dstRect, m_bSWRendering);
+			D3D12Engine::Downscale(pVideoContext, srcRect,dstRect, m_bSWRendering);
 		else
-			D3D12Engine::Upscale(pVideoContext, m_iUpscaling12, srcRect, dstRect,m_bSWRendering,m_pXbrConfig);
+			D3D12Engine::Upscale(pVideoContext, srcRect, dstRect,m_bSWRendering);
 	}
 	else
 	{

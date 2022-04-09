@@ -22,23 +22,25 @@
  *
  */
 
+
 #include "superxbr.hlsli"
 
-#define XBR_EDGE_STR args0[0]
-#define XBR_WEIGHT args0[1]
+#define XBR_EDGE_STR fArgs[0]
+#define XBR_WEIGHT fArgs[1]
 #define input_size (size0.xy)
 #define pixel_size (size0.zw)
+#define PASSES (int_argsi[0])
+#define FAST_METHOD (int_argsi[1])
 
 Texture2D tex : register(t0);
 SamplerState samp : register(s0);
 cbuffer PS_CONSTANTS : register(b0)
 {
     float4 size0;
-    float4 args0;
-    int PASSNUMBER;
-    int FAST_METHOD;
-    int padding0;
-    int padding1;
+    float4 fArgs;
+    int4 iArgs;
+    float2 int_argsf;
+    int2 int_argsi;
 };
 float GetWeight(int idx, int thepass)
 {
@@ -79,7 +81,7 @@ float3 GetPixel(float2 inputtex, float x, float y,int thepass)
 float4 main(PS_INPUT input) : SV_Target
 {
     WP wp;
-    if (PASSNUMBER == 0)
+    if (PASSES == 0)
     {
         wp.wp1 = 1.0;
         wp.wp2 = 0.0;
@@ -88,7 +90,7 @@ float4 main(PS_INPUT input) : SV_Target
         wp.wp5 = -1.0;
         wp.wp6 = 0.0;
     }
-    else if (PASSNUMBER == 1)
+    else if (PASSES == 1)
     {
         wp.wp1 = 1.0;
         wp.wp2 = 0.0;
@@ -107,13 +109,13 @@ float4 main(PS_INPUT input) : SV_Target
         wp.wp6 = 0.0;
     }
 
-    if (PASSNUMBER == 0)
+    if (PASSES == 0)
     {
         //Skip pixels on wrong grid
         if (any(frac(input.Tex * input_size) < (0.5)))
             return tex.Sample(samp, input.Tex);
     }
-    else if (PASSNUMBER == 1)
+    else if (PASSES == 1)
     {
         //Skip pixels on wrong grid
         float2 dir = frac(input.Tex * input_size / 2.0) - (0.5);
@@ -121,24 +123,24 @@ float4 main(PS_INPUT input) : SV_Target
             return tex.Sample(samp, input.Tex);
     }
 
-    float3 P0 = GetPixel(input.Tex, -1, -1, PASSNUMBER);
-    float3 P1 = GetPixel(input.Tex, 2, -1, PASSNUMBER);
-    float3 P2 = GetPixel(input.Tex, -1, 2, PASSNUMBER);
-    float3 P3 = GetPixel(input.Tex, 2, 2, PASSNUMBER);
+    float3 P0 = GetPixel(input.Tex, -1, -1, PASSES);
+    float3 P1 = GetPixel(input.Tex, 2, -1, PASSES);
+    float3 P2 = GetPixel(input.Tex, -1, 2, PASSES);
+    float3 P3 = GetPixel(input.Tex, 2, 2, PASSES);
 
-    float3 B = GetPixel(input.Tex, 0, -1, PASSNUMBER);
-    float3 C = GetPixel(input.Tex, 1, -1, PASSNUMBER);
-    float3 D = GetPixel(input.Tex, -1, 0, PASSNUMBER);
-    float3 E = GetPixel(input.Tex, 0, 0, PASSNUMBER);
-    float3 F = GetPixel(input.Tex, 1, 0, PASSNUMBER);
-    float3 G = GetPixel(input.Tex, -1, 1, PASSNUMBER);
-    float3 H = GetPixel(input.Tex, 0, 1, PASSNUMBER);
-    float3 I = GetPixel(input.Tex, 1, 1, PASSNUMBER);
+    float3 B = GetPixel(input.Tex, 0, -1, PASSES);
+    float3 C = GetPixel(input.Tex, 1, -1, PASSES);
+    float3 D = GetPixel(input.Tex, -1, 0, PASSES);
+    float3 E = GetPixel(input.Tex, 0, 0, PASSES);
+    float3 F = GetPixel(input.Tex, 1, 0, PASSES);
+    float3 G = GetPixel(input.Tex, -1, 1, PASSES);
+    float3 H = GetPixel(input.Tex, 0, 1, PASSES);
+    float3 I = GetPixel(input.Tex, 1, 1, PASSES);
 
-    float3 F4 = GetPixel(input.Tex, 2, 0, PASSNUMBER);
-    float3 I4 = GetPixel(input.Tex, 2, 1, PASSNUMBER);
-    float3 H5 = GetPixel(input.Tex, 0, 2, PASSNUMBER);
-    float3 I5 = GetPixel(input.Tex, 1, 2, PASSNUMBER);
+    float3 F4 = GetPixel(input.Tex, 2, 0, PASSES);
+    float3 I4 = GetPixel(input.Tex, 2, 1, PASSES);
+    float3 H5 = GetPixel(input.Tex, 0, 2, PASSES);
+    float3 I5 = GetPixel(input.Tex, 1, 2, PASSES);
 
     float b = RGBtoYUV(B); float c = RGBtoYUV(C);
     float d = RGBtoYUV(D); float e = RGBtoYUV(E);
@@ -167,9 +169,9 @@ float4 main(PS_INPUT input) : SV_Target
     float hv_edge = (hv_wd(wp, f, i, e, h, c, i5, b, h5) - hv_wd(wp, e, f, h, i, d, f4, g, i4));
 
 	/* Filter weights. Two taps only. */
-    float4 w1 = float4(-GetWeight(1, PASSNUMBER), +0.5,
-    +0.5, -GetWeight(1, PASSNUMBER));
-    float4 w2 = float4(-GetWeight(2, PASSNUMBER), GetWeight(2, PASSNUMBER) + 0.25, GetWeight(2, PASSNUMBER) + 0.25, -GetWeight(2, PASSNUMBER));
+    float4 w1 = float4(-GetWeight(1, PASSES), +0.5,
+    +0.5, -GetWeight(1, PASSES));
+    float4 w2 = float4(-GetWeight(2, PASSES), GetWeight(2, PASSES) + 0.25, GetWeight(2, PASSES) + 0.25, -GetWeight(2, PASSES));
 
 	/* Filtering and normalization in four direction generating four colors. */
     float3 c1 = mul(w1, float4x3(P2, H, F, P1));

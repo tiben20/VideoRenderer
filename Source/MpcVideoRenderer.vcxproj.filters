@@ -249,6 +249,9 @@
     <ClCompile Include="d3d12util\ScalerManager.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
     </ClCompile>
+    <ClCompile Include="d3d12util\OptionsFile.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -493,6 +496,9 @@
     </ClInclude>
     <ClInclude Include="d3d12util\ScalerManager.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\OptionsFile.h">
+      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

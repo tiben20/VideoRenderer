@@ -33,6 +33,7 @@
 #include "descriptorheap.h"
 #include "commandcontext.h"
 #include "dxgi.h"
+#include "OptionsFile.h"
 class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;
@@ -52,7 +53,7 @@ namespace D3D12Engine
 	extern CRect g_videoRect;
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
-	
+	extern CD3D12Options* g_D3D12Options;
 	inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
 	{
 		return g_DescriptorAllocator[Type].Allocate(Count);
@@ -93,8 +94,8 @@ namespace D3D12Engine
 	
 	void DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect = CRect());
 	void Noscale(GraphicsContext& Context, CRect dstRect, bool sw);
-	void Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect, bool sw);
-	void Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect, bool sw, superxbrConfig_t xbrConfig);
+	void Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
+	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
 
 	
 	void PresentBackBuffer(GraphicsContext& Context);

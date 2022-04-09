@@ -47,10 +47,6 @@
 #define OPT_ChromaUpsampling               L"ChromaUpsampling"
 #define OPT_Upscaling                      L"Upscaling"
 #define OPT_Downscaling                    L"Downscaling"
-#define OPT_ChromaUpsampling12             L"ChromaUpsampling12"
-#define OPT_Upscaling12                    L"Upscaling12"
-#define OPT_Downscaling12                  L"Downscaling12"
-#define OPT_UpscalingDoubling12            L"UpscalingDoubling12"
 #define OPT_InterpolateAt50pct             L"InterpolateAt50pct"
 #define OPT_Dither                         L"Dither"
 #define OPT_SwapEffect                     L"SwapEffect"
@@ -174,10 +170,6 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D12, dw)) {
 			m_Sets.D3D12Settings.bUseD3D12 = !!dw;
 		}
-		//dont want to make registry value if not used
-		m_Sets.D3D12Settings.xbrConfig.iStrength = 2;
-		m_Sets.D3D12Settings.xbrConfig.iFactor = 0;
-		m_Sets.D3D12Settings.xbrConfig.fSharp = 1.5f;
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ShowStatistics, dw)) {
 			m_Sets.bShowStats = !!dw;
 		}
@@ -222,18 +214,6 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling, dw)) {
 			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ChromaUpsampling12, dw)) {
-			m_Sets.D3D12Settings.chromaUpsampling = discard<int>(dw, CHROMA_Bilinear, CHROMA_Nearest, CHROMA_CatmullRom);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Upscaling12, dw)) {
-			m_Sets.D3D12Settings.imageUpscaling = discard<int>(dw, UPSCALE_CatmullRom, UPSCALE_Nearest, 6);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling12, dw)) {
-			m_Sets.D3D12Settings.imageDownscaling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UpscalingDoubling12, dw)) {
-			m_Sets.D3D12Settings.imageUpscalingDoubling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_InterpolateAt50pct, dw)) {
 			m_Sets.bInterpolateAt50pct = !!dw;
@@ -1251,10 +1231,6 @@ STDMETHODIMP CMpcVideoRenderer::SaveSettings()
 		key.SetDWORDValue(OPT_ChromaUpsampling,               m_Sets.iChromaScaling);
 		key.SetDWORDValue(OPT_Upscaling,                      m_Sets.iUpscaling);
 		key.SetDWORDValue(OPT_Downscaling,                    m_Sets.iDownscaling);
-		key.SetDWORDValue(OPT_ChromaUpsampling12,             m_Sets.D3D12Settings.chromaUpsampling);
-		key.SetDWORDValue(OPT_Upscaling12,                    m_Sets.D3D12Settings.imageUpscaling);
-		key.SetDWORDValue(OPT_Downscaling12,                  m_Sets.D3D12Settings.imageDownscaling);
-		key.SetDWORDValue(OPT_UpscalingDoubling12,            m_Sets.D3D12Settings.imageUpscalingDoubling);
 		key.SetDWORDValue(OPT_InterpolateAt50pct,             m_Sets.bInterpolateAt50pct);
 		key.SetDWORDValue(OPT_Dither,                         m_Sets.bUseDither);
 		key.SetDWORDValue(OPT_SwapEffect,                     m_Sets.iSwapEffect);

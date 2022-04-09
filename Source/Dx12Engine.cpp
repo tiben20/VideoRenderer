@@ -37,6 +37,7 @@ namespace D3D12Engine
 	//using namespace ImageScaling;
 
 	ID3D12Device* g_Device = nullptr;
+	CD3D12Options* g_D3D12Options;
 	CommandListManager g_CommandManager;
 	ContextManager g_ContextManager;
 
@@ -94,6 +95,8 @@ namespace D3D12Engine
 
 	CONSTANT_BUFFER_VAR m_pBufferVar;
 	bool m_PSConvColorData = false;
+
+	
 
 	ColorBuffer D3D12Engine::GetCurrentBackBuffer() { return SwapChainBufferColor[p_CurrentBuffer]; }
 	std::wstring D3D12Engine::GetAdapterDescription() { return m_strAdapterDescription; }
@@ -161,6 +164,7 @@ namespace D3D12Engine
 		m_pDXGIFactory1.Release();
 		m_pDXGIOutput.Release();
 		p_CurrentBuffer = 0;
+		g_D3D12Options = nullptr;
 
 	}
 
@@ -330,6 +334,8 @@ namespace D3D12Engine
 			DLog(L"CDX12VideoProcessor::CDX12VideoProcessor() : CreateDXGIFactory1() failed with error {}", HR2Str(hr));
 
 		}
+		if (!g_D3D12Options)
+			g_D3D12Options = new CD3D12Options();
 		return hr;
 	}
 
@@ -510,23 +516,25 @@ namespace D3D12Engine
 		pVideoContext.SetViewportAndScissor(windowRect.left, windowRect.top, windowRect.Width(), windowRect.Height());
 	}
 
-	void D3D12Engine::Downscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect, bool sw)
+	void D3D12Engine::Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw)
 	{
 		//we already copy to prescale with the texture copy
 		if (!sw)
 			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
-		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, ScalingFilter, srcRect, destRect);
+		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
 		
 	}
 
-	void D3D12Engine::Upscale(GraphicsContext& Context, int ScalingFilter, CRect srcRect, CRect destRect,bool sw, superxbrConfig_t xbrConfig)
+	void D3D12Engine::Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect,bool sw)
 	{
 		if (!sw)
 			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
-		if (ScalingFilter == 6)
-			ImageScaling::UpscaleXbr(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect, xbrConfig);
+		
+		int scalingfilter = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
+		if (scalingfilter == 6)
+			ImageScaling::UpscaleXbr(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
 		else
-			ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, ScalingFilter, srcRect, destRect);
+			ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
 		
 		//by using g_videoRect as CRect renderrect we get the clear is ok but we lose the overlay which is rendered in the full window
 		//ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, g_videoRect);

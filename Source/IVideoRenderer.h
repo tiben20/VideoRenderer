@@ -97,13 +97,6 @@ struct D3D12Settings_t {
 	bool bUseD3D12;
 	bool bForceD3D12;
 	bool bLAVUseD3D12;
-	int chromaUpsampling;
-	int imageDownscaling;
-	int imageUpscaling;
-	int imageUpscalingDoubling;
-	superxbrConfig_t xbrConfig;
-	superresConfig_t resConfig;
-	superresxbrConfig_t xbrresConfig;
 };
 
 struct Settings_t {
@@ -168,10 +161,6 @@ struct Settings_t {
 		bConvertToSdr                   = true;
 		D3D12Settings.bForceD3D12 = false;
 		D3D12Settings.bLAVUseD3D12 = false;
-		D3D12Settings.chromaUpsampling = 0;
-		D3D12Settings.imageDownscaling = 0;
-		D3D12Settings.imageDownscaling = 0;
-		D3D12Settings.imageUpscalingDoubling = 0;
 	}
 };
 

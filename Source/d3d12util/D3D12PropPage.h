@@ -25,6 +25,23 @@
 
 
 // CD3D12SettingsPPage
+static const char* s_upscalername[9] = {
+	{"bilinear"   },
+	{"dxva2"      },
+	{"cubic"      },
+	{"lanczos"    },
+	{"spline"     },
+	{"jinc"       },
+	{"superxbr"   },
+	{"superres"   },
+	{"superresxbr"},
+};
+static int s_factor[4] = {
+	{2},
+	{4},
+	{8},
+	{16},
+};
 
 class __declspec(uuid("465D2B19-DE41-4425-8666-FB7FF0DAF122"))
 	CD3D12SettingsPPage : public CBasePropertyPage, public CWindow
@@ -46,6 +63,7 @@ private:
 	HRESULT OnApplyChanges();
 	void UpdateCurrentScaler();
 
+	void UpdateScroll(int button, int staticbutton,int value);
 	void SetDirty()
 	{
 		m_bDirty = TRUE;
@@ -54,12 +72,8 @@ private:
 			m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
 		}
 	}
-	//CTrackBarCtrl ctrl_slider;
-
-	HTREEITEM m_pTreeRoot;
-	HTREEITEM m_pTreeGeneral;
-	HTREEITEM m_pTreeUpscale;
-	HTREEITEM m_pTreeDownscale;
-	HTREEITEM m_pTreeChroma;
+	int m_iCurrentUpScaler = 0;
+	int m_iCurrentChromaUpscaler = 0;
+	int m_iCurrentDownScaler = 0;
 	
 };
