@@ -173,7 +173,7 @@ namespace ImageScaling
 
     UpScalingFiltersPS.SetRootSignature(s_PresentRSScaling);
     UpScalingFiltersPS.SetRasterizerState(D3D12Engine::RasterizerDefault);
-    UpScalingFiltersPS.SetBlendState(D3D12Engine::BlendDisable);
+    UpScalingFiltersPS.SetBlendState(D3D12Engine::Blendfxrcnnx);
     UpScalingFiltersPS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
     UpScalingFiltersPS.SetSampleMask(0xFFFFFFFF);
     UpScalingFiltersPS.SetInputLayout(0, nullptr);
@@ -526,7 +526,7 @@ namespace ImageScaling
     //int value 0 is pass
     scaler->g_ScalerInternalInt[0].Value = 0;// push_back(cint); //SetConfigInt(L"pass", 0);
     Context.SetViewportAndScissor(0, 0, dest.GetWidth(), dest.GetHeight());
-    Context.SetDynamicDescriptor(0, 0, source.GetSRV()); Context.SetRenderTarget(dest.GetRTV());
+    Context.SetDynamicDescriptor(0, 0, source.GetSRV());
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Context.SetRenderTarget(dest.GetRTV());
     
@@ -573,7 +573,9 @@ namespace ImageScaling
       scaler->ShaderPass(Context, dest, source, w2, h2, iArgs, fArgs);
     }
     scaler->Done();
-    Context.SetViewportAndScissor(destRect.left, destRect.top, destRect.Width(), destRect.Height());
+    g_D3D12Options->SetCurrentUpscaler(4);
+    Upscale(Context, dest, source, srcRect, destRect);
+    g_D3D12Options->SetCurrentUpscaler(6);
     //Upscale(Context, dest, dest, 2, srcRect, destRect);
     //todo add scaler at the end in the config right now we only do cubic
     //Upscale(Context, dest, dest, 2, srcRect, destRect);
@@ -723,8 +725,24 @@ namespace ImageScaling
       UpScalingConstantBuffer.axis = 0;
     else
       UpScalingConstantBuffer.axis = 1;
-    //UpScalingConstantBuffer.filter = ScalingFilter;
-    Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFER), &UpScalingConstantBuffer);
+
+    UpScalingConstantBuffer.filter = g_D3D12Options->GetCurrentUpscaler();
+    if (UpScalingConstantBuffer.filter == 3)
+      UpScalingConstantBuffer.lanczostype = g_D3D12Options->GetScaler("lanczos")->GetInt("lanczostype");
+    if (UpScalingConstantBuffer.filter == 4)
+      UpScalingConstantBuffer.splinetype = g_D3D12Options->GetScaler("spline")->GetInt("splinetype");
+    //jync
+    if (UpScalingConstantBuffer.filter == 5)
+    {
+//#pragma parameter JINC2_WINDOW_SINC "Window Sinc Param" 0.44 0.0 1.0 0.01
+//#pragma parameter JINC2_SINC "Sinc Param" 0.82 0.0 1.0 0.01
+//#pragma parameter JINC2_AR_STRENGTH "Anti-ringing Strength" 0.5 0.0 1.0 0.1
+      CScalerOption* opt = g_D3D12Options->GetScaler("jinc");
+      UpScalingConstantBuffer.jinc2.x = 0.5f;// s_jincwindowsinc[opt->GetInt("windowsinc")];
+      UpScalingConstantBuffer.jinc2.y = 0.5f;//s_jincsinc[opt->GetInt("sinc")];
+      UpScalingConstantBuffer.jinc2.z = 0.5f;//s_jincsinc[opt->GetInt("str")];
+    }
+    Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_UPSCALE_BUFFER), &UpScalingConstantBuffer);
     Context.Draw(3);
   }
 

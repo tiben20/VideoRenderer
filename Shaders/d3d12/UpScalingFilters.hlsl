@@ -21,11 +21,17 @@
 
 Texture2D tex : register(t0);
 SamplerState samp : register(s0);
+
 //0 nearest not passing through this PS
 //1 mitchel
 //2 catmull
 //3 lanczos2
 //3 lanczos3
+
+//jync options
+//#pragma parameter JINC2_WINDOW_SINC "Window Sinc Param" 0.44 0.0 1.0 0.01
+//#pragma parameter JINC2_SINC "Sinc Param" 0.82 0.0 1.0 0.01
+//#pragma parameter JINC2_AR_STRENGTH "Anti-ringing Strength" 0.5 0.0 1.0 0.1
 cbuffer PS_CONSTANTS : register(b0)
 {
     float2 wh;
@@ -33,6 +39,9 @@ cbuffer PS_CONSTANTS : register(b0)
     float2 scale;
     int filter;
     int axis;
+    int lanczostype;
+    int splinetype;
+    float3 jinc2_params;
 };
 
 struct PS_INPUT
@@ -73,12 +82,12 @@ float4 spline(PS_INPUT input)
     float t3 = t * t2;
     float4 w0123;
     w0123 = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    if (filter == 1)
+    if (splinetype == 0)
     {
      // Mitchell-Netravali spline4
         w0123 = float4(1., 16., 1., 0.) / 18. + float4(-.5, 0., .5, 0.) * t + float4(5., -12., 9., -2.) / 6. * t2 + float4(-7., 21., -21., 7.) / 18. * t3;
     }
-    else if (filter == 2) // Catmull-Rom spline4
+    else if (splinetype == 1) // Catmull-Rom spline4
     {
         w0123 = float4(-.5, 0., .5, 0.) * t + float4(1., -2.5, 2., -.5) * t2 + float4(-.5, 1.5, -1.5, .5) * t3;
         w0123.y += 1.;
@@ -180,16 +189,106 @@ float4 lanczos3(PS_INPUT input)
     return Q2; // case t == 0. is required to return sample Q2, because of a possible division by 0.
 }
 
+
+//jync function
+
+#define pinumbers    3.1415926535897932384626433832795
+#define min4(a, b, c, d) min(min(a, b), min(c, d))
+#define max4(a, b, c, d) max(max(a, b), max(c, d))
+
+float d(float2 pt1, float2 pt2)
+{
+    float2 v = pt2 - pt1;
+    return sqrt(dot(v, v));
+}
+
+float4 resampler(float4 x, float wa, float wb) 
+{
+	return (x == float4(0.0, 0.0, 0.0, 0.0))
+		? float4(wa * wb, wa * wb, wa * wb, wa * wb)
+		: sin(x * wa) * sin(x * wb) / (x * x);
+}
+
+float4 jinc2(PS_INPUT input)
+{
+    float2 dx = float2(1.0, 0.0);
+    float2 dy = float2(0.0, 1.0);
+
+    float2 pc = input.Tex / dxdy;
+    float2 tc = floor(pc - float2(0.5, 0.5)) + float2(0.5, 0.5);
+
+    float wa = jinc2_params[0] * pinumbers;
+    float wb = jinc2_params[1] * pinumbers;
+    float4x4 weights =
+    {
+        resampler(float4(d(pc, tc - dx - dy), d(pc, tc - dy), d(pc, tc + dx - dy), d(pc, tc + 2.0 * dx - dy)), wa, wb),
+		resampler(float4(d(pc, tc - dx), d(pc, tc), d(pc, tc + dx), d(pc, tc + 2.0 * dx)), wa, wb),
+		resampler(float4(d(pc, tc - dx + dy), d(pc, tc + dy), d(pc, tc + dx + dy), d(pc, tc + 2.0 * dx + dy)), wa, wb),
+		resampler(float4(d(pc, tc - dx + 2.0 * dy), d(pc, tc + 2.0 * dy), d(pc, tc + dx + 2.0 * dy), d(pc, tc + 2.0 * dx + 2.0 * dy)), wa, wb)
+    };
+
+    dx *= dxdy;
+    dy *= dxdy;
+    tc *= dxdy;
+
+	// reading the texels
+	// [ c00, c10, c20, c30 ]
+	// [ c01, c11, c21, c31 ]
+	// [ c02, c12, c22, c32 ]
+	// [ c03, c13, c23, c33 ]
+    float3 c00 = tex.Sample(samp, tc - dx - dy).rgb;
+    float3 c10 = tex.Sample(samp, tc - dy).rgb;
+    float3 c20 = tex.Sample(samp, tc + dx - dy).rgb;
+    float3 c30 = tex.Sample(samp, tc + 2.0 * dx - dy).rgb;
+    float3 c01 = tex.Sample(samp, tc - dx).rgb;
+    float3 c11 = tex.Sample(samp, tc).rgb;
+    float3 c21 = tex.Sample(samp, tc + dx).rgb;
+    float3 c31 = tex.Sample(samp, tc + 2.0 * dx).rgb;
+    float3 c02 = tex.Sample(samp, tc - dx + dy).rgb;
+    float3 c12 = tex.Sample(samp, tc + dy).rgb;
+    float3 c22 = tex.Sample(samp, tc + dx + dy).rgb;
+    float3 c32 = tex.Sample(samp, tc + 2.0 * dx + dy).rgb;
+    float3 c03 = tex.Sample(samp, tc - dx + 2.0 * dy).rgb;
+    float3 c13 = tex.Sample(samp, tc + 2.0 * dy).rgb;
+    float3 c23 = tex.Sample(samp, tc + dx + 2.0 * dy).rgb;
+    float3 c33 = tex.Sample(samp, tc + 2.0 * dx + 2.0 * dy).rgb;
+
+
+    float3 color = mul(weights[0], float4x3(c00, c10, c20, c30));
+    color += mul(weights[1], float4x3(c01, c11, c21, c31));
+    color += mul(weights[2], float4x3(c02, c12, c22, c32));
+    color += mul(weights[3], float4x3(c03, c13, c23, c33));
+    color /= dot(mul(weights, float4(1, 1, 1, 1)), 1);
+
+	// Get min/max samples
+    float3 min_sample = min4(c11, c21, c12, c22);
+    float3 max_sample = max4(c11, c21, c12, c22);
+    color = lerp(color, clamp(color, min_sample, max_sample), jinc2_params[2]);
+
+	// final sum and weight normalization
+    return float4(color.rgb, 1);
+}
+
 float4 main(PS_INPUT input) : SV_Target
 {
-    if (filter == 1 || filter == 2)
+    //spline mitchell and spline
+    if (filter == 4)
         return spline(input);
     else if (filter == 3)
-        return lanczos2(input);
-    else if (filter == 4)
-        return lanczos3(input);
-    else
-        return input.Pos;
+    {
+        if (lanczostype == 2)
+            return lanczos2(input);
+        else if (lanczostype ==3 )
+            return lanczos3(input);
+    }
+    else if (filter == 5)
+    {
+        //jinc
+        return jinc2(input);
+    }
+        
     
-
+    return input.Pos;
 }
+
+

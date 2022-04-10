@@ -1,19 +1,8 @@
-
-
-/*Texture2D tex1 : register(t0);
-Texture2D tex2 : register(t1);
-Texture2D tex1 : register(t2);
-Texture2D tex2 : register(t3);
-Texture2D tex1 : register(t4);
-Texture2D tex2 : register(t5);*/
 Texture2D tex1 : register(t0);
 Texture2D tex2 : register(t1);
 SamplerState samp : register(s0);
 
 #define PASSES (int_argsi[0])
-
-//float inputPtY;
-//float inputPtX;
 Texture2D yuvTex;
 
 cbuffer PS_CONSTANTS : register(b0)

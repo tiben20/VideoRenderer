@@ -36,6 +36,25 @@ static const char* s_upscalername[9] = {
 	{"fxrcnnx"   },
 	{"superresxbr"},
 };
+static float s_jincsinc[4] = {
+	{0.82f},
+	{0.00001f},
+	{1.0f},
+	{0.25f},
+};
+static float s_jincwindowsinc[4] = {
+	{0.44f},
+	{0.00001f},
+	{1.0f},
+	{0.01f},
+};
+static float s_jincstr[4] = {
+	{0.5f},
+	{0.25f},
+	{1.0f},
+	{0.1f},
+};
+
 static int s_factor[4] = {
 	{2},
 	{4},

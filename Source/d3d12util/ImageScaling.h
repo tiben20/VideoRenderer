@@ -51,6 +51,9 @@ __declspec(align(16)) struct CONSTANT_UPSCALE_BUFFER {
   DirectX::XMFLOAT2 scale;
   int filter;
   int axis;
+  int lanczostype;
+  int splinetype;
+  DirectX::XMFLOAT3 jinc2;
 };
 
 struct VERTEX_SUBPIC {
