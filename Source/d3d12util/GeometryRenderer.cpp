@@ -26,7 +26,6 @@
 #include "CommandContext.h"
 #include "PipelineState.h"
 #include "RootSignature.h"
-#include "BufferManager.h"
 #include "CompiledShaders/GeometryPS.h"
 #include "CompiledShaders/GeometryVS.h"
 
@@ -66,11 +65,11 @@ void GeometryRenderer::Initialize(void)
   s_RectanglePSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
   s_RectanglePSO[0].SetVertexShader(g_pGeometryVS, sizeof(g_pGeometryVS));
   s_RectanglePSO[0].SetPixelShader(g_pGeometryPS, sizeof(g_pGeometryPS));
-  s_RectanglePSO[0].SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_RectanglePSO[0].SetRenderTargetFormat(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN);
   s_RectanglePSO[0].Finalize();
   //hdr
   s_RectanglePSO[1] = s_RectanglePSO[0];
-  s_RectanglePSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_RectanglePSO[1].SetRenderTargetFormat(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN);
   s_RectanglePSO[1].Finalize();
 
 
@@ -83,10 +82,10 @@ void GeometryRenderer::Initialize(void)
   s_DotsPSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
   s_DotsPSO[0].SetVertexShader(g_pGeometryVS, sizeof(g_pGeometryVS));
   s_DotsPSO[0].SetPixelShader(g_pGeometryPS, sizeof(g_pGeometryPS));
-  s_DotsPSO[0].SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_DotsPSO[0].SetRenderTargetFormat(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN);
   s_DotsPSO[0].Finalize();
   s_DotsPSO[1] = s_DotsPSO[0];
-  s_DotsPSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_DotsPSO[1].SetRenderTargetFormat(DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_UNKNOWN);
   s_DotsPSO[1].Finalize();
 
   

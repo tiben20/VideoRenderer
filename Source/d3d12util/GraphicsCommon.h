@@ -44,6 +44,8 @@ namespace D3D12Engine
     extern SamplerDesc SamplerPointBorderDesc;
     extern SamplerDesc SamplerLinearBorderDesc;
     extern SamplerDesc SamplerGeometryDesc;
+    extern SamplerDesc SamplerfxrcnnxDesc;
+    
 
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearWrap;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerAnisoWrap;
@@ -54,6 +56,7 @@ namespace D3D12Engine
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointBorder;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerGeometry;
+    extern D3D12_CPU_DESCRIPTOR_HANDLE Samplerfxrcnnx;
 
 
     extern D3D12_RASTERIZER_DESC RasterizerDefault;
@@ -69,6 +72,7 @@ namespace D3D12Engine
     extern D3D12_BLEND_DESC BlendGeometry;
     extern D3D12_BLEND_DESC BlendFont;
     extern D3D12_BLEND_DESC BlendSubPic;
+    extern D3D12_BLEND_DESC Blendfxrcnnx;
     
     extern D3D12_DEPTH_STENCIL_DESC DepthStateDisabled;
     extern D3D12_DEPTH_STENCIL_DESC DepthStateReadWrite;

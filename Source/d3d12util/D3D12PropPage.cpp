@@ -178,7 +178,7 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 		SetRadioValue(m_hWnd, IDC_RADIO_CHROMAUP1 + i, BM_SETCHECK, (m_iCurrentChromaUpscaler == (i)), 0);
 	//for (i = 0; i < 5; i++)
 		//SetRadioValue(m_hWnd, IDC_RADIO_DOUBLING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscalingDoubling == (i)), 0);
-	for (i = 0; i < 7; i++)
+	for (i = 0; i < 9; i++)
 		SetRadioValue(m_hWnd, IDC_RADIO_UPSCALING1 + i, BM_SETCHECK, (m_iCurrentUpScaler == (i)), 0);
 	
 	for (i = 0; i < 6; i++)
@@ -304,7 +304,7 @@ void CD3D12SettingsPPage::UpdateCurrentScaler()
 	//Super res
 	if (currentupscaler == 7)
 	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("superres");
+		opt = D3D12Engine::g_D3D12Options->GetScaler("fxrcnnx");
 		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 1, 5);//passes
 		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 10);//float 0 to 1
 		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 10);//float 0 to 1

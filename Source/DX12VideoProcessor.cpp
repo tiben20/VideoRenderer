@@ -38,7 +38,6 @@
 #include <fstream>
 #include "dxgi1_6.h"
 #include "DX12Capabilities.h"
-#include "BufferManager.h"
 #include "TextRenderer.h"
 #include "math/Common.h"
 #include "../external/minhook/include/MinHook.h"
@@ -116,14 +115,16 @@ static const wchar_t* s_UpscalingDoubling[1] = {
 	{L"super-xbr"  },
 };
 
-static const wchar_t* s_UpscalingName[7] = {
+static const wchar_t* s_UpscalingName[9] = {
 	{L"Upscaling Bilinear#0"  },
 	{L"Upscaling DXVA2#1"},
 	{L"Upscaling Cubic#2"       },
 	{L"Upscaling Lanczos#3"          },
 	{L"Upscaling Spline#4"          },
 	{L"Upscaling Jinc#5"          },
-	{L"Upscaling super-xbr#6"          },
+	{L"Upscaling Superxbr#6"          },
+	{L"Upscaling fxrcnnx#7"          },
+	{L"Upscaling superresxbr#8"          },
 };
 
 static const wchar_t* s_DownscalingName[7] = {
@@ -196,7 +197,6 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 
 	
 	D3D12Engine::DestroyCommonState();
-	D3D12Engine::DestroyRenderingBuffers();
 
 	D3D12Engine::ReleaseEngine();
 	
@@ -342,7 +342,6 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 	D3D12Engine::g_CommandManager.Create(D3D12Engine::g_Device);
 	D3D12Engine::InitializeCommonState();
-	D3D12Engine::InitializeRenderingBuffers(1280,528);
 	TextRenderer::Initialize();
 	GeometryRenderer::Initialize();
 	
@@ -1739,7 +1738,10 @@ STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetAlphaBitmap(const MFVid
 		{
 			if (m_pAlphaBitmapTexture.GetWidth() != 0)
 				m_pAlphaBitmapTexture.Destroy();
+			GraphicsContext& pVideoContext = GraphicsContext::Begin(L"AlphabitmapCreate");
 			m_pAlphaBitmapTexture.Create2D(bm.bmWidthBytes, bm.bmWidth, bm.bmHeight, DXGI_FORMAT_B8G8R8A8_UNORM, bm.bmBits);
+			pVideoContext.Finish(true);
+			
 			
 		}
 		else

@@ -23,7 +23,6 @@
 #include "stdafx.h"
 #include "CommandContext.h"
 #include "ColorBuffer.h"
-#include "DepthBuffer.h"
 #include "DX12Engine.h"
 #include "DescriptorHeap.h"
 
@@ -327,24 +326,6 @@ void GraphicsContext::ClearColor(ColorBuffer& Target, float Colour[4], D3D12_REC
 {
     FlushResourceBarriers();
     m_CommandList->ClearRenderTargetView(Target.GetRTV(), Colour, (Rect == nullptr) ? 0 : 1, Rect);
-}
-
-void GraphicsContext::ClearDepth( DepthBuffer& Target )
-{
-    FlushResourceBarriers();
-    m_CommandList->ClearDepthStencilView(Target.GetDSV(), D3D12_CLEAR_FLAG_DEPTH, Target.GetClearDepth(), Target.GetClearStencil(), 0, nullptr );
-}
-
-void GraphicsContext::ClearStencil( DepthBuffer& Target )
-{
-    FlushResourceBarriers();
-    m_CommandList->ClearDepthStencilView(Target.GetDSV(), D3D12_CLEAR_FLAG_STENCIL, Target.GetClearDepth(), Target.GetClearStencil(), 0, nullptr);
-}
-
-void GraphicsContext::ClearDepthAndStencil( DepthBuffer& Target )
-{
-    FlushResourceBarriers();
-    m_CommandList->ClearDepthStencilView(Target.GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, Target.GetClearDepth(), Target.GetClearStencil(), 0, nullptr);
 }
 
 void GraphicsContext::SetViewportAndScissor( const D3D12_VIEWPORT& vp, const D3D12_RECT& rect )

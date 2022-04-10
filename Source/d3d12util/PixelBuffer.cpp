@@ -22,9 +22,6 @@
 
 #include "stdafx.h"
 #include "PixelBuffer.h"
-//#include "EsramAllocator.h"
-//#include "DX12Engine.h"
-#include "BufferManager.h"
 #include "CommandContext.h"
 #include "ReadbackBuffer.h"
 #include <fstream>

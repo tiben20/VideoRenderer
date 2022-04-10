@@ -55,6 +55,9 @@
     <Filter Include="Header Files\d3d12\d3d12helper\shaders\Includes">
       <UniqueIdentifier>{93403f00-281f-45a6-97d4-add60c4acf57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes">
+      <UniqueIdentifier>{fa6ac954-8f4e-4c18-8e8d-9d6a2cfb75f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -158,12 +161,6 @@
     </ClCompile>
     <ClCompile Include="d3d12util\CommandSignature.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\BufferManager.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\DepthBuffer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClCompile>
     <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
@@ -398,12 +395,6 @@
     <ClInclude Include="d3d12util\CommandSignature.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\BufferManager.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\DepthBuffer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\DynamicDescriptorHeap.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
     </ClInclude>
@@ -637,6 +628,24 @@
     </FxCompile>
     <FxCompile Include="..\Shaders\d3d12\superxbr.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\SuperRes\fxrcnnx.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\SuperRes\fxrcnnx2.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\SuperRes\fxrcnnx6.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\SuperRes\fxrcnnx345.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\SuperRes\fxrcnnx7.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\SuperRes\fxrcnnx8.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

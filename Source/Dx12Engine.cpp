@@ -27,8 +27,6 @@
 #include "DX12Engine.h"
 #include <string>
 #include "CommandListManager.h"
-#include "BufferManager.h"
-
 #include "DisplayConfig.h"
 #include <map>
 
@@ -201,8 +199,6 @@ namespace D3D12Engine
 					m_pDXGISwapChain4->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane));
 					SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", DisplayPlane.Detach());
 				}
-				D3D12Engine::g_OverlayBuffer.Create(L"UI Overlay", w, h, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
-				D3D12Engine::g_HorizontalBuffer.Create(L"Bicubic Intermediate", w, h, 1, DXGI_FORMAT_R10G10B10A2_UNORM);
 				p_CurrentBuffer = 0;
 				D3D12Engine::g_CommandManager.IdleGPU();
 			}
@@ -533,6 +529,8 @@ namespace D3D12Engine
 		int scalingfilter = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
 		if (scalingfilter == 6)
 			ImageScaling::UpscaleXbr(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
+		else if (scalingfilter == 7)
+			ImageScaling::Upscalefxrcnnx(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
 		else
 			ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
 		

@@ -38,7 +38,6 @@
 #include "utility.h"
 #include "GraphicsCommon.h"
 class ColorBuffer;
-class DepthBuffer;
 class Texture;
 class GraphicsContext;
 class ComputeContext;
@@ -217,9 +216,6 @@ public:
     void ClearUAV( ColorBuffer& Target );
     void ClearColor( ColorBuffer& Target, D3D12_RECT* Rect = nullptr);
     void ClearColor(ColorBuffer& Target, float Colour[4], D3D12_RECT* Rect = nullptr);
-    void ClearDepth( DepthBuffer& Target );
-    void ClearStencil( DepthBuffer& Target );
-    void ClearDepthAndStencil( DepthBuffer& Target );
 
     void BeginQuery(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT HeapIndex);
     void EndQuery(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT HeapIndex);

@@ -22,10 +22,7 @@
 
 #include "stdafx.h"
 #include "GpuBuffer.h"
-//#include "DX12Engine.h"
-//#include "EsramAllocator.h"
 #include "CommandContext.h"
-#include "BufferManager.h"
 #include "UploadBuffer.h"
 
 using namespace D3D12Engine;

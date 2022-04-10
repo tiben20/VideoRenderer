@@ -21,7 +21,6 @@
 
 #include "Color.h"
 #include "Math/Vector.h"
-#include "BufferManager.h"
 #include <string>
 
 class Color;

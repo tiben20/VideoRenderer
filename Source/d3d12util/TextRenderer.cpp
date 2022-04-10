@@ -26,7 +26,6 @@
 #include "CommandContext.h"
 #include "PipelineState.h"
 #include "RootSignature.h"
-#include "BufferManager.h"
 #include "Helper.h"
 #include "D3DUtil/FontBitmap.h"
 #include "CompiledShaders/ps_font.h"
@@ -113,11 +112,11 @@ void TextRenderer::Initialize(void)
   s_FontPSO[0].SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
   s_FontPSO[0].SetVertexShader(g_pvs_simple, sizeof(g_pvs_simple));
   s_FontPSO[0].SetPixelShader(g_pps_font, sizeof(g_pps_font));
-  s_FontPSO[0].SetRenderTargetFormats(1, &g_OverlayBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_FontPSO[0].SetRenderTargetFormat(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN);
   s_FontPSO[0].Finalize();
   //hdr
-  s_FontPSO[1] = s_FontPSO[0];
-  s_FontPSO[1].SetRenderTargetFormats(1, &g_SceneColorBuffer.GetFormat(), DXGI_FORMAT_UNKNOWN);
+  s_FontPSO[1] = s_FontPSO[0]; 
+  s_FontPSO[1].SetRenderTargetFormat(DXGI_FORMAT_R11G11B10_FLOAT, DXGI_FORMAT_UNKNOWN);
   s_FontPSO[1].Finalize();
 
   // initialize the character array
@@ -217,13 +216,12 @@ void FontContext::DrawText(const SIZE& rtSize, float sx, float sy, D3DCOLOR colo
   if (color != TextRenderer::m_Color) {
     TextRenderer::m_Color = color;
     DirectX::XMFLOAT4 colorRGBAf = D3D12COLORtoXMFLOAT4(TextRenderer::m_Color);
-    //m_pDeviceContext->UpdateSubresource(m_pPixelBuffer, 0, nullptr, &colorRGBAf, 0, 0);
   }
   m_Context.SetRootSignature(TextRenderer::s_RootSignature);
   m_Context.SetPipelineState(TextRenderer::s_FontPSO[0]);
   m_Context.SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-  m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
+  //m_Context.TransitionResource(g_OverlayBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
   D3D12_VIEWPORT VP;
   VP.TopLeftX = 0;

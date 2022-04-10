@@ -74,5 +74,6 @@ namespace ImageScaling
   void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect,CRect destRect);
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect);
   void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect);
+  void Upscalefxrcnnx(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect);
 
 }

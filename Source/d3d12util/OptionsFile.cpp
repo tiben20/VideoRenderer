@@ -105,6 +105,21 @@ void CD3D12Options::SaveCurrentSettings()
   outfile.open(m_pFilePath.c_str());
   
   std::string currentline;
+  currentline = "[currentupscaler]";  
+  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "scalerid=";
+  currentline.append(std::to_string(m_iCurrentUpScaler));
+  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "[currentdownscaler]";  
+  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "scalerid=";  
+  currentline.append(std::to_string(m_iCurrentDownScaler));
+  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "[currentchromascaler]";  
+  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "scalerid=";
+  currentline.append(std::to_string(m_iCurrentChromaUpscaler));
+  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end();it++)
   {
     currentline = "[";
@@ -228,6 +243,8 @@ void CD3D12Options::CreateSettingsFile()
   currentline="scalerid=6";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline = "[currentdownscaler]";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   currentline = "scalerid=0";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "[currentchromascaler]";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "scalerid=0";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   currentline="[bilinear]";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="[dxva2]";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="[cubic]"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
@@ -241,7 +258,7 @@ void CD3D12Options::CreateSettingsFile()
   currentline="factor=0"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="strength=5"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="sharp=0.000000"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
-  currentline="[superres]"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
+  currentline="[fxrcnnx]"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="function=spline"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="passes=2"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="smoothness=0.200000"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);

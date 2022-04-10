@@ -29,7 +29,7 @@
 #include "dxva2api.h"
 #include "helper.h"
 #include "ImageScaling.h"
-
+#include "Colorbuffer.h"
 #include "descriptorheap.h"
 #include "commandcontext.h"
 #include "dxgi.h"
@@ -105,10 +105,6 @@ namespace D3D12Engine
 	/* Swapchain */
 	extern HWND g_hWnd;
 
-	extern ColorBuffer g_SceneColorBuffer;  // R11G11B10_FLOAT
-	extern ColorBuffer g_SceneNormalBuffer; // R16G16B16A16_FLOAT
-	extern ColorBuffer g_OverlayBuffer;     // R8G8B8A8_UNORM
-	extern ColorBuffer g_HorizontalBuffer;  // For separable (bicubic) upsampling
 	void InitializeRenderingBuffers(uint32_t NativeWidth, uint32_t NativeHeight);
 
 	void DestroyRenderingBuffers();

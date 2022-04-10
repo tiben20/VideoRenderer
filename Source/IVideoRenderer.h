@@ -75,7 +75,7 @@ struct VPEnableFormats_t {
 };
 
 
-struct superresConfig_t {
+struct fxrcnnxConfig_t {
 	int iStrength;//0 to 5
 	float fSharp; // 0 to 1.5
 	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
@@ -85,7 +85,7 @@ struct superxbrConfig_t{
 	float fSharp; // 0 to 1.5
 	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
 };
-struct superresxbrConfig_t {
+struct fxrcnnxxbrConfig_t {
 	int iXbrStrength;//0 to 5
 	float fXbrSharp; // 0 to 1.5
 	int iXbrFactor; //0,1,2,3 but in the player its 2 4 8 or 16

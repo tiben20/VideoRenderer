@@ -33,7 +33,7 @@ static const char* s_upscalername[9] = {
 	{"spline"     },
 	{"jinc"       },
 	{"superxbr"   },
-	{"superres"   },
+	{"fxrcnnx"   },
 	{"superresxbr"},
 };
 static int s_factor[4] = {

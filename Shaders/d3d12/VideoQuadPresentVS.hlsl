@@ -22,25 +22,28 @@
 
 struct VS_INPUT
 {
-    float4 position : POSITION;
+    uint VertID : SV_VertexID;
+    /*float4 position : POSITION;
 		float4 color : COLOR;
-		float2 texCoord1 : TEXCOORD0;
+		float2 texCoord1 : TEXCOORD0;*/
 };
 
 struct VS_OUTPUT
 {
         float4 position : POSITION;
-		float4 color : COLOR;
-		float2 texCoord1 : TEXCOORD0;
+		//float4 color : COLOR;
+		float2 texCoord0 : TEXCOORD;
     };
 
 VS_OUTPUT main( VS_INPUT input)
 {
   VS_OUTPUT output;
+    output.texCoord0 = float2(uint2(input.VertID, input.VertID << 1) & 2);
+    output.position = float4(lerp(float2(-1, 1), float2(1, -1), output.texCoord0), 0, 1);
   // position w is always 1 for video a video have no depth
-    output.position = input.position;
-    output.texCoord1 = input.texCoord1;
-    output.color = input.color;
+    //output.position = input.position;
+    //output.texCoord1 = input.texCoord1;
+    //output.color = input.color;
   return output;
     // Texture coordinates range [0, 2], but only [0, 1] appears on screen.
     //Tex = float2(uint2(VertID, VertID << 1) & 2);

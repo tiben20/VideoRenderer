@@ -27,7 +27,6 @@
 #include "Texture.h"
 #include "PipelineState.h"
 #include "RootSignature.h"
-#include "BufferManager.h"
 
 namespace D3D12Engine
 {
@@ -40,6 +39,7 @@ namespace D3D12Engine
     SamplerDesc SamplerPointBorderDesc;
     SamplerDesc SamplerLinearBorderDesc;
     SamplerDesc SamplerGeometryDesc;
+    SamplerDesc SamplerfxrcnnxDesc;
 
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearWrap;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerAnisoWrap;
@@ -50,6 +50,7 @@ namespace D3D12Engine
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointBorder;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerGeometry;
+    D3D12_CPU_DESCRIPTOR_HANDLE Samplerfxrcnnx;
 
     D3D12_RASTERIZER_DESC RasterizerDefault;	// Counter-clockwise
     D3D12_RASTERIZER_DESC RasterizerDefaultCw;	// Clockwise winding
@@ -62,6 +63,7 @@ namespace D3D12Engine
     D3D12_BLEND_DESC BlendGeometry;
     D3D12_BLEND_DESC BlendFont;
     D3D12_BLEND_DESC BlendSubPic;
+    D3D12_BLEND_DESC Blendfxrcnnx;
     D3D12_DEPTH_STENCIL_DESC DepthStateDisabled;
 
     CommandSignature DispatchIndirectCommandSignature(1);
@@ -124,14 +126,18 @@ void D3D12Engine::InitializeCommonState(void)
     SamplerGeometryDesc.MipLODBias = 0.f;
     SamplerGeometryDesc.MaxAnisotropy = 0;
     SamplerGeometryDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-    //SamplerGeometryDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
     SamplerGeometryDesc.MinLOD = 0.f;
     SamplerGeometryDesc.MaxLOD = 0.f;
-    //SamplerGeometryDesc.ShaderRegister = 0;
-    //SamplerGeometryDesc.RegisterSpace = 0;
-    //SamplerGeometryDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
     SamplerGeometry = SamplerGeometryDesc.CreateDescriptor();
 
+    SamplerfxrcnnxDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+    SamplerfxrcnnxDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+    SamplerfxrcnnxDesc.MipLODBias = 0.f;
+    SamplerfxrcnnxDesc.MaxAnisotropy = 0;
+    SamplerfxrcnnxDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    SamplerfxrcnnxDesc.MinLOD = 0.f;
+    SamplerfxrcnnxDesc.MaxLOD = 0.f;
+    Samplerfxrcnnx = SamplerfxrcnnxDesc.CreateDescriptor();
     // Default rasterizer states
     RasterizerDefault.FillMode = D3D12_FILL_MODE_SOLID;
     RasterizerDefault.CullMode = D3D12_CULL_MODE_BACK;
@@ -207,16 +213,12 @@ void D3D12Engine::InitializeCommonState(void)
     BlendSubPic.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
     BlendSubPic.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
     
-    //might need them for rendering with normal pictures but right now it make it crash on recreate
-    //DispatchIndirectCommandSignature[0].Dispatch();
-    //DispatchIndirectCommandSignature.Finalize();
-
-    //DrawIndirectCommandSignature[0].Draw();
-    //DrawIndirectCommandSignature.Finalize();
+    Blendfxrcnnx = BlendDisable;
+    Blendfxrcnnx.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE; 
+    Blendfxrcnnx.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
+    Blendfxrcnnx.RenderTarget[1] = Blendfxrcnnx.RenderTarget[0];
 }
 
 void D3D12Engine::DestroyCommonState(void)
 {
-    //DispatchIndirectCommandSignature.Destroy();
-    //DrawIndirectCommandSignature.Destroy();
 }
