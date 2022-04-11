@@ -182,6 +182,9 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	m_hWnd = m_hwnd;
 
 	m_pVideoRenderer->GetSettings(m_SetsPP);
+
+	if (!D3D12Engine::g_D3D12Options)
+		D3D12Engine::g_D3D12Options = new CD3D12Options();
 	m_iCurrentUpScaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
 	m_iCurrentChromaUpscaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
 	m_iCurrentDownScaler = D3D12Engine::g_D3D12Options->GetCurrentDownscaler();

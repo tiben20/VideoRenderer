@@ -24,7 +24,7 @@
 #include "ImageScaling.h"
 #include "scaler.h"
 #include "CommandContext.h"
-#include "EngineTuning.h"
+
 
 #include "CompiledShaders/DownScalingFilters.h"
 #include "CompiledShaders/UpscalingFilters.h"
@@ -173,7 +173,7 @@ namespace ImageScaling
 
     UpScalingFiltersPS.SetRootSignature(s_PresentRSScaling);
     UpScalingFiltersPS.SetRasterizerState(D3D12Engine::RasterizerDefault);
-    UpScalingFiltersPS.SetBlendState(D3D12Engine::Blendfxrcnnx);
+    UpScalingFiltersPS.SetBlendState(D3D12Engine::BlendDisable);
     UpScalingFiltersPS.SetDepthStencilState(D3D12Engine::DepthStateDisabled);
     UpScalingFiltersPS.SetSampleMask(0xFFFFFFFF);
     UpScalingFiltersPS.SetInputLayout(0, nullptr);
@@ -363,15 +363,11 @@ namespace ImageScaling
     Context.SetRootSignature(s_SubPicRS);
     Context.SetPipelineState(SubPicPS);
     Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);// D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
     Context.SetDynamicDescriptor(0, 0, resource.GetSRV());
-
     VERTEX_SUBPIC subpicvertex[4];
     CreateVertex(resource.GetWidth(), resource.GetHeight(), alpharect, subpicvertex);
     Context.SetDynamicVB(0, 4, sizeof(VERTEX_SUBPIC), subpicvertex);
-
     Context.Draw(4);
-
     return S_OK;
   }
   

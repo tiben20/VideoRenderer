@@ -94,8 +94,8 @@ namespace D3D12Engine
 	CONSTANT_BUFFER_VAR m_pBufferVar;
 	bool m_PSConvColorData = false;
 
+	ColorBuffer D3D12Engine::GetPreScale() {return m_pVideoOutputResourcePreScale;}
 	
-
 	ColorBuffer D3D12Engine::GetCurrentBackBuffer() { return SwapChainBufferColor[p_CurrentBuffer]; }
 	std::wstring D3D12Engine::GetAdapterDescription() { return m_strAdapterDescription; }
 	DXGI_FORMAT D3D12Engine::GetSwapChainFormat() { return m_SwapChainFmt; }
@@ -449,6 +449,7 @@ namespace D3D12Engine
 
 	HRESULT D3D12Engine::CopySample(ID3D12Resource* resource)
 	{
+		
 		D3D12_RESOURCE_DESC desc;
 		desc = resource->GetDesc();
 

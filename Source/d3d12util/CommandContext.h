@@ -37,8 +37,10 @@
 #include <vector>
 #include "utility.h"
 #include "GraphicsCommon.h"
+#include "d3d12video.h"
 class ColorBuffer;
 class Texture;
+class VideoProcessorContext;
 class GraphicsContext;
 class ComputeContext;
 class UploadBuffer;
@@ -114,7 +116,12 @@ public:
 
     // Prepare to render by reserving a command list and command allocator
     void Initialize(void);
-
+    
+    VideoProcessorContext& GetVideoContext() {
+      ASSERT(m_Type != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
+      return reinterpret_cast<VideoProcessorContext&>(*this);
+    }
+      
     GraphicsContext& GetGraphicsContext() {
         ASSERT(m_Type != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
         return reinterpret_cast<GraphicsContext&>(*this);
@@ -122,6 +129,10 @@ public:
 
     ComputeContext& GetComputeContext() {
         return reinterpret_cast<ComputeContext&>(*this);
+    }
+
+    ID3D12VideoProcessCommandList* GetVideoCommandList(){
+      return m_VideoCommandList;
     }
 
     ID3D12GraphicsCommandList* GetCommandList() {
@@ -181,6 +192,8 @@ protected:
     CommandListManager* m_OwningManager;
     ID3D12GraphicsCommandList* m_CommandList;
     ID3D12CommandAllocator* m_CurrentAllocator;
+    ID3D12VideoProcessCommandList* m_VideoCommandList;
+
 
     ID3D12RootSignature* m_CurGraphicsRootSignature;
     ID3D12RootSignature* m_CurComputeRootSignature;
@@ -274,6 +287,17 @@ public:
         uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
 
 private:
+};
+
+class VideoProcessorContext : public GraphicsContext
+{
+public:
+  static VideoProcessorContext& Begin(const std::wstring& ID = L"")
+  {
+    return CommandContext::Begin(ID).GetVideoContext();
+  }
+  void ProcessFrames(ID3D12VideoProcessor* pVideoProcessor, const D3D12_VIDEO_PROCESS_OUTPUT_STREAM_ARGUMENTS* pOutputArguments,
+    UINT NumInputStreams, const D3D12_VIDEO_PROCESS_INPUT_STREAM_ARGUMENTS* pInputArguments);
 };
 
 class ComputeContext : public CommandContext

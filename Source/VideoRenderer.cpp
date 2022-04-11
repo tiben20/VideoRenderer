@@ -631,7 +631,8 @@ void CMpcVideoRenderer::OnWindowMove()
 	if (GetActive()) {
 		const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 		if (hMon != m_hMon) {
-			if (m_Sets.bReinitByDisplay) {
+			//in d3d12 you dont need display reset
+			if (m_Sets.bReinitByDisplay && !(m_VideoProcessor->Type() == VP_DX12)) {
 				CAutoLock cRendererLock(&m_RendererLock);
 
 				Init(true);

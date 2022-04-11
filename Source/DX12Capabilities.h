@@ -34,6 +34,6 @@ struct VideoCapabilities
 
 namespace D3D12Engine
 {
-  static std::map<DXGI_FORMAT, VideoCapabilities> g_D3D12Capabilities;
+  std::map<DXGI_FORMAT, VideoCapabilities> GetCapabilities();
   void FillD3D12Capabilities();
 };

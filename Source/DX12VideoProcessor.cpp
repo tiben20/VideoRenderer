@@ -300,47 +300,14 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	}
 	if (!D3D12Engine::g_Device)
 		return S_OK;
-	ID3D12VideoDevice* m_pVideoDevice;
-	ID3D12VideoProcessor* m_pVideoProcessor;
-	HRESULT hr = D3D12Engine::g_Device->QueryInterface(IID_PPV_ARGS(&m_pVideoDevice));
-	D3D12_VIDEO_PROCESS_OUTPUT_STREAM_DESC pOutputStreamDesc;
-	D3D12_VIDEO_PROCESS_INPUT_STREAM_DESC pInputStreamDescs;
-	pInputStreamDescs = {};
-	pInputStreamDescs.Format = DXGI_FORMAT_NV12;
-	pInputStreamDescs.ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
-	pInputStreamDescs.SourceAspectRatio = DXGI_RATIONAL({ 800, 600 });
-	pInputStreamDescs.DestinationAspectRatio = DXGI_RATIONAL({ 800, 600 });
-	pInputStreamDescs.FrameRate = DXGI_RATIONAL({ 24, 1 });
-	pInputStreamDescs.SourceSizeRange = D3D12_VIDEO_SIZE_RANGE({ 800,600,600,400 });
-	pInputStreamDescs.DestinationSizeRange = D3D12_VIDEO_SIZE_RANGE({ 800,600,600,400 });
-	pInputStreamDescs.EnableOrientation = false;
-	pInputStreamDescs.FilterFlags = D3D12_VIDEO_PROCESS_FILTER_FLAG_NONE;
-	pInputStreamDescs.StereoFormat = D3D12_VIDEO_FRAME_STEREO_FORMAT_NONE;
-	pInputStreamDescs.FieldType = D3D12_VIDEO_FIELD_TYPE_NONE;
-	pInputStreamDescs.DeinterlaceMode = D3D12_VIDEO_PROCESS_DEINTERLACE_FLAG_NONE;
-	pInputStreamDescs.EnableAlphaBlending = 0;
-	pInputStreamDescs.LumaKey = D3D12_VIDEO_PROCESS_LUMA_KEY({0,0,0});
-	pInputStreamDescs.NumPastFrames = 0;
-	pInputStreamDescs.NumFutureFrames = 0;
-	pInputStreamDescs.EnableAutoProcessing = 0;
-	pOutputStreamDesc.Format = DXGI_FORMAT_NV12;
-	pOutputStreamDesc.ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
-	pOutputStreamDesc.AlphaFillMode = D3D12_VIDEO_PROCESS_ALPHA_FILL_MODE_OPAQUE;
-	pOutputStreamDesc.AlphaFillModeSourceStreamIndex = 0;
-	pOutputStreamDesc.BackgroundColor[0] = 1.0f;
-	pOutputStreamDesc.BackgroundColor[1] = 1.0f;
-	pOutputStreamDesc.BackgroundColor[2] = 1.0f;
-	pOutputStreamDesc.BackgroundColor[3] = 1.0f;
-	pOutputStreamDesc.FrameRate = DXGI_RATIONAL({ 24, 1 });
-	pOutputStreamDesc.EnableStereo = 0;
-	hr = m_pVideoDevice->CreateVideoProcessor(0, &pOutputStreamDesc, 1, &pInputStreamDescs, IID_PPV_ARGS(&m_pVideoProcessor));
-	D3D12_FEATURE_DATA_VIDEO_PROCESS_REFERENCE_INFO formatInfo = {};
-	hr = m_pVideoDevice->CheckFeatureSupport(D3D12_FEATURE_VIDEO_PROCESS_REFERENCE_INFO, &formatInfo, sizeof(D3D12_FEATURE_DATA_VIDEO_PROCESS_REFERENCE_INFO));
-
+	
 	if (D3D12Engine::g_CommandManager.GetGraphicsQueue().IsReady())
 		return S_OK;
 
 	D3D12Engine::g_CommandManager.Create(D3D12Engine::g_Device);
+	//INIT videoprocessor
+	m_D3D12VP.InitVideoDevice(D3D12Engine::g_Device);
+	
 	D3D12Engine::InitializeCommonState();
 	TextRenderer::Initialize();
 	GeometryRenderer::Initialize();
@@ -429,7 +396,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 	//CheckPointer(m_pDXGISwapChain1, E_FAIL);
 
 	uint64_t tick = GetPreciseTick();
-
+	
 	// Get frame type
   // no interlace is progressive
 	m_SampleFormat = D3D12_VIDEO_FIELD_TYPE_NONE;
@@ -503,7 +470,12 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 			return hr;
 		}
 
+		//TODO
+		//m_D3D12VP.Process(pD3D12Resource, nullptr);
+
+
 		hr = D3D12Engine::CopySample(pD3D12Resource);
+		
 	}
 	else if (CComQIPtr<IMFGetService> pService = pSample)
 	{
@@ -653,6 +625,7 @@ HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 		m_bSWRendering = true;
 		UpdateStatsStatic();
 	}
+	
 	return S_OK;
 }
 
@@ -680,9 +653,11 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	m_rtStart = rtStart;
 	CRefTime rtClock(rtStart);
 
-	
+	//calculate time
+	uint64_t copystart = GetPreciseTick();
 	hr = CopySample(pSample);
-
+	uint64_t copyend = GetPreciseTick();
+	uint64_t copydiff = copyend - copystart;
 	if (FAILED(hr))
 	{
 		m_RenderStats.failed++;
@@ -900,6 +875,10 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 	m_iSrcFromGPU = 12;/* this will add D3D12 in the stats*/
 	//we dont use the video processor yet but at least set the src height and width
 
+	
+	HRESULT hr = m_D3D12VP.InitVideoProcessor(m_srcParams.VP11Format, origW, origH,false,m_srcParams.VP11Format);
+	if (FAILED(hr))
+		DLog(L"failed initiating the d3d12 video processor");
 #ifdef TODO
 	// D3D11 Video Processor
 	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN && !(m_VendorId == PCIV_NVIDIA && FmtParams.CSType == CS_RGB)) {
@@ -1221,10 +1200,35 @@ bool CDX12VideoProcessor::Initialized()
   return false;
 }
 
+void CDX12VideoProcessor::ReleaseVP()
+{
+	DLog(L"CDX11VideoProcessor::ReleaseVP()");
+
+	m_pFilter->ResetStreamingTimes2();
+	m_RenderStats.Reset();
+
+	/*m_TexSrcVideo.Release();
+	m_TexConvertOutput.Release();
+	m_TexResize.Release();
+	m_TexsPostScale.Release();
+
+	m_PSConvColorData.Release();
+	*/
+	m_D3D12VP.ReleaseVideoProcessor();
+	m_strCorrection = nullptr;
+
+	m_srcParams = {};
+	//m_srcDXGIFormat = DXGI_FORMAT_UNKNOWN;
+	m_srcDXVA2Format = D3DFMT_UNKNOWN;
+	m_pConvertFn = nullptr;
+	m_srcWidth = 0;
+	m_srcHeight = 0;
+}
 void CDX12VideoProcessor::ReleaseDevice()
 {
 	DLog(L"CDX12VideoProcessor::ReleaseDevice()");
-	
+	ReleaseVP();
+	m_D3D12VP.ReleaseVideoDevice();
 	m_pVertexBuffer.Destroy();
 	m_pIndexBuffer.Destroy();
 	m_pViewpointShaderConstant.Destroy();

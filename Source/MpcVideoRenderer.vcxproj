@@ -76,7 +76,6 @@
     <ClCompile Include="d3d12util\D3D12PropPage.cpp" />
     <ClCompile Include="d3d12util\DescriptorHeap.cpp" />
     <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp" />
-    <ClCompile Include="d3d12util\EngineTuning.cpp" />
     <ClCompile Include="d3d12util\FileUtility.cpp" />
     <ClCompile Include="d3d12util\GeometryRenderer.cpp" />
     <ClCompile Include="d3d12util\GpuBuffer.cpp" />
@@ -145,7 +144,6 @@
     <ClInclude Include="d3d12util\d3dx12.h" />
     <ClInclude Include="d3d12util\DescriptorHeap.h" />
     <ClInclude Include="d3d12util\DynamicDescriptorHeap.h" />
-    <ClInclude Include="d3d12util\EngineTuning.h" />
     <ClInclude Include="d3d12util\FileUtility.h" />
     <ClInclude Include="d3d12util\GeometryRenderer.h" />
     <ClInclude Include="d3d12util\GpuBuffer.h" />

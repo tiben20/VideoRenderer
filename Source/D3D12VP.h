@@ -23,16 +23,14 @@
 #include <d3d12.h>
 #include <d3d12video.h>
 #include "d3dx12.h"
-
+#include "colorbuffer.h"
 // D3D11 Video Processor
 class CD3D12VP
 {
 private:
-	
 	CComPtr<ID3D12VideoDevice> m_pVideoDevice;
-	
-
-
+	CComPtr<ID3D12VideoProcessor> m_pVideoProcessor;
+	CRect m_srcRect;
 public:
 	HRESULT InitVideoDevice(ID3D12Device *pDevice);
 	void ReleaseVideoDevice();
@@ -43,6 +41,6 @@ public:
 	HRESULT InitInputTextures(ID3D12Device* pDevice);
 
 	bool IsVideoDeviceOk() { return (m_pVideoDevice != nullptr); }
-	
+	HRESULT Process(ID3D12Resource* target, ID3D12Resource* sub);
 
 };

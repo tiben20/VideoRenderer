@@ -685,3 +685,9 @@ void CommandContext::PIXSetMarker(const wchar_t* label)
   assert(0);//::PIXSetMarker(m_CommandList, 0, label);
 #endif
 }
+
+void VideoProcessorContext::ProcessFrames(ID3D12VideoProcessor* pVideoProcessor, const D3D12_VIDEO_PROCESS_OUTPUT_STREAM_ARGUMENTS* pOutputArguments,
+  UINT NumInputStreams, const D3D12_VIDEO_PROCESS_INPUT_STREAM_ARGUMENTS* pInputArguments)
+{
+  m_VideoCommandList->ProcessFrames(pVideoProcessor, pOutputArguments, NumInputStreams, pInputArguments);
+}

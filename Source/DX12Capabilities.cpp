@@ -176,8 +176,10 @@ namespace D3D12Engine
     //cap += caps.Texture2D ? L"Yes":L"No";
     return str;
   }
-  void D3D12Engine::FillD3D12Capabilities()
+
+  std::map<DXGI_FORMAT, VideoCapabilities> D3D12Engine::GetCapabilities()
   {
+    std::map<DXGI_FORMAT, VideoCapabilities> capsv;
     static const DXGI_FORMAT cfsVideo[] =
     {
         DXGI_FORMAT_NV12,
@@ -218,11 +220,18 @@ namespace D3D12Engine
       caps.Input = (fmtSupport.Support1 & D3D12_FORMAT_SUPPORT1_VIDEO_PROCESSOR_INPUT);
       caps.Output = (fmtSupport.Support1 & D3D12_FORMAT_SUPPORT1_VIDEO_PROCESSOR_OUTPUT);
       caps.Encoder = (fmtSupport.Support1 & D3D12_FORMAT_SUPPORT1_VIDEO_ENCODER);
-      g_D3D12Capabilities.insert({ cfsVideo[i], caps });
+      capsv.insert({ cfsVideo[i], caps });
       output = FormatName(cfsVideo[i]);
       output = FormatCaps(caps);
       DLog(L"D3D12Device video capabilties for format DXGI adapter: {}", output.c_str());
+      
     }
+    return capsv;
+  }
+
+  void D3D12Engine::FillD3D12Capabilities()
+  {
+    
   }
 };
 

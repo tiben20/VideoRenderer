@@ -144,7 +144,7 @@ public:
 	
 private:
 	void ReleaseDevice();
-	
+	void ReleaseVP();
 
 	bool HandleHDRToggle();
 	bool m_bForceD3D12 = false;

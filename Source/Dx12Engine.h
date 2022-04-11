@@ -97,7 +97,7 @@ namespace D3D12Engine
 	void Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
 	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
 
-	
+	ColorBuffer GetPreScale();
 	void PresentBackBuffer(GraphicsContext& Context);
 	void WaitForVBlank();
 	void Present();
