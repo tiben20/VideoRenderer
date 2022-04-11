@@ -59,7 +59,8 @@ CommandListManager::CommandListManager() :
     m_Device(nullptr),
     m_GraphicsQueue(D3D12_COMMAND_LIST_TYPE_DIRECT),
     m_ComputeQueue(D3D12_COMMAND_LIST_TYPE_COMPUTE),
-    m_CopyQueue(D3D12_COMMAND_LIST_TYPE_COPY)
+    m_CopyQueue(D3D12_COMMAND_LIST_TYPE_COPY),
+    m_VideoQueue(D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
 {
 }
 
@@ -75,6 +76,7 @@ void CommandListManager::Shutdown()
     m_GraphicsQueue.Shutdown();
     m_ComputeQueue.Shutdown();
     m_CopyQueue.Shutdown();
+    m_VideoQueue.Shutdown();
 }
 
 void CommandQueue::Create(ID3D12Device* pDevice)
@@ -110,6 +112,32 @@ void CommandListManager::Create(ID3D12Device* pDevice)
     m_GraphicsQueue.Create(pDevice);
     m_ComputeQueue.Create(pDevice);
     m_CopyQueue.Create(pDevice);
+    m_VideoQueue.Create(pDevice);
+}
+
+void CommandListManager::CreateNewVideoCommandList(D3D12_COMMAND_LIST_TYPE Type, ID3D12VideoProcessCommandList** List, ID3D12CommandAllocator** Allocator)
+{
+  ASSERT(Type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
+  switch (Type)
+  {
+  case D3D12_COMMAND_LIST_TYPE_DIRECT: *Allocator = m_GraphicsQueue.RequestAllocator(); break;
+  case D3D12_COMMAND_LIST_TYPE_BUNDLE: break;
+  case D3D12_COMMAND_LIST_TYPE_COMPUTE: *Allocator = m_ComputeQueue.RequestAllocator(); break;
+  case D3D12_COMMAND_LIST_TYPE_COPY: *Allocator = m_CopyQueue.RequestAllocator(); break;
+  case D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS: *Allocator = m_VideoQueue.RequestAllocator(); break;
+  }
+
+  if (Type == D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
+  {
+    EXECUTE_ASSERT(S_OK == m_Device->CreateCommandList(1, Type, *Allocator, nullptr, IID_ID3D12VideoProcessCommandList, (void**)List));
+
+  }
+  if (Type != D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
+  {
+    EXECUTE_ASSERT(S_OK == m_Device->CreateCommandList(1, Type, *Allocator, nullptr, IID_PPV_ARGS(List)));
+    (*List)->SetName(L"CommandList");
+  }
+
 }
 
 void CommandListManager::CreateNewCommandList( D3D12_COMMAND_LIST_TYPE Type, ID3D12GraphicsCommandList** List, ID3D12CommandAllocator** Allocator )
@@ -121,10 +149,20 @@ void CommandListManager::CreateNewCommandList( D3D12_COMMAND_LIST_TYPE Type, ID3
     case D3D12_COMMAND_LIST_TYPE_BUNDLE: break;
     case D3D12_COMMAND_LIST_TYPE_COMPUTE: *Allocator = m_ComputeQueue.RequestAllocator(); break;
     case D3D12_COMMAND_LIST_TYPE_COPY: *Allocator = m_CopyQueue.RequestAllocator(); break;
+    case D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS: *Allocator = m_VideoQueue.RequestAllocator(); break;
+    }
+
+    if (Type == D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
+    {
+      EXECUTE_ASSERT(S_OK == m_Device->CreateCommandList(1, Type, *Allocator, nullptr, IID_ID3D12VideoProcessCommandList, (void**)List));
+      
+    }
+    if (Type != D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
+    {
+       EXECUTE_ASSERT(S_OK ==  m_Device->CreateCommandList(1, Type, *Allocator, nullptr, IID_PPV_ARGS(List)) );
+       (*List)->SetName(L"CommandList");
     }
     
-    EXECUTE_ASSERT(S_OK ==  m_Device->CreateCommandList(1, Type, *Allocator, nullptr, IID_PPV_ARGS(List)) );
-    (*List)->SetName(L"CommandList");
 }
 
 uint64_t CommandQueue::ExecuteCommandList( ID3D12CommandList* List )

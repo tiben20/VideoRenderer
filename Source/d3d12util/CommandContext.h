@@ -78,8 +78,8 @@ public:
     void DestroyAllContexts();
 
 private:
-    std::vector<std::unique_ptr<CommandContext> > sm_ContextPool[4];
-    std::queue<CommandContext*> sm_AvailableContexts[4];
+    std::vector<std::unique_ptr<CommandContext> > sm_ContextPool[6];
+    std::queue<CommandContext*> sm_AvailableContexts[6];
     std::mutex sm_ContextAllocationMutex;
 };
 
@@ -107,12 +107,15 @@ public:
     static void DestroyAllContexts(void);
 
     static CommandContext& Begin(const std::wstring ID = L"");
+    static CommandContext& BeginVideo(const std::wstring ID = L"");
 
     // Flush existing commands to the GPU but keep the context alive
     uint64_t Flush( bool WaitForCompletion = false );
 
     // Flush existing commands and release the current context
     uint64_t Finish( bool WaitForCompletion = false );
+
+    uint64_t FinishVideo(bool WaitForCompletion = false);
 
     // Prepare to render by reserving a command list and command allocator
     void Initialize(void);
@@ -289,15 +292,19 @@ public:
 private:
 };
 
-class VideoProcessorContext : public GraphicsContext
+class VideoProcessorContext : public CommandContext
 {
 public:
   static VideoProcessorContext& Begin(const std::wstring& ID = L"")
   {
-    return CommandContext::Begin(ID).GetVideoContext();
+    CommandContext& CommandContext = CommandContext::BeginVideo(ID);
+    return CommandContext.GetVideoContext();
   }
   void ProcessFrames(ID3D12VideoProcessor* pVideoProcessor, const D3D12_VIDEO_PROCESS_OUTPUT_STREAM_ARGUMENTS* pOutputArguments,
     UINT NumInputStreams, const D3D12_VIDEO_PROCESS_INPUT_STREAM_ARGUMENTS* pInputArguments);
+  
+  uint64_t FlushVideo(bool WaitForCompletion);
+
 };
 
 class ComputeContext : public CommandContext

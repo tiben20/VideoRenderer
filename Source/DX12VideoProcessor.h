@@ -97,7 +97,8 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	bool m_bSWRendering = false;
-	
+	std::wstring m_pCurrentRenderTiming;
+	int m_pStatsDelay = 0;
 
 
 	bool resetquad = false;
@@ -154,26 +155,13 @@ private:
 	};
 	HDRMetadata m_hdr10 = {};
 	HDRMetadata m_lastHdr10 = {};
-
-	
-
-	
-	
-
 	bool m_bCallbackDeviceIsSet = false;
 
 	void SetCallbackDevice(const bool bChangeDevice = false);
 //CVideoProcessor
 	void SetGraphSize() override;
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
-
-	
-	
-
-	
-
 	HRESULT Process(GraphicsContext& Context, const CRect& srcRect, const CRect& dstRect, const bool second);
-
 	HRESULT ProcessSample(IMediaSample* pSample) override;
 	HRESULT CopySample(IMediaSample* pSample);
 

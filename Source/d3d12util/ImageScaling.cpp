@@ -97,7 +97,9 @@ namespace ImageScaling
     s_PresentRSColor.InitStaticSampler(0, SamplerLinearClampDesc);
     s_PresentRSColor.InitStaticSampler(1, SamplerPointClampDesc);
     s_PresentRSColor.Finalize(L"Present");
-
+    //for use of NumVar BoolVar IntVar ExpVar EnumVar DynamicEnumVar
+    //s_PresentRS[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+    //context.SetConstants(1, scaleX, scaleY, (float)BicubicUpsampleWeight);
     s_PresentRSScaling.Reset(4, 2);
     s_PresentRSScaling[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
     s_PresentRSScaling[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_ALL);
@@ -603,6 +605,7 @@ namespace ImageScaling
       scaler->CreateTexture(L"tex2", srcRect, DXGI_FORMAT_R16G16B16A16_FLOAT);
       scaler->CreateTexture(L"tex3", srcRect, DXGI_FORMAT_R16G16B16A16_FLOAT);
       scaler->CreateTexture(L"tex4", srcRect, DXGI_FORMAT_R16G16B16A16_FLOAT);
+      scaler->g_bTextureCreated = true;
     }
     
 
@@ -723,6 +726,18 @@ namespace ImageScaling
       UpScalingConstantBuffer.axis = 1;
 
     UpScalingConstantBuffer.filter = g_D3D12Options->GetCurrentUpscaler();
+    //upscaler not implemented fallback to cubic
+    if (UpScalingConstantBuffer.filter == 0 || UpScalingConstantBuffer.filter == 1 || UpScalingConstantBuffer.filter == 5 
+      || UpScalingConstantBuffer.filter == 7 || UpScalingConstantBuffer.filter == 8)
+    {
+      UpScalingConstantBuffer.filter = 2;
+    }
+    if (UpScalingConstantBuffer.filter == 2)
+    {
+      //bicubic
+      //todo set this settings from -1.0f to -0.25f with 0.25 step
+      UpScalingConstantBuffer.scale.x = -1.0f;
+    }
     if (UpScalingConstantBuffer.filter == 3)
       UpScalingConstantBuffer.lanczostype = g_D3D12Options->GetScaler("lanczos")->GetInt("lanczostype");
     if (UpScalingConstantBuffer.filter == 4)
@@ -738,6 +753,7 @@ namespace ImageScaling
       UpScalingConstantBuffer.jinc2.y = 0.5f;//s_jincsinc[opt->GetInt("sinc")];
       UpScalingConstantBuffer.jinc2.z = 0.5f;//s_jincsinc[opt->GetInt("str")];
     }
+    
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_UPSCALE_BUFFER), &UpScalingConstantBuffer);
     Context.Draw(3);
   }
@@ -755,6 +771,10 @@ namespace ImageScaling
     DownScalingFiltersPS.FreePSO();
     SubPicPS.FreePSO();
     VideoRessourceCopyPS.FreePSO();
+    for (CD3D12Scaler* i : m_pScalers)
+    {
+      i->FreeTexture();
+    }
     m_pScalers.clear();
     fxrcnnxFilterPS.FreePSO();
     fxrcnnxFilter2PS.FreePSO();

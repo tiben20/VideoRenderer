@@ -471,8 +471,9 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 		}
 
 		//TODO
-		//m_D3D12VP.Process(pD3D12Resource, nullptr);
-
+#if 1
+		m_D3D12VP.Process(pD3D12Resource, nullptr);
+#endif
 
 		hr = D3D12Engine::CopySample(pD3D12Resource);
 		
@@ -563,7 +564,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 
 		}
 	}
-
+	m_RenderStats.copyticks = GetPreciseTick() - tick;
 	return hr;
 }
 
@@ -653,11 +654,9 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	m_rtStart = rtStart;
 	CRefTime rtClock(rtStart);
 
-	//calculate time
-	uint64_t copystart = GetPreciseTick();
+
 	hr = CopySample(pSample);
-	uint64_t copyend = GetPreciseTick();
-	uint64_t copydiff = copyend - copystart;
+	
 	if (FAILED(hr))
 	{
 		m_RenderStats.failed++;
@@ -875,10 +874,13 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 	m_iSrcFromGPU = 12;/* this will add D3D12 in the stats*/
 	//we dont use the video processor yet but at least set the src height and width
 
-	
+#if 1
 	HRESULT hr = m_D3D12VP.InitVideoProcessor(m_srcParams.VP11Format, origW, origH,false,m_srcParams.VP11Format);
 	if (FAILED(hr))
 		DLog(L"failed initiating the d3d12 video processor");
+	else
+		m_D3D12VP.InitInputTextures();
+#endif
 #ifdef TODO
 	// D3D11 Video Processor
 	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN && !(m_VendorId == PCIV_NVIDIA && FmtParams.CSType == CS_RGB)) {
@@ -1360,25 +1362,25 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 {
 	if (m_windowRect.IsRectEmpty())
 		return;
-	
+
 	if (!m_bShowStats)
 	{
 		return;
 	}
-	
+
 	GeometryContext BackgroundWindow(Context);
 	BackgroundWindow.Begin();
 	SIZE rtSize = m_windowRect.Size();
 	//need to put the view port before rendering or we lose it outside the rendering window
 	Context.SetViewportAndScissor(m_windowRect.left, m_windowRect.top, m_windowRect.Width(), m_windowRect.Height());
-	BackgroundWindow.DrawRectangle(m_StatsRect,rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
+	BackgroundWindow.DrawRectangle(m_StatsRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
 	BackgroundWindow.End();
 
 	std::wstring str;
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
-	
+
 	//TODO interlace
 	wchar_t frametype = (m_SampleFormat != D3D12_VIDEO_FIELD_TYPE_NONE) ? 'i' : 'p';
 	str += fmt::format(
@@ -1426,13 +1428,28 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	str.append(m_strStatsPresent);
 	str += fmt::format(L"\nFrames: {:5}, skipped: {}/{}, failed: {}",
 		m_pFilter->m_FrameStats.GetFrames(), m_pFilter->m_DrawStats.m_dropped, m_RenderStats.dropped2, m_RenderStats.failed);
-	str += fmt::format(L"\nTimes(ms): Copy{:3}, Paint{:3} [DX9Subs{:3}], Present{:3}",
-		m_RenderStats.copyticks * 1000 / GetPreciseTicksPerSecondI(),
-		m_RenderStats.paintticks * 1000 / GetPreciseTicksPerSecondI(),
-		m_RenderStats.substicks * 1000 / GetPreciseTicksPerSecondI(),
-		m_RenderStats.presentticks * 1000 / GetPreciseTicksPerSecondI());
-	str += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
-	
+
+	if (m_pStatsDelay == 0)
+	{
+		m_pCurrentRenderTiming = fmt::format(L"\nTimings:");
+		uint64_t ticks = GetPreciseTicksPerSecondI();
+		float copy = (float)(m_RenderStats.copyticks * 1000) / ticks;
+		m_pCurrentRenderTiming += fmt::format(L"\nCopy: {:.{}f}ms", copy, 2);
+		float paint = (float)(m_RenderStats.paintticks * 1000) / ticks;
+		m_pCurrentRenderTiming += fmt::format(L"\nPaint: {:.{}f}ms", paint, 2);
+		if (m_bSubPicWasRendered)
+		{
+			float sub = (float)(m_RenderStats.substicks * 1000) / ticks;
+			m_pCurrentRenderTiming += fmt::format(L"\nSubtitles: {:.{}f}ms", sub, 2);
+		}
+		float present = (float)(m_RenderStats.presentticks * 1000) / ticks;
+		m_pCurrentRenderTiming += fmt::format(L"\nPresent: {:.{}f}ms", present, 2);
+		m_pCurrentRenderTiming += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
+	}
+	str.append(m_pCurrentRenderTiming);
+	m_pStatsDelay += 1;
+	if (m_pStatsDelay == 10)
+		m_pStatsDelay = 0;
 	//load font will return immediatly if already loaded
 	TextRenderer::LoadFont(L"Consolas", m_StatsFontH, 0);
 	FontContext textRenderer(Context);
@@ -1551,15 +1568,12 @@ HRESULT CDX12VideoProcessor::Render(int field)
 		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource, pBackBuffer, m_pAlphaBitmapVertex, &VP, m_pSamplerLinear);
 #endif
 	}
-
-
-	m_RenderStats.substicks = tick2 - tick1; // after DrawStats to relate to paintticks
-	uint64_t tick3 = GetPreciseTick();
-	m_RenderStats.paintticks = tick3 - tick1;
 	//TODO ADD HDR METADATA
 
 	D3D12Engine::PresentBackBuffer(pVideoContext);
-
+	m_RenderStats.substicks = tick2 - tick1; // after DrawStats to relate to paintticks
+	uint64_t tick3 = GetPreciseTick();
+	m_RenderStats.paintticks = tick3 - tick1;
 	pVideoContext.TransitionResource(D3D12Engine::GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_PRESENT);
 	pVideoContext.Finish();
 	

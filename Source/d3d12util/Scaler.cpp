@@ -48,6 +48,14 @@ void CD3D12Scaler::CreateTexture(std::wstring name, CRect rect, DXGI_FORMAT fmt)
   
 }
 
+void CD3D12Scaler::FreeTexture()
+{
+  for (std::map<std::wstring,ColorBuffer>::iterator it = m_pScalingTexture.begin(); it != m_pScalingTexture.end(); it++)
+  {
+    it->second.DestroyBuffer();
+  }
+
+}
 void CD3D12Scaler::SetRenderTargets(GraphicsContext& Context, std::vector<std::wstring> targets, bool setResourceState)
 {
   

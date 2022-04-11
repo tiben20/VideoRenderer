@@ -80,6 +80,8 @@ public:
   void SetTextureSrv(GraphicsContext& Context, std::wstring name, int index, int table, bool setResourceState = true);
   void SetRenderTargets(GraphicsContext& Context, std::vector<std::wstring> targets, bool setResourceState=false);
   bool         g_bTextureCreated = false;
+
+  void FreeTexture();
 private:
   std::wstring m_pName;
   bool         m_bFirstPass = true;

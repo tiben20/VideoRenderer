@@ -57,9 +57,17 @@ public:
 	int GetCurrentUpscaler() { return m_iCurrentUpScaler; }
   int GetCurrentDownscaler() { return m_iCurrentDownScaler; }
 	int GetCurrentChromaUpscaler() { return m_iCurrentChromaUpscaler; }
+	int GetCurrentDecoderBufferCount() { return m_iDecoderBufferCount; }
+	int GetCurrentUploadBufferCount() { return m_iUploadBufferCount; }
+	int GetCurrentRenderBufferCount() { return m_iRenderBufferCount; }
+	int GetCurrentPresentBufferCount() { return m_iPresentBufferCount; }
 	void SetCurrentUpscaler(int x) { m_iCurrentUpScaler =x ; }
 	void SetCurrentDownscaler(int x) { m_iCurrentDownScaler = x; }
 	void SetCurrentChromaUpscaler(int x) { m_iCurrentChromaUpscaler = x; }
+	void SetCurrentDecoderBufferCount(int x) { m_iDecoderBufferCount = x; }
+	void SetCurrentUploadBufferCount(int x) { m_iUploadBufferCount = x; }
+	void SetCurrentRenderBufferCount(int x) { m_iRenderBufferCount = x; }
+	void SetCurrentPresentBufferCount(int x) { m_iPresentBufferCount = x; }
 	void SetScaler(std::string name, CScalerOption* opt)
 	{
 		for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
@@ -84,6 +92,10 @@ public:
 private:
 	std::vector<CScalerOption*> m_pOptions;
 	std::string m_pFilePath;
+	int m_iDecoderBufferCount;
+	int m_iUploadBufferCount;
+	int m_iRenderBufferCount;
+	int m_iPresentBufferCount;
 	int m_iCurrentUpScaler;
 	int m_iCurrentDownScaler;
 	int m_iCurrentChromaUpscaler;

@@ -105,20 +105,23 @@ void CD3D12Options::SaveCurrentSettings()
   outfile.open(m_pFilePath.c_str());
   
   std::string currentline;
-  currentline = "[currentupscaler]";  
+  currentline = "[renderersettings]";  
+
   outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "scalerid=";
+  currentline = "currentupscaler=";
   currentline.append(std::to_string(m_iCurrentUpScaler));
-  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "[currentdownscaler]";  
-  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "scalerid=";  
+  currentline += "\ncurrentchromascaler=";  
   currentline.append(std::to_string(m_iCurrentDownScaler));
-  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "[currentchromascaler]";  
-  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "scalerid=";
+  currentline += "\ncurrentdownscaler=";
   currentline.append(std::to_string(m_iCurrentChromaUpscaler));
+  currentline += "\ndecoderbuffercount=";
+  currentline.append(std::to_string(m_iDecoderBufferCount));
+  currentline += "\nuploadbuffercount=";
+  currentline.append(std::to_string(m_iUploadBufferCount));
+  currentline += "\nrenderbuffercount=";
+  currentline.append(std::to_string(m_iRenderBufferCount));
+  currentline += "\npresentbuffercount=";
+  currentline.append(std::to_string(m_iPresentBufferCount));
   outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end();it++)
   {
@@ -179,31 +182,33 @@ void CD3D12Options::OpenSettingsFile()
       }
       if (scaler.size() > 0)
       {
-        if (scaler == "currentupscaler")
+        if (scaler.find("renderersettings") != std::string::npos)
         {
-          std::getline(infile, line);
-          option = GetOptionRegEx(line);
-          m_iCurrentUpScaler = std::stoi(option.second);
-          //got the currenetscaler get a new line and next
-          std::getline(infile, line);
-          goto scaler;
-        }
-        if (scaler == "currentdownscaler")
-        {
-          std::getline(infile, line);
-          option = GetOptionRegEx(line);
-          m_iCurrentDownScaler = std::stoi(option.second);
-          //got the currenetscaler get a new line and next
-          std::getline(infile, line);
-          goto scaler;
-        }
-        if (scaler == "currentchromascaler")
-        {
-          std::getline(infile, line);
-          option = GetOptionRegEx(line);
-          m_iCurrentChromaUpscaler = std::stoi(option.second);
-          //got the currenetscaler get a new line and next
-          std::getline(infile, line);
+          while (std::getline(infile, line))
+          {
+            if (line.find("[") == 0)
+            {
+              scaler = GetScalerRegEx(line);
+              goto scaler;
+            }
+
+            option = GetOptionRegEx(line);
+            if (option.first.find("currentupscaler") != std::string::npos)
+              m_iCurrentUpScaler = std::stoi(option.second);
+            if (option.first.find("currentdownscaler") != std::string::npos)
+              m_iCurrentDownScaler = std::stoi(option.second);
+            if (option.first.find("currentchromascaler") != std::string::npos)
+              m_iCurrentChromaUpscaler = std::stoi(option.second);
+            if (option.first.find("decoderbuffercount") != std::string::npos)
+              m_iDecoderBufferCount = std::stoi(option.second);
+            if (option.first.find("uploadbuffercount") != std::string::npos)
+              m_iUploadBufferCount = std::stoi(option.second);
+            if (option.first.find("renderbuffercount") != std::string::npos)
+              m_iRenderBufferCount = std::stoi(option.second);
+            if (option.first.find("presentbuffercount") != std::string::npos)
+              m_iPresentBufferCount = std::stoi(option.second);
+            //got the currenetscaler get a new line and next
+          }
           goto scaler;
         }
         optscaler = new CScalerOption(scaler.c_str());
@@ -239,12 +244,15 @@ void CD3D12Options::CreateSettingsFile()
   outfile.open(m_pFilePath.c_str());
   std::string currentline;
   
-  currentline="[currentupscaler]";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
-  currentline="scalerid=6";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
-  currentline = "[currentdownscaler]";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline="[renderersettings]";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
+  currentline="currentupscaler=2";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
+  currentline = "currentchromascaler=0";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   currentline = "scalerid=0";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "[currentchromascaler]";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  currentline = "scalerid=0";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "currentdownscaler=0";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "decoderbuffercount=16";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "uploadbuffercount=8";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "renderbuffercount=8";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
+  currentline = "presentbuffercount=8";  outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   currentline="[bilinear]";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="[d3d12]";  outfile.write(currentline.append("\n").c_str(), currentline.size()+1);
   currentline="[cubic]"; outfile.write(currentline.append("\n").c_str(), currentline.size()+1);

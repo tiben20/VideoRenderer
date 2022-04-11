@@ -55,6 +55,8 @@ HRESULT CD3D12VP::InitVideoProcessor(const DXGI_FORMAT inputFmt, const UINT widt
 {
 	ReleaseVideoProcessor();
 	HRESULT hr = S_OK;
+	m_pInputFormat = inputFmt;
+	m_pOutputFormat = outputFmt;
 	bool inputfmtok = false;
 	bool outputfmtok = false;
 	m_srcRect.left = 0; m_srcRect.top = 0;
@@ -134,11 +136,12 @@ void CD3D12VP::ReleaseVideoProcessor()
 	m_pVideoProcessor.Release();
 }
 
-HRESULT CD3D12VP::InitInputTextures(ID3D12Device* pDevice)
+HRESULT CD3D12VP::InitInputTextures()
 {
 	
 	HRESULT hr = E_FAIL;
-	
+	m_pInputTextures.CreateVideoTexture(m_srcRect.Width(), m_srcRect.Height(), m_pInputFormat);
+	m_pOutputTextures.CreateVideoTexture(m_srcRect.Width(), m_srcRect.Height(), m_pInputFormat);
 	return hr;
 }
 
@@ -159,12 +162,14 @@ HRESULT CD3D12VP::Process(ID3D12Resource* target, ID3D12Resource* sub)
 	inargs.Transform.Orientation = D3D12_VIDEO_PROCESS_ORIENTATION_DEFAULT;
 	inargs.FilterLevels[0] = D3D12_VIDEO_PROCESS_FILTER_FLAG_NONE;
 	inargs.Flags = D3D12_VIDEO_PROCESS_INPUT_STREAM_FLAG_NONE;
+	inargs.InputStream->pTexture2D = m_pInputTextures.GetResource();
+	outargs.OutputStream->pTexture2D = m_pOutputTextures.GetResource();
 	//outargs.OutputStream[0].pTexture2D = test.GetResource();
 	//instream.pTexture2D = target;
 	D3D12_VIDEO_PROCESS_REFERENCE_SET ref = {};
 	//instream.ReferenceSet = ref;
 	//outstream.
 	pVideoContext.ProcessFrames(m_pVideoProcessor, &outargs, 1, &inargs);
-	pVideoContext.Finish();
+	pVideoContext.FinishVideo();
 	return E_NOTIMPL;
 }

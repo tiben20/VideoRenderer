@@ -27,7 +27,7 @@
 #include <mutex>
 #include <stdint.h>
 #include "CommandAllocatorPool.h"
-
+#include "d3d12video.h"
 class CommandQueue
 {
     friend class CommandListManager;
@@ -92,6 +92,7 @@ public:
     CommandQueue& GetGraphicsQueue(void) { return m_GraphicsQueue; }
     CommandQueue& GetComputeQueue(void) { return m_ComputeQueue; }
     CommandQueue& GetCopyQueue(void) { return m_CopyQueue; }
+    CommandQueue& GetVideoQueue(void) { return m_VideoQueue; }
 
     CommandQueue& GetQueue(D3D12_COMMAND_LIST_TYPE Type = D3D12_COMMAND_LIST_TYPE_DIRECT)
     {
@@ -99,15 +100,22 @@ public:
         {
         case D3D12_COMMAND_LIST_TYPE_COMPUTE: return m_ComputeQueue;
         case D3D12_COMMAND_LIST_TYPE_COPY: return m_CopyQueue;
+        case D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS: return m_VideoQueue;
         default: return m_GraphicsQueue;
         }
     }
+
+    ID3D12CommandQueue* GetVideoCommandQueue()
+    {
+      return m_VideoQueue.GetCommandQueue();
+    }
+    
 
     ID3D12CommandQueue* GetCommandQueue()
     {
         return m_GraphicsQueue.GetCommandQueue();
     }
-
+    void CreateNewVideoCommandList(D3D12_COMMAND_LIST_TYPE Type, ID3D12VideoProcessCommandList** List, ID3D12CommandAllocator** Allocator);
     void CreateNewCommandList(
         D3D12_COMMAND_LIST_TYPE Type,
         ID3D12GraphicsCommandList** List,
@@ -128,6 +136,7 @@ public:
         m_GraphicsQueue.WaitForIdle();
         m_ComputeQueue.WaitForIdle();
         m_CopyQueue.WaitForIdle();
+        m_VideoQueue.WaitForIdle();
     }
 
 private:
@@ -137,4 +146,5 @@ private:
     CommandQueue m_GraphicsQueue;
     CommandQueue m_ComputeQueue;
     CommandQueue m_CopyQueue;
+    CommandQueue m_VideoQueue;
 };

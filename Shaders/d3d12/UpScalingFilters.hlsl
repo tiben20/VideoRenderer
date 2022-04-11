@@ -269,8 +269,65 @@ float4 jinc2(PS_INPUT input)
     return float4(color.rgb, 1);
 }
 
+float W1(float x)
+{
+    return x * x * ((scale.x + 2) * x - (scale.x + 3)) + 1.0;
+}
+
+float W2(float x)
+{
+    return scale.x * (x * (x * (x - 5) + 8) - 4);
+}
+
+float4 GetWeights(float d1)
+{
+    return float4(W2(1.0 + d1), W1(d1), W1(1.0 - d1), W2(2.0 - d1));
+}
+
+float3 GetColor(uint s, uint t)
+{
+    return tex[uint2(s, t)];
+}
+
+float3 Cubic(float4 w, float3 c0, float3 c1, float3 c2, float3 c3)
+{
+    return c0 * w.x + c1 * w.y + c2 * w.z + c3 * w.w;
+}
+
+float4 bicubic(PS_INPUT input)
+{
+    //tex
+    float2 t = input.Tex * wh + 0.5;
+    float2 f = frac(t);
+    int2 st = int2(t);
+
+    uint MaxWidth = wh.x - 1;
+    uint MaxHeight = wh.y - 1;
+
+    uint s0 = max(st.x - 2, 0);
+    uint s1 = max(st.x - 1, 0);
+    uint s2 = min(st.x + 0, MaxWidth);
+    uint s3 = min(st.x + 1, MaxWidth);
+
+    uint t0 = max(st.y - 2, 0);
+    uint t1 = max(st.y - 1, 0);
+    uint t2 = min(st.y + 0, MaxHeight);
+    uint t3 = min(st.y + 1, MaxHeight);
+
+    float4 Weights = GetWeights(f.x);
+    float3 c0 = Cubic(Weights, GetColor(s0, t0), GetColor(s1, t0), GetColor(s2, t0), GetColor(s3, t0));
+    float3 c1 = Cubic(Weights, GetColor(s0, t1), GetColor(s1, t1), GetColor(s2, t1), GetColor(s3, t1));
+    float3 c2 = Cubic(Weights, GetColor(s0, t2), GetColor(s1, t2), GetColor(s2, t2), GetColor(s3, t2));
+    float3 c3 = Cubic(Weights, GetColor(s0, t3), GetColor(s1, t3), GetColor(s2, t3), GetColor(s3, t3));
+    float3 Color = Cubic(GetWeights(f.y), c0, c1, c2, c3);
+    return float4(Color, 1.0f);
+}
+
 float4 main(PS_INPUT input) : SV_Target
 {
+    //bicubic
+    if (filter == 2)
+        return bicubic(input);
     //spline mitchell and spline
     if (filter == 4)
         return spline(input);

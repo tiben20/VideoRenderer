@@ -35,6 +35,7 @@ public:
     Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : m_hCpuDescriptorHandle(Handle) {}
 
     // Create a 1-level textures
+    void CreateVideoTexture(size_t Width, size_t Height, DXGI_FORMAT Format);
     void Create2D(size_t RowPitchBytes, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData );
 
     virtual void Destroy() override

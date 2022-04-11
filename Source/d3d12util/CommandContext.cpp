@@ -36,9 +36,9 @@
 
 void ContextManager::DestroyAllContexts(void)
 {
-  for (uint32_t i = 0; i < 4; ++i)
+  for (uint32_t i = 0; i < 6; ++i)
     sm_ContextPool[i].clear();
-  for (uint32_t i = 0; i < 4; ++i)
+  for (uint32_t i = 0; i < 6; ++i)
   {
     if (!sm_AvailableContexts->empty())
     {
@@ -88,6 +88,15 @@ void CommandContext::DestroyAllContexts(void)
     LinearAllocator::DestroyAll();
     DynamicDescriptorHeap::DestroyAll();
     D3D12Engine::g_ContextManager.DestroyAllContexts();
+}
+
+CommandContext& CommandContext::BeginVideo(const std::wstring ID)
+{
+  CommandContext* NewContext = D3D12Engine::g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS);
+  NewContext->SetID(ID);
+  //if (ID.length() > 0)
+  //  assert(0);//EngineProfiling::BeginBlock(ID, NewContext);
+  return *NewContext;
 }
 
 CommandContext& CommandContext::Begin( const std::wstring ID )
@@ -144,6 +153,40 @@ uint64_t CommandContext::Flush(bool WaitForCompletion)
     return FenceValue;
 }
 
+uint64_t CommandContext::FinishVideo(bool WaitForCompletion)
+{
+  ASSERT(m_Type == D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS);
+
+  if (m_NumBarriersToFlush > 0)
+  {
+    m_VideoCommandList->ResourceBarrier(m_NumBarriersToFlush, m_ResourceBarrierBuffer);
+    m_NumBarriersToFlush = 0;
+  }
+
+  //if (m_ID.length() > 0)
+  //  assert(0);//EngineProfiling::EndBlock(this);
+
+  ASSERT(m_CurrentAllocator != nullptr);
+
+  CommandQueue& Queue = D3D12Engine::g_CommandManager.GetQueue(m_Type);
+
+  uint64_t FenceValue = Queue.ExecuteCommandList(m_VideoCommandList);
+  Queue.DiscardAllocator(FenceValue, m_CurrentAllocator);
+  m_CurrentAllocator = nullptr;
+
+  m_CpuLinearAllocator.CleanupUsedPages(FenceValue);
+  m_GpuLinearAllocator.CleanupUsedPages(FenceValue);
+  m_DynamicViewDescriptorHeap.CleanupUsedHeaps(FenceValue);
+  m_DynamicSamplerDescriptorHeap.CleanupUsedHeaps(FenceValue);
+
+  if (WaitForCompletion)
+    D3D12Engine::g_CommandManager.WaitForFence(FenceValue);
+
+  D3D12Engine::g_ContextManager.FreeContext(this);
+
+  return FenceValue;
+}
+
 uint64_t CommandContext::Finish( bool WaitForCompletion )
 {
     ASSERT(m_Type == D3D12_COMMAND_LIST_TYPE_DIRECT || m_Type == D3D12_COMMAND_LIST_TYPE_COMPUTE);
@@ -183,6 +226,7 @@ CommandContext::CommandContext(D3D12_COMMAND_LIST_TYPE Type) :
 {
     m_OwningManager = nullptr;
     m_CommandList = nullptr;
+    m_VideoCommandList = nullptr;
     m_CurrentAllocator = nullptr;
     ZeroMemory(m_CurrentDescriptorHeaps, sizeof(m_CurrentDescriptorHeaps));
 
@@ -203,17 +247,37 @@ CommandContext::~CommandContext( void )
   FreeContext();
     if (m_CommandList != nullptr)
         m_CommandList->Release();
+    if (m_VideoCommandList != nullptr)
+      m_VideoCommandList->Release();
 }
 
 void CommandContext::Initialize(void)
 {
-  D3D12Engine::g_CommandManager.CreateNewCommandList(m_Type, &m_CommandList, &m_CurrentAllocator);
+  if (m_Type != D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
+    D3D12Engine::g_CommandManager.CreateNewCommandList(m_Type, &m_CommandList, &m_CurrentAllocator);
+  else
+    D3D12Engine::g_CommandManager.CreateNewVideoCommandList(m_Type, &m_VideoCommandList, &m_CurrentAllocator);
+  
 }
 
 void CommandContext::Reset( void )
 {
     // We only call Reset() on previously freed contexts.  The command list persists, but we must
     // request a new allocator.
+  if (m_Type == D3D12_COMMAND_LIST_TYPE_VIDEO_PROCESS)
+  {
+    ASSERT(m_VideoCommandList != nullptr && m_CurrentAllocator == nullptr);
+    m_CurrentAllocator = D3D12Engine::g_CommandManager.GetQueue(m_Type).RequestAllocator();
+    m_VideoCommandList->Reset(m_CurrentAllocator);
+
+    m_CurGraphicsRootSignature = nullptr;
+    m_CurComputeRootSignature = nullptr;
+    m_CurPipelineState = nullptr;
+    m_NumBarriersToFlush = 0;
+
+    BindDescriptorHeaps();
+    return;
+  }
     ASSERT(m_CommandList != nullptr && m_CurrentAllocator == nullptr);
     m_CurrentAllocator = D3D12Engine::g_CommandManager.GetQueue(m_Type).RequestAllocator();
     m_CommandList->Reset(m_CurrentAllocator, nullptr);

@@ -138,9 +138,6 @@
     <ClCompile Include="MediaSampleSideData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D3D12VP.cpp">
-      <Filter>Source Files\d3d12</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\math\Random.cpp">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClCompile>
@@ -244,6 +241,9 @@
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClCompile>
     <ClCompile Include="DXVA2VP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12VP.cpp">
       <Filter>Header Files\d3d12</Filter>
     </ClCompile>
   </ItemGroup>
@@ -346,9 +346,6 @@
     </ClInclude>
     <ClInclude Include="Utils\gpu_memcpy_sse4.h">
       <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D12VP.h">
-      <Filter>Header Files\d3d12</Filter>
     </ClInclude>
     <ClInclude Include="DX12VideoProcessor.h">
       <Filter>Header Files\d3d12</Filter>
@@ -484,6 +481,9 @@
     </ClInclude>
     <ClInclude Include="d3d12util\OptionsFile.h">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12VP.h">
+      <Filter>Header Files\d3d12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
