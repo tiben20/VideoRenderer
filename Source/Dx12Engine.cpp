@@ -38,7 +38,8 @@ namespace D3D12Engine
 	CD3D12Options* g_D3D12Options;
 	CommandListManager g_CommandManager;
 	ContextManager g_ContextManager;
-
+	CD3D12DynamicScaler* m_pCurrentScaler = nullptr;
+	RootSignature g_RootScalers;
 	HWND g_hWnd = nullptr;
 	DWORD g_VendorId = 0;
 
@@ -524,10 +525,22 @@ namespace D3D12Engine
 
 	void D3D12Engine::Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect,bool sw)
 	{
+
 		if (!sw)
 			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
 		
 		int scalingfilter = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
+		bool res;
+		if (!m_pCurrentScaler)
+		{
+			m_pCurrentScaler = new CD3D12DynamicScaler(L"FSRCNNX.hlsl", &res);
+			m_pCurrentScaler->Init(DXGI_FORMAT_R8G8B8A8_UNORM,srcRect,destRect);
+		}
+
+		m_pCurrentScaler->Render(Context, destRect, m_pVideoOutputResource, m_pVideoOutputResourcePreScale);
+		return;
+		
+		
 		if (scalingfilter == 6)
 			ImageScaling::UpscaleXbr(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
 		else if (scalingfilter == 7)

@@ -34,12 +34,13 @@
 #include "commandcontext.h"
 #include "dxgi.h"
 #include "OptionsFile.h"
+#include "D3D12Util/Scaler.h"
 class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;
 class ColorBuffer;
-
-
+class CD3D12DynamicScaler;
+class RootSignature;
 namespace D3D12Engine
 {
 
@@ -54,6 +55,8 @@ namespace D3D12Engine
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
 	extern CD3D12Options* g_D3D12Options;
+	extern CD3D12DynamicScaler* m_pCurrentScaler;
+	extern RootSignature g_RootScalers;
 	inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
 	{
 		return g_DescriptorAllocator[Type].Allocate(Count);
@@ -108,5 +111,4 @@ namespace D3D12Engine
 	void InitializeRenderingBuffers(uint32_t NativeWidth, uint32_t NativeHeight);
 
 	void DestroyRenderingBuffers();
-
 }

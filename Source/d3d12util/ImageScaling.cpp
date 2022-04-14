@@ -88,6 +88,15 @@ namespace ImageScaling
 
   void Initialize(DXGI_FORMAT DestFormat)
   {
+    g_RootScalers.Reset(4, 2);
+    g_RootScalers[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 4);
+    g_RootScalers[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+    g_RootScalers[2].InitAsBufferSRV(4, D3D12_SHADER_VISIBILITY_PIXEL);
+    g_RootScalers[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
+    g_RootScalers.InitStaticSampler(0, SamplerLinearClampDesc);
+    g_RootScalers.InitStaticSampler(1, SamplerPointClampDesc);
+    g_RootScalers.Finalize(L"Scalers root signature");
+
     /* Rendering and present PSOs*/
     s_PresentRSColor.Reset(4, 2);
     s_PresentRSColor[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);

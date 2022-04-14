@@ -170,6 +170,8 @@ std::wstring Utility::ToLower(const std::wstring& str)
     return lower_case;
 }
 
+
+
 std::string Utility::GetBasePath(const std::string& filePath)
 {
     size_t lastSlash;

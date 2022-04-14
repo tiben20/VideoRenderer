@@ -28,6 +28,8 @@ enum :int {
 	SHADER_CONVERT_TO_PQ,
 };
 
+HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName);
+
 HRESULT CompileShader(const std::string& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppCode);
 
 HRESULT GetShaderConvertColor(

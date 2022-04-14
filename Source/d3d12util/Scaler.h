@@ -25,7 +25,8 @@
 #include <vector>
 #include "commandcontext.h"
 #include "ColorBuffer.h"
-
+#include "ShadersLoader.h"
+#include "PipelineState.h"
 __declspec(align(16)) struct CONSTANT_BUFFER_4F_4int {
   DirectX::XMFLOAT4 size0;
   DirectX::XMFLOAT4 fArg;
@@ -77,18 +78,47 @@ public:
   void ShaderPass(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int w, int h, int iArgs[4], float fArgs[4]);
   void Done() { m_bFirstPass = true; }
   void CreateTexture(std::wstring name, CRect rect, DXGI_FORMAT fmt);
+  void CreateDynTexture(std::wstring name, CRect rect, DXGI_FORMAT fmt);
+
+  ColorBuffer GetDynTexture(int index) { return m_pScalingTextureDyn[index]; }
+
   void SetTextureSrv(GraphicsContext& Context, std::wstring name, int index, int table, bool setResourceState = true);
+  void SetDynTextureSrv(GraphicsContext& Context, std::vector<UINT> idx,int table, bool setResourceState = true);
   void SetRenderTargets(GraphicsContext& Context, std::vector<std::wstring> targets, bool setResourceState=false);
+  void SetDynRenderTargets(GraphicsContext& Context, std::vector<UINT> targets, bool setResourceState = false);
+
   bool         g_bTextureCreated = false;
 
   void FreeTexture();
+  void FreeDynTexture();
 private:
   std::wstring m_pName;
   bool         m_bFirstPass = true;
   
+  std::vector<ColorBuffer> m_pScalingTextureDyn;
   std::map<std::wstring,ColorBuffer> m_pScalingTexture;
   
   /*std::vector<ScalerConfigInt> m_pScalerConfigInt;
   std::vector<ScalerConfigFloat> m_pScalerConfigFloat;*/
   CONSTANT_BUFFER_4F_4int m_pConstantBuffer;
 };
+
+
+class CD3D12DynamicScaler
+{
+public:
+  CD3D12DynamicScaler(std::wstring filename,bool *res);
+  ~CD3D12DynamicScaler();
+
+  void Init(DXGI_FORMAT srcfmt, CRect src, CRect dst);
+  void Render(GraphicsContext& Context, CRect dstrect, ColorBuffer& dest, ColorBuffer& source);
+  void Unload();
+  
+private:
+  CD3D12Scaler* m_pScaler;
+  ShaderDesc m_pDesc;
+  CRect m_srcRect;
+
+  std::vector<GraphicsPSO> m_pPSO;
+};
+

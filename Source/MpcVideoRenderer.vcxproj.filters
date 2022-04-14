@@ -58,6 +58,12 @@
     <Filter Include="Header Files\d3d12\d3d12helper\shaders\Scaling\SuperRes">
       <UniqueIdentifier>{fa6ac954-8f4e-4c18-8e8d-9d6a2cfb75f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\Rendering\Shaders">
+      <UniqueIdentifier>{1907633d-08b4-43ec-844f-451c31d3b612}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\d3d12\d3d12helper\Rendering\Shaders\HLSL">
+      <UniqueIdentifier>{6c8d3d4e-f459-465a-8056-1b06a48da093}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -234,9 +240,6 @@
     <ClCompile Include="d3d12util\Scaler.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\ScalerManager.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\OptionsFile.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClCompile>
@@ -245,6 +248,9 @@
     </ClCompile>
     <ClCompile Include="D3D12VP.cpp">
       <Filter>Header Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\ShadersLoader.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -476,14 +482,14 @@
     <ClInclude Include="d3d12util\Scaler.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\ScalerManager.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\OptionsFile.h">
       <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
     </ClInclude>
     <ClInclude Include="D3D12VP.h">
       <Filter>Header Files\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\ShadersLoader.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -651,5 +657,10 @@
     <Text Include="..\Shaders\d3d12\Info\superxbr fast shader.txt">
       <Filter>Header Files\d3d12\d3d12helper\shaders\Scaling</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="..\Shaders\d3d12\ScriptedHlsl\FSRCNNX.hlsl">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders\HLSL</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

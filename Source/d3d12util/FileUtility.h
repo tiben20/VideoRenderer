@@ -35,4 +35,6 @@ namespace Utility
     // Same as previous except that it does not block but instead returns a task.
     task<ByteArray> ReadFileAsync(const wstring& fileName);
 
+    bool ReadTextFile(const wchar_t* fileName, std::string& result);
+
 } // namespace Utility

@@ -43,6 +43,7 @@
 #include "../external/minhook/include/MinHook.h"
 #include "Scaler.h"
 #include "DX12VideoProcessor.h"
+#include "ShadersLoader.h"
 #pragma comment( lib, "d3d12.lib" )
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3dcompiler.lib")
@@ -306,8 +307,9 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 
 	D3D12Engine::g_CommandManager.Create(D3D12Engine::g_Device);
 	//INIT videoprocessor
+#ifdef TODO
 	m_D3D12VP.InitVideoDevice(D3D12Engine::g_Device);
-	
+#endif
 	D3D12Engine::InitializeCommonState();
 	TextRenderer::Initialize();
 	GeometryRenderer::Initialize();
@@ -471,7 +473,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 		}
 
 		//TODO
-#if 1
+#ifdef TODO
 		m_D3D12VP.Process(pD3D12Resource, nullptr);
 #endif
 
@@ -874,7 +876,7 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 	m_iSrcFromGPU = 12;/* this will add D3D12 in the stats*/
 	//we dont use the video processor yet but at least set the src height and width
 
-#if 1
+#ifdef TODO
 	HRESULT hr = m_D3D12VP.InitVideoProcessor(m_srcParams.VP11Format, origW, origH,false,m_srcParams.VP11Format);
 	if (FAILED(hr))
 		DLog(L"failed initiating the d3d12 video processor");
