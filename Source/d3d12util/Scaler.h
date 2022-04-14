@@ -83,7 +83,7 @@ public:
   ColorBuffer GetDynTexture(int index) { return m_pScalingTextureDyn[index]; }
 
   void SetTextureSrv(GraphicsContext& Context, std::wstring name, int index, int table, bool setResourceState = true);
-  void SetDynTextureSrv(GraphicsContext& Context, std::vector<UINT> idx,int table, bool setResourceState = true);
+  void SetDynTextureSrv(GraphicsContext& Context, std::vector<UINT> idx,int table, ColorBuffer& srcInputBuffer, bool setResourceState = true);
   void SetRenderTargets(GraphicsContext& Context, std::vector<std::wstring> targets, bool setResourceState=false);
   void SetDynRenderTargets(GraphicsContext& Context, std::vector<UINT> targets, bool setResourceState = false);
 

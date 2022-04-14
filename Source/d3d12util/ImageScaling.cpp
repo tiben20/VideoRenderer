@@ -774,6 +774,7 @@ namespace ImageScaling
     s_PresentRSScaling.Free();
     s_PresentRSfxrcnnxScaling.Free();
     s_SubPicRS.Free();
+    g_RootScalers.Free();
     ColorConvertNV12PS.FreePSO();
     UpScalingFiltersPS.FreePSO();
     SuperXbrFiltersPS.FreePSO();

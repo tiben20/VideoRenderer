@@ -138,21 +138,24 @@ void CD3D12Scaler::SetTextureSrv(GraphicsContext& Context, std::wstring name, in
   Context.SetDynamicDescriptor(index, table, m_pScalingTexture[name].GetSRV());
 }
 
-void CD3D12Scaler::SetDynTextureSrv(GraphicsContext& Context, std::vector<UINT> idx, int root_index, bool setResourceState)
+void CD3D12Scaler::SetDynTextureSrv(GraphicsContext& Context, std::vector<UINT> idx, int root_index, ColorBuffer& srcInputBuffer, bool setResourceState)
 {
-  std::vector< D3D12_CPU_DESCRIPTOR_HANDLE> phandle;
   int curidx = 0;
   for (UINT x : idx)
   {
-    //phandle.push_back(m_pScalingTextureDyn[x].GetSRV());
-    Context.TransitionResource(m_pScalingTextureDyn[x], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    Context.SetDynamicDescriptor(0, curidx, m_pScalingTextureDyn[x].GetSRV());
-    //Context.SetDynamicDescriptor(root_index,curidx, m_pScalingTextureDyn[x].GetSRV());
+    if (x == 0)
+    {
+      //sometimes the source is used in passes after the first pass
+      Context.TransitionResource(srcInputBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+      Context.SetDynamicDescriptor(0, curidx, srcInputBuffer.GetSRV());
+    }
+    else
+    {
+      Context.TransitionResource(m_pScalingTextureDyn[x], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+      Context.SetDynamicDescriptor(0, curidx, m_pScalingTextureDyn[x].GetSRV());
+    }
     curidx += 1;
   }
-
-  //Context.SetDynamicDescriptors(0, 0, phandle.size(), phandle.data());
-  
 }
 
 void CD3D12Scaler::ShaderPass(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int w, int h, int iArgs[4],float fArgs[4])
@@ -274,8 +277,11 @@ void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBu
   for (ShaderPassDesc i : m_pDesc.passes)
   {
     //set shader resource view
-    if (i.inputs.size() != 0 && i.inputs.at(0) != 0)
-      m_pScaler->SetDynTextureSrv(Context,i.inputs,0,true);
+    if (i.inputs.size() != 0)
+    {
+      if (i.inputs.size()>1)
+        m_pScaler->SetDynTextureSrv(Context, i.inputs, 0, source,true);
+    }
       
     //set render target
     if (i.outputs.size() != 0)

@@ -131,6 +131,7 @@ namespace D3D12Engine
 
 	void D3D12Engine::ReleaseSwapChain()
 	{
+		
 		for (uint32_t i = 0; i < 3; ++i)
 		{
 			SwapChainBufferColor[i].Destroy();
@@ -145,6 +146,8 @@ namespace D3D12Engine
 
 	void D3D12Engine::ReleaseEngine()
 	{
+		m_pCurrentScaler->Unload();
+		m_pCurrentScaler = nullptr;
 		/*Need this to have correct heap if we dont entirely close the module*/
 		g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
@@ -533,7 +536,7 @@ namespace D3D12Engine
 		bool res;
 		if (!m_pCurrentScaler)
 		{
-			m_pCurrentScaler = new CD3D12DynamicScaler(L"FSRCNNX.hlsl", &res);
+			m_pCurrentScaler = new CD3D12DynamicScaler(L"Anime4K_Upscale_Denoise_L.hlsl", &res);
 			m_pCurrentScaler->Init(DXGI_FORMAT_R8G8B8A8_UNORM,srcRect,destRect);
 		}
 
