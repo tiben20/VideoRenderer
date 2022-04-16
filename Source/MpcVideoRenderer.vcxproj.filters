@@ -252,6 +252,9 @@
     <ClCompile Include="d3d12util\ShadersLoader.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="d3d12util\ShadersCache.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -491,6 +494,9 @@
     <ClInclude Include="d3d12util\ShadersLoader.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="d3d12util\ShadersCache.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MpcVideoRenderer.rc">
@@ -661,6 +667,9 @@
   <ItemGroup>
     <CopyFileToFolders Include="..\Shaders\d3d12\ScriptedHlsl\FSRCNNX.hlsl">
       <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders\HLSL</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="d3d12util\d3d12renderer.original">
+      <Filter>Header Files\d3d12\d3d12helper</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>

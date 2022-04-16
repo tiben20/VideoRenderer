@@ -166,11 +166,13 @@ HRESULT CVRMainPPage::OnActivate()
 
 	m_pVideoRenderer->GetSettings(m_SetsPP);
 
-	if (!IsWindows7SP1OrGreater()) {
+	if (!IsWindows7SP1OrGreater())
+	{
 		GetDlgItem(IDC_CHECK1).EnableWindow(FALSE);
 		m_SetsPP.bUseD3D11 = false;
 	}
-	if (!IsWindows10OrGreater()) {
+	if (!IsWindows10OrGreater())
+	{
 		GetDlgItem(IDC_CHECK12).EnableWindow(FALSE);
 		GetDlgItem(IDC_STATIC4).EnableWindow(FALSE);
 		GetDlgItem(IDC_STATIC5).EnableWindow(FALSE);

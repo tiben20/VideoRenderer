@@ -27,7 +27,7 @@
 
 #define CLAMP_IN_RECT 0
 
-HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName)
+HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName, ID3DInclude* d3dinc)
 {
 	//ASSERT(*ppShaderBlob == nullptr);
 
@@ -43,7 +43,7 @@ HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR
 	}
 
 	ID3DBlob* pErrorBlob = nullptr;
-	HRESULT hr = s_fnD3DCompile(srcCode.c_str(), srcCode.size(), sourceName, nullptr,nullptr, entryPoint,target, 0, 0, ppShaderBlob, &pErrorBlob);
+	HRESULT hr = s_fnD3DCompile(srcCode.c_str(), srcCode.size(), sourceName, nullptr,d3dinc, entryPoint,target, 0, 0, ppShaderBlob, &pErrorBlob);
 
 	if (FAILED(hr)) {
 		SAFE_RELEASE(*ppShaderBlob);

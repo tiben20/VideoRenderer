@@ -29,6 +29,9 @@
 #include "CommandListManager.h"
 #include "DisplayConfig.h"
 #include <map>
+#ifndef UNLOAD_SCALER
+#define UNLOAD_SCALER(x) if (x) {x->Unload();} x = nullptr;
+#endif
 
 namespace D3D12Engine
 {
@@ -38,7 +41,10 @@ namespace D3D12Engine
 	CD3D12Options* g_D3D12Options;
 	CommandListManager g_CommandManager;
 	ContextManager g_ContextManager;
-	CD3D12DynamicScaler* m_pCurrentScaler = nullptr;
+	CD3D12DynamicScaler* m_pCurrentUpScaler = nullptr;
+	CD3D12DynamicScaler* m_pCurrentDownScaler = nullptr;
+	CD3D12DynamicScaler* m_pCurrentChromaScaler = nullptr;
+	CD3D12DynamicScaler* m_pCurrentImageDoubler = nullptr;
 	RootSignature g_RootScalers;
 	HWND g_hWnd = nullptr;
 	DWORD g_VendorId = 0;
@@ -146,8 +152,11 @@ namespace D3D12Engine
 
 	void D3D12Engine::ReleaseEngine()
 	{
-		m_pCurrentScaler->Unload();
-		m_pCurrentScaler = nullptr;
+
+		UNLOAD_SCALER(m_pCurrentUpScaler)
+		UNLOAD_SCALER(m_pCurrentDownScaler)
+		UNLOAD_SCALER(m_pCurrentChromaScaler)
+		UNLOAD_SCALER(m_pCurrentImageDoubler)
 		/*Need this to have correct heap if we dont entirely close the module*/
 		g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
@@ -526,34 +535,32 @@ namespace D3D12Engine
 		
 	}
 
-	void D3D12Engine::Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect,bool sw)
+	void D3D12Engine::Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect,bool sw,std::wstring scaler)
 	{
-
 		if (!sw)
 			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
-		
-		int scalingfilter = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
+
 		bool res;
-		if (!m_pCurrentScaler)
+		if (m_pCurrentUpScaler && m_pCurrentUpScaler->GetScalerName() != scaler)
 		{
-			m_pCurrentScaler = new CD3D12DynamicScaler(L"Anime4K_Upscale_Denoise_L.hlsl", &res);
-			m_pCurrentScaler->Init(DXGI_FORMAT_R8G8B8A8_UNORM,srcRect,destRect);
+			UNLOAD_SCALER(m_pCurrentUpScaler)
 		}
 
-		m_pCurrentScaler->Render(Context, destRect, m_pVideoOutputResource, m_pVideoOutputResourcePreScale);
-		return;
-		
-		
-		if (scalingfilter == 6)
-			ImageScaling::UpscaleXbr(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
-		else if (scalingfilter == 7)
-			ImageScaling::Upscalefxrcnnx(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
-		else
-			ImageScaling::Upscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
-		
-		//by using g_videoRect as CRect renderrect we get the clear is ok but we lose the overlay which is rendered in the full window
-		//ImageScaling::PreparePresentSDR(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource, g_videoRect);
-		//Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_PRESENT);
+		if (!m_pCurrentUpScaler)
+		{
+			m_pCurrentUpScaler = new CD3D12DynamicScaler(scaler, &res);
+			if (!res)
+			{
+				UNLOAD_SCALER(m_pCurrentUpScaler)
+				DLog(L"ERROR loading scaler {}", scaler);
+				return;
+			}
+
+			m_pCurrentUpScaler->Init(DXGI_FORMAT_R8G8B8A8_UNORM,srcRect,destRect);
+
+		}
+
+		m_pCurrentUpScaler->Render(Context, destRect, m_pVideoOutputResource, m_pVideoOutputResourcePreScale);
 	}
 
 	void D3D12Engine::Noscale(GraphicsContext& Context,CRect dstRect,bool sw)

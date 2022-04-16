@@ -55,7 +55,10 @@ namespace D3D12Engine
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
 	extern CD3D12Options* g_D3D12Options;
-	extern CD3D12DynamicScaler* m_pCurrentScaler;
+	extern CD3D12DynamicScaler* m_pCurrentUpScaler;
+	extern CD3D12DynamicScaler* m_pCurrentDownScaler;
+	extern CD3D12DynamicScaler* m_pCurrentChromaScaler;
+	extern CD3D12DynamicScaler* m_pCurrentImageDoubler;
 	extern RootSignature g_RootScalers;
 	inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
 	{
@@ -98,7 +101,7 @@ namespace D3D12Engine
 	void DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect = CRect());
 	void Noscale(GraphicsContext& Context, CRect dstRect, bool sw);
 	void Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
-	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
+	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler);
 
 	ColorBuffer GetPreScale();
 	void PresentBackBuffer(GraphicsContext& Context);

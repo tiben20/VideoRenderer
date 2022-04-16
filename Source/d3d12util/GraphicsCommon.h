@@ -39,8 +39,10 @@ namespace D3D12Engine
     extern SamplerDesc SamplerAnisoWrapDesc;
     extern SamplerDesc SamplerShadowDesc;
     extern SamplerDesc SamplerLinearClampDesc;
+    extern SamplerDesc SamplerLinearClampLODDesc;
     extern SamplerDesc SamplerVolumeWrapDesc;
     extern SamplerDesc SamplerPointClampDesc;
+    extern SamplerDesc SamplerPointClampLODDesc;
     extern SamplerDesc SamplerPointBorderDesc;
     extern SamplerDesc SamplerLinearBorderDesc;
     extern SamplerDesc SamplerGeometryDesc;
@@ -53,6 +55,8 @@ namespace D3D12Engine
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearClamp;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerVolumeWrap;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointClamp;
+    extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointLODClamp;
+    extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearLODClamp;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointBorder;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
     extern D3D12_CPU_DESCRIPTOR_HANDLE SamplerGeometry;

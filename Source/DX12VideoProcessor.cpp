@@ -1264,14 +1264,17 @@ void CDX12VideoProcessor::UpdateRenderRect()
 		w1 = m_srcRectWidth;
 		h1 = m_srcRectHeight;
 	}
-	m_strShaderX = (w1 == w2) ? nullptr
+
+
+	m_sScalerX = (w1 == w2) ? L""
 		: (w1 > k * w2)
-		? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
-		: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
-		m_strShaderY = (h1 == h2) ? nullptr
+		? g_D3D12Options->GetCurrentDownscaler().c_str()
+		: g_D3D12Options->GetCurrentUpscaler().c_str();
+	m_sScalerY = (h1 == h2) ? L""
 		: (h1 > k * h2)
-		? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
-		: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
+			? g_D3D12Options->GetCurrentDownscaler().c_str()
+			: g_D3D12Options->GetCurrentUpscaler().c_str();
+
 }
 
 void CDX12VideoProcessor::SetGraphSize()
@@ -1396,7 +1399,7 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	str.append(m_strStatsVProc);
 	const int dstW = m_videoRect.Width();
 	const int dstH = m_videoRect.Height();
-	str += fmt::format(L"\nScaling       : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
+	str += fmt::format(L"\nScaling : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
 	if (m_srcRectWidth != dstW || m_srcRectHeight != dstH)
 	{
 		str += L' ';
@@ -1406,25 +1409,27 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 		int w1, h1;
 		w1 = m_srcRectWidth;
 		h1 = m_srcRectHeight;
-		m_strShaderX = (w1 == w2) ? nullptr
+
+		/*m_strShaderX = (w1 == w2) ? nullptr
 			: (w1 > k * w2)
-			? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
-			: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
+			? g_D3D12Options->GetCurrentDownscaler().c_str()
+			: g_D3D12Options->GetCurrentUpscaler().c_str();
 		m_strShaderY = (h1 == h2) ? nullptr
 			: (h1 > k * h2)
-			? s_DownscalingName[g_D3D12Options->GetCurrentDownscaler()]
-			: s_UpscalingName[g_D3D12Options->GetCurrentUpscaler()];
-		if (m_strShaderX)
+			? g_D3D12Options->GetCurrentDownscaler().c_str()
+			: g_D3D12Options->GetCurrentUpscaler().c_str();*/
+		if (m_sScalerX.length()>0)
 		{
-			str.append(m_strShaderX);
-			if (m_strShaderY && m_strShaderY != m_strShaderX)
+			str.append(m_sScalerX);
+			if (m_sScalerY.length() > 0 && m_sScalerY.length() != m_sScalerX.length())
 			{
 				str += L'/';
-				str.append(m_strShaderY);
+				str.append(m_sScalerY);
 			}
 		}
-		else if (m_strShaderY)
-			str.append(m_strShaderY);
+		else if (m_sScalerY.length() > 0)
+			str.append(m_sScalerY);
+
 	}
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);
@@ -1611,7 +1616,14 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 		if( rSrc.Width()>dstRect.Width() || rSrc.Height() > dstRect.Height())
 			D3D12Engine::Downscale(pVideoContext, srcRect,dstRect, m_bSWRendering);
 		else
-			D3D12Engine::Upscale(pVideoContext, srcRect, dstRect,m_bSWRendering);
+		{
+			std::wstring scurrentscaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
+			if (scurrentscaler != m_sScalerX)
+				m_sScalerX = scurrentscaler;
+			if (scurrentscaler != m_sScalerY)
+				m_sScalerY = scurrentscaler;
+			D3D12Engine::Upscale(pVideoContext, srcRect, dstRect, m_bSWRendering, scurrentscaler);
+		}
 	}
 	else
 	{

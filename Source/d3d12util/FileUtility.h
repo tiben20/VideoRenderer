@@ -36,5 +36,18 @@ namespace Utility
     task<ByteArray> ReadFileAsync(const wstring& fileName);
 
     bool ReadTextFile(const wchar_t* fileName, std::string& result);
+    
+    struct HandleCloser { void operator()(HANDLE h) noexcept { assert(h != INVALID_HANDLE_VALUE); if (h) CloseHandle(h); } };
+
+    using ScopedHandle = std::unique_ptr<std::remove_pointer<HANDLE>::type, HandleCloser>;
+
+    static HANDLE SafeHandle(HANDLE h) noexcept { return (h == INVALID_HANDLE_VALUE) ? nullptr : h; }
+
+    bool ReadFile(const wchar_t* fileName, std::vector<BYTE>& result);
+    bool WriteFile(const wchar_t* fileName, const void* buffer, size_t bufferSize);
+
+    bool DirExists(const wchar_t* fileName);
+    bool FileExists(const wchar_t* fileName);
+
 
 } // namespace Utility

@@ -78,6 +78,7 @@ public:
   void ShaderPass(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, int w, int h, int iArgs[4], float fArgs[4]);
   void Done() { m_bFirstPass = true; }
   void CreateTexture(std::wstring name, CRect rect, DXGI_FORMAT fmt);
+  void CreateDynTextureFromDDS(std::wstring texture, CRect rect, DXGI_FORMAT fmt, std::string ddsfile);
   void CreateDynTexture(std::wstring name, CRect rect, DXGI_FORMAT fmt);
 
   ColorBuffer GetDynTexture(int index) { return m_pScalingTextureDyn[index]; }
@@ -114,11 +115,14 @@ public:
   void Render(GraphicsContext& Context, CRect dstrect, ColorBuffer& dest, ColorBuffer& source);
   void Unload();
   
+  std::wstring GetScalerName() { return m_pFilename; }
+  void SetShaderConstants(std::vector<ShaderConstantDesc> consts) { m_pDesc.constants = consts; }
+
 private:
   CD3D12Scaler* m_pScaler;
-  ShaderDesc m_pDesc;
+  ShaderDesc m_pDesc = {};
   CRect m_srcRect;
-
+  std::wstring m_pFilename;
   std::vector<GraphicsPSO> m_pPSO;
 };
 

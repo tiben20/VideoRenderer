@@ -87,8 +87,9 @@ namespace Utility
     std::wstring GetFileExtension(const std::wstring& str);
     std::string RemoveExtension(const std::string& str);
     std::wstring RemoveExtension(const std::wstring& str);
-
-
+    std::wstring UTF8ToUTF16(std::string_view str);
+    std::string UTF16ToUTF8(std::wstring_view str);
+    std::string Bin2Hex(BYTE* data, size_t len);
 } // namespace Utility
 
 #ifdef ERROR

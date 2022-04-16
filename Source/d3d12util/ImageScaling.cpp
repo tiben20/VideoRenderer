@@ -89,12 +89,12 @@ namespace ImageScaling
   void Initialize(DXGI_FORMAT DestFormat)
   {
     g_RootScalers.Reset(4, 2);
-    g_RootScalers[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 4);
+    g_RootScalers[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 8);
     g_RootScalers[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
-    g_RootScalers[2].InitAsBufferSRV(4, D3D12_SHADER_VISIBILITY_PIXEL);
+    g_RootScalers[2].InitAsBufferSRV(8, D3D12_SHADER_VISIBILITY_PIXEL);
     g_RootScalers[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
-    g_RootScalers.InitStaticSampler(0, SamplerLinearClampDesc);
-    g_RootScalers.InitStaticSampler(1, SamplerPointClampDesc);
+    g_RootScalers.InitStaticSampler(0, SamplerPointClampLODDesc);
+    g_RootScalers.InitStaticSampler(1, SamplerLinearClampLODDesc);
     g_RootScalers.Finalize(L"Scalers root signature");
 
     /* Rendering and present PSOs*/
@@ -454,6 +454,7 @@ namespace ImageScaling
 
   void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect)
   {
+#if 0
     //the viewport x 0 y 46 width the width and height of the targetvideo
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(DownScalingFiltersPS);
@@ -504,11 +505,13 @@ namespace ImageScaling
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_DOWNSCALE_BUFFER), &DownScalingConstantBuffer);
 
     Context.Draw(3);
+#endif
   }
 
   
   void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect)
   {
+#if 0
     //xbr has 2 interal config done on the shader side passes and fast method
     //3 config on user side 2 in the shader strength and sharpness one in the client side which is the factor
     //iArgs[0] str
@@ -586,6 +589,7 @@ namespace ImageScaling
     //Upscale(Context, dest, dest, 2, srcRect, destRect);
     //todo add scaler at the end in the config right now we only do cubic
     //Upscale(Context, dest, dest, 2, srcRect, destRect);
+#endif
   }
 
   void Upscalefxrcnnx(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect)
@@ -715,6 +719,7 @@ namespace ImageScaling
 
   void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect)
   {
+#if 0
     Context.SetRootSignature(s_PresentRSScaling);
     Context.SetPipelineState(UpScalingFiltersPS);
     Context.TransitionResource(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -765,6 +770,7 @@ namespace ImageScaling
     
     Context.SetDynamicConstantBufferView(1, sizeof(CONSTANT_UPSCALE_BUFFER), &UpScalingConstantBuffer);
     Context.Draw(3);
+#endif
   }
 
   void FreeImageScaling()

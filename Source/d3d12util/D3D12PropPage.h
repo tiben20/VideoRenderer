@@ -25,6 +25,15 @@
 
 
 // CD3D12SettingsPPage
+enum ScalerType
+{
+	Upscaler = 0,
+	Downscaler = 1,
+	Chromaupscaler =2,
+	ImageDouble = 3,
+	PostShader = 4
+};
+
 static const char* s_upscalername[9] = {
 	{"bilinear"   },
 	{"dxva2"      },
@@ -61,6 +70,7 @@ static int s_factor[4] = {
 	{8},
 	{16},
 };
+struct ShaderConstantDesc;
 
 class __declspec(uuid("465D2B19-DE41-4425-8666-FB7FF0DAF122"))
 	CD3D12SettingsPPage : public CBasePropertyPage, public CWindow
@@ -72,15 +82,20 @@ public:
 	CD3D12SettingsPPage(LPUNKNOWN lpunk, HRESULT* phr);
 	~CD3D12SettingsPPage();
 
-	void EnableControls();
 private:
 	
 	HRESULT OnConnect(IUnknown* pUnknown) override;
 	HRESULT OnDisconnect() override;
 	HRESULT OnActivate() override;
 	INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-	HRESULT OnApplyChanges();
+	HRESULT OnApplyChanges() override;
+	
 	void UpdateCurrentScaler();
+
+	void FillScalers(ScalerType scalertype);
+
+	void SetShaderDescription(std::wstring file);
+	void SetShaderOptions(std::wstring file);
 
 	void UpdateScroll(int button, int staticbutton,int value);
 	void SetDirty()
@@ -91,8 +106,13 @@ private:
 			m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
 		}
 	}
-	int m_iCurrentUpScaler = 0;
-	int m_iCurrentChromaUpscaler = 0;
-	int m_iCurrentDownScaler = 0;
 	
+
+	ScalerType   m_pCurrentScalerType;
+	std::wstring m_sCurrentUpScaler = L"";
+	std::wstring m_sCurrentDownScaler = L"";
+	std::wstring m_sCurrentChromaUpscaler = L"";
+	std::wstring m_sCurrentImageDoubler = L"";
+	std::wstring m_sCurrentPostScaler = L"";
+	std::vector<ShaderConstantDesc> m_pCurrentShaderConstants;
 };

@@ -54,16 +54,22 @@ public:
 	void SaveCurrentSettings();
 	void OpenSettingsFile();
 	void CreateSettingsFile();
-	int GetCurrentUpscaler() { return m_iCurrentUpScaler; }
-  int GetCurrentDownscaler() { return m_iCurrentDownScaler; }
-	int GetCurrentChromaUpscaler() { return m_iCurrentChromaUpscaler; }
+	std::wstring GetCurrentUpscaler() { return m_sCurrentUpScaler; }
+	std::wstring GetCurrentDownscaler() { return m_sCurrentDownScaler; }
+	std::wstring GetCurrentChromaUpscaler() { return m_sCurrentChromaUpscaler; }
+	std::wstring GetCurrentImageDoubler() { return m_sCurrentImageDoubler; }
+	void SetCurrentUpscaler(std::wstring x) 
+	{ 
+		m_sCurrentUpScaler = x; 
+	}
+	void SetCurrentDownscaler(std::wstring x) { m_sCurrentDownScaler = x; }
+	void SetCurrentChromaUpscaler(std::wstring x) { m_sCurrentChromaUpscaler = x; }
+	void SetCurrentImageDoubler(std::wstring x) { m_sCurrentImageDoubler = x; }
+	void SetCurrentPostShader(std::wstring x) { m_sCurrentPostShader = x; }
 	int GetCurrentDecoderBufferCount() { return m_iDecoderBufferCount; }
 	int GetCurrentUploadBufferCount() { return m_iUploadBufferCount; }
 	int GetCurrentRenderBufferCount() { return m_iRenderBufferCount; }
 	int GetCurrentPresentBufferCount() { return m_iPresentBufferCount; }
-	void SetCurrentUpscaler(int x) { m_iCurrentUpScaler =x ; }
-	void SetCurrentDownscaler(int x) { m_iCurrentDownScaler = x; }
-	void SetCurrentChromaUpscaler(int x) { m_iCurrentChromaUpscaler = x; }
 	void SetCurrentDecoderBufferCount(int x) { m_iDecoderBufferCount = x; }
 	void SetCurrentUploadBufferCount(int x) { m_iUploadBufferCount = x; }
 	void SetCurrentRenderBufferCount(int x) { m_iRenderBufferCount = x; }
@@ -96,8 +102,11 @@ private:
 	int m_iUploadBufferCount;
 	int m_iRenderBufferCount;
 	int m_iPresentBufferCount;
-	int m_iCurrentUpScaler;
-	int m_iCurrentDownScaler;
-	int m_iCurrentChromaUpscaler;
+
+	std::wstring m_sCurrentUpScaler;
+	std::wstring m_sCurrentDownScaler;
+	std::wstring m_sCurrentChromaUpscaler;
+	std::wstring m_sCurrentImageDoubler;
+	std::wstring m_sCurrentPostShader;
 };
 

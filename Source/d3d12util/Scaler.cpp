@@ -60,15 +60,23 @@ const DXGI_FORMAT DXGI_FORMAT_MAPPING[16] = {
   DXGI_FORMAT_R32G32B32A32_FLOAT
 };
 
+void CD3D12Scaler::CreateDynTextureFromDDS(std::wstring texture, CRect rect, DXGI_FORMAT fmt, std::string ddsfile)
+{
+  assert(0);
+  ColorBuffer buf;
+  if (m_pScalingTextureDyn.size() == 0)
+    m_pScalingTextureDyn.push_back(buf);
+  buf.Create(texture, rect.Width(), rect.Height(), 1, fmt);
+  m_pScalingTextureDyn.push_back(buf);
+}
+
 void CD3D12Scaler::CreateDynTexture(std::wstring texture, CRect rect, DXGI_FORMAT fmt)
 {
   ColorBuffer buf;
   if (m_pScalingTextureDyn.size() == 0)
     m_pScalingTextureDyn.push_back(buf);
   buf.Create(texture, rect.Width(), rect.Height(), 1, fmt);
-  m_pScalingTextureDyn.push_back(buf);
-
-  
+  m_pScalingTextureDyn.push_back(buf); 
 }
 
 
@@ -199,11 +207,18 @@ void CD3D12Scaler::ShaderPass(GraphicsContext& Context, ColorBuffer& dest, Color
 
 CD3D12DynamicScaler::CD3D12DynamicScaler(std::wstring filename,bool *res)
 {
+  m_pFilename = filename;
   CShaderFileLoader* shader;
   shader = new CShaderFileLoader(filename);
   m_pDesc = {};
-  res = (bool*)shader->Compile(m_pDesc);
+  res = (bool*)shader->Compile(m_pDesc,true);
+  for (int dd = 0 ; dd < m_pDesc.constants.size(); dd++)
+  {
+    m_pDesc.constants.at(dd).currentValue = m_pDesc.constants.at(dd).defaultValue;
+  }
+    
   m_pScaler = new CD3D12Scaler(L"DynamicScaler");
+  m_pPSO.clear();
 }
 
 void CD3D12DynamicScaler::Init(DXGI_FORMAT srcfmt,CRect src,CRect dst)
@@ -223,6 +238,14 @@ void CD3D12DynamicScaler::Init(DXGI_FORMAT srcfmt,CRect src,CRect dst)
       if (x.sizeExpr.second == "INPUT_HEIGHT")
       {
         texsize.bottom = src.bottom;
+      }
+      if (x.sizeExpr.first == "OUTPUT_WIDTH")
+      {
+        texsize.right = dst.right;
+      }
+      if (x.sizeExpr.second == "OUTPUT_HEIGHT")
+      {
+        texsize.bottom = dst.bottom;
       }
       std::wstring currenttex(x.name.begin(), x.name.end());
       
@@ -263,16 +286,62 @@ void CD3D12DynamicScaler::Init(DXGI_FORMAT srcfmt,CRect src,CRect dst)
 
 void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBuffer& dest, ColorBuffer& source)
 {
-  //1.0f / (float)source.GetWidth();
-  //1.0f / (float)source.GetHeight();
   Context.SetRootSignature(D3D12Engine::g_RootScalers);
   Context.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
   Context.SetViewportAndScissor(0, 0, source.GetWidth(), source.GetHeight());
   int passes = 0;
-  std::vector<DWParam> constvars;
+  std::vector<DWParam> params;
   DWParam inputx = (float)1.0f / (float)m_srcRect.Width();
   DWParam inputy = (float)1.0f / (float)m_srcRect.Height();
+  DWParam outputx = (float)1.0f / (float)dstrect.Width();
+  DWParam outputy = (float)1.0f / (float)dstrect.Height();
+  DWParam scalex = (float)inputx.Float * (float)dstrect.Width();
+  DWParam scaley = (float)inputy.Float * (float)dstrect.Height();
+  for (ShaderConstantDesc ss : m_pDesc.constants)
+  {
+    if (ss.type == ShaderConstantType::Int)
+      params.push_back(std::get<int>(ss.currentValue));
+    if (ss.type == ShaderConstantType::Float)
+      params.push_back(std::get<float>(ss.currentValue));
+  }
 
+  for (ShaderValueConstantDesc ss : m_pDesc.valueConstants)
+  {
+    //input and output can be float or int so important to cast them as the right type
+    if (ss.valueExpr == "INPUT_PT_X")
+      params.push_back(inputx);
+    else if (ss.valueExpr == "INPUT_PT_Y")
+      params.push_back(inputy);
+    else if (ss.valueExpr == "INPUT_HEIGHT")
+      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)m_srcRect.Height()) : DWParam((float)m_srcRect.Height()));
+    else if (ss.valueExpr == "INPUT_WIDTH")
+      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)m_srcRect.Width()) : DWParam((float)m_srcRect.Width()));
+    else if (ss.valueExpr == "OUTPUT_WIDTH")
+      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)dstrect.Width()) : DWParam((float)dstrect.Width()));
+    else if (ss.valueExpr == "OUTPUT_HEIGHT")
+      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)dstrect.Height()) : DWParam((float)dstrect.Height()));
+    else if (ss.valueExpr == "OUTPUT_PT_X")
+      params.push_back(outputx);
+    else if (ss.valueExpr == "OUTPUT_PT_Y")
+      params.push_back(outputy);
+    else if (ss.valueExpr == "SCALE_X")
+      params.push_back(scalex);
+    else if (ss.valueExpr == "SCALE_Y")
+      params.push_back(scaley);
+    else
+    {
+      if (ss.valueExpr == "1/SCALE_X")
+        params.push_back((float)1.0 / scalex.Float);
+      else if (ss.valueExpr == "1/SCALE_Y")
+        params.push_back((float)1.0 / scaley.Float);
+      else
+        assert(0);
+    }
+
+  }
+  //DWParam const1;
+  
+  
   Context.SetDynamicDescriptor(0, 0, source.GetSRV());
   for (ShaderPassDesc i : m_pDesc.passes)
   {
@@ -294,9 +363,13 @@ void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBu
     }
     //set the passes pipeline
     Context.SetPipelineState(m_pPSO[passes]);
+   
 
-    // set constant buffer
-    Context.SetConstants(1, inputx, inputy);
+
+    //set constant buffers 
+    Context.SetConstants(1, params);
+
+    
     Context.Draw(3);
     passes += 1;
   }
@@ -306,11 +379,15 @@ void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBu
 
 void CD3D12DynamicScaler::Unload()
 {
-  for (GraphicsPSO i : m_pPSO)
+  if (m_pPSO.size() > 0)
   {
-    i.FreePSO();
-    i.DestroyAll();
+    for (GraphicsPSO i : m_pPSO)
+    {
+      i.FreePSO();
+    }
+    m_pPSO.clear();
   }
+  
   m_pScaler->FreeDynTexture();
   m_pScaler = nullptr;
 }
@@ -318,3 +395,4 @@ CD3D12DynamicScaler::~CD3D12DynamicScaler()
 {
   Unload();
 }
+

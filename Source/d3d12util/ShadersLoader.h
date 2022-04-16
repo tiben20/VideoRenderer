@@ -95,6 +95,7 @@ struct ShaderConstantDesc {
 	std::variant<float, int> defaultValue;
 	std::variant<std::monostate, float, int> minValue;
 	std::variant<std::monostate, float, int> maxValue;
+	std::variant<float, int> currentValue;
 };
 
 struct ShaderPassDesc {
@@ -107,6 +108,8 @@ struct ShaderDesc {
 	// The output used to calculate the effect, a null value means that any size output is supported
 	std::pair<std::string, std::string> outSizeExpr;
 
+	std::string shaderDescription;
+
 	std::vector<ShaderConstantDesc> constants;
 	std::vector<ShaderValueConstantDesc> valueConstants;
 	std::vector<ShaderValueConstantDesc> dynamicValueConstants;
@@ -117,13 +120,23 @@ struct ShaderDesc {
 	std::vector<ShaderPassDesc> passes;
 };
 
-class CShaderFileLoader
+class CShaderFileLoader : public ID3DInclude
 {
 public:
-	CShaderFileLoader(std::wstring filename) { m_pFile = filename; }
-	~CShaderFileLoader() {};
-	bool Compile(ShaderDesc& desc);
+	CShaderFileLoader(std::wstring filename)
+	{
+		m_pFile = filename;
+	}
 
+	~CShaderFileLoader() {};
+	bool Compile(ShaderDesc& desc,bool useCache);
+	std::string GetScalerType(std::wstring filename);
+	std::vector<ShaderConstantDesc> GetScalerOptions(std::wstring filename);
+	std::string GetScalerDescription(std::wstring filename);
+
+	// ID3DInclude interface
+	__declspec(nothrow) HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes) override;
+	__declspec(nothrow) HRESULT __stdcall Close(LPCVOID pData) override;
 private:
 	
 	std::wstring m_pFile;

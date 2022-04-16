@@ -25,7 +25,8 @@
 #include "D3D12PropPage.h"
 #include "PropPage.h"
 #include "Dx12Engine.h"
-
+#include <iostream>
+#include <filesystem>
 enum eD3D12Upscalers
 {
 	bilinear = 0,
@@ -138,13 +139,40 @@ inline int GetSliderID(HWND hWnd)
 {
 	return GetDlgCtrlID(hWnd);
 }
+
+inline void ListboxClear(HWND hWnd, int nIDListBox)
+{
+	SendDlgItemMessageW(hWnd, nIDListBox, LB_RESETCONTENT, 0, 0);
+}
+
+
+inline LRESULT ListboxAddString(HWND hWnd, int nIDListBox, LPCWSTR str)
+{
+	LRESULT lValue = SendDlgItemMessageW(hWnd, nIDListBox, LB_ADDSTRING, 0, (LPARAM)str);
+	return lValue;
+}
+
+inline std::wstring ListboxGetCurrentText(HWND hWnd, int nIDListBox)
+{
+	TCHAR res[200];
+	LRESULT lIndex = SendDlgItemMessageW(hWnd, nIDListBox, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+	SendDlgItemMessageW(hWnd, nIDListBox, LB_GETTEXT, (WPARAM)lIndex, (LPARAM)&res);
+
+	return res;
+}
+
+inline void ListboxSetSelected(HWND hWnd, int nIDListBox,int index)
+{
+	LRESULT res = SendDlgItemMessageW(hWnd, nIDListBox, LB_SETCURSEL, (WPARAM)index, (LPARAM)0);
+}
+
 // CD3D12SettingsPPage
 
 CD3D12SettingsPPage::CD3D12SettingsPPage(LPUNKNOWN lpunk, HRESULT* phr) :
 	CBasePropertyPage(L"D3D12Prop", lpunk, IDD_D3D12PROPPAGE, IDS_D3D12PROP_TITLE)
 {
 	DLog(L"CD3D12SettingsPPage()");
-
+	
 }
 
 CD3D12SettingsPPage::~CD3D12SettingsPPage()
@@ -180,14 +208,26 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 {
 	// set m_hWnd for CWindow
 	m_hWnd = m_hwnd;
+	RECT rctlist;
+	rctlist.left = 10;
+	rctlist.top = 10;
+	rctlist.right = 200;
+	rctlist.bottom = 400;
 
 	m_pVideoRenderer->GetSettings(m_SetsPP);
 
 	if (!D3D12Engine::g_D3D12Options)
 		D3D12Engine::g_D3D12Options = new CD3D12Options();
-	m_iCurrentUpScaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
-	m_iCurrentChromaUpscaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
-	m_iCurrentDownScaler = D3D12Engine::g_D3D12Options->GetCurrentDownscaler();
+	m_sCurrentUpScaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
+	m_sCurrentChromaUpscaler = D3D12Engine::g_D3D12Options->GetCurrentChromaUpscaler();
+	m_sCurrentDownScaler = D3D12Engine::g_D3D12Options->GetCurrentDownscaler();
+	m_sCurrentImageDoubler = D3D12Engine::g_D3D12Options->GetCurrentImageDoubler();
+	
+	//todo postscaler m_sCurrentDownScaler = D3D12Engine::g_D3D12Options->get();
+	SetRadioValue(m_hWnd, IDC_RADIO1, BM_SETCHECK, BST_CHECKED, 0);
+	FillScalers(ScalerType::Upscaler);
+	SetShaderOptions(m_sCurrentUpScaler);
+#if 0
 	int i;
 	for (i = 0; i < 9; i++)
 		SetRadioValue(m_hWnd, IDC_RADIO_CHROMAUP1 + i, BM_SETCHECK, (m_iCurrentChromaUpscaler == (i)), 0);
@@ -212,13 +252,14 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	SetPos(m_hWnd, IDC_SLIDER3, (m_SetsPP.D3D12Settings.xbrConfig.iFactor));
 	SetEditText(m_hWnd, IDC_EDIT3, m_SetsPP.D3D12Settings.xbrConfig.iStrength);*/
 	
-	
+#endif
 	UpdateCurrentScaler();
 	return S_OK;
 }
 
 void CD3D12SettingsPPage::UpdateCurrentScaler()
 {
+#if 0
 	SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"");
 	SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"");
 	SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"");
@@ -407,7 +448,7 @@ void CD3D12SettingsPPage::UpdateCurrentScaler()
 		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"spline", 0);
 		SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_SETCURSEL, 0, 0);
 	}
-	
+#endif
 }
 
 std::string GetOptionName(std::wstring inp)
@@ -454,8 +495,25 @@ int GetFactorUp(int in)
 	return 0;
 }
 
-void CD3D12SettingsPPage::UpdateScroll(int button, int staticbutton, int value)
+void CD3D12SettingsPPage::UpdateScroll(int index, int staticbutton, int value)
 {
+	//m_pCurrentShaderConstants.at(index).defaultValue;
+	if (m_pCurrentShaderConstants.size() == 0)
+		return;
+	if (m_pCurrentShaderConstants.at(index).type == ShaderConstantType::Int)
+	{
+		SetEditText(m_hWnd, staticbutton, value);
+		m_pCurrentShaderConstants.at(index).currentValue = value;
+	}
+	else
+	{
+		SetEditText(m_hWnd, staticbutton, (float)(((float)value) / 100));
+		m_pCurrentShaderConstants.at(index).currentValue = (float)(((float)value) / 100);
+	}
+	if (D3D12Engine::m_pCurrentUpScaler)
+		D3D12Engine::m_pCurrentUpScaler->SetShaderConstants(m_pCurrentShaderConstants);
+	
+#if 0
 	std::wstring strstatic = GetEditText(m_hWnd, button);
 	SetDirty();
 	CScalerOption* opt = D3D12Engine::g_D3D12Options->GetScaler(s_upscalername[m_iCurrentUpScaler]);
@@ -483,11 +541,207 @@ void CD3D12SettingsPPage::UpdateScroll(int button, int staticbutton, int value)
 		opt->SetFloat(GetOptionName(strstatic), float(float(value) / 10));
 	}
 	D3D12Engine::g_D3D12Options->SetScaler(s_upscalername[m_iCurrentUpScaler], opt);
+#endif
+}
+
+std::vector<std::wstring> get_all_files_names_within_folder(std::wstring folder)
+{
+	std::vector<std::wstring> names;
+	std::wstring search_path = folder + L"/*.hlsl";
+	WIN32_FIND_DATA fd;
+	HANDLE hFind = ::FindFirstFile(search_path.c_str(), &fd);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			// read all (real) files in current folder
+			// , delete '!' read other 2 default folder . and ..
+			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+				names.push_back(fd.cFileName);
+			}
+		} while (::FindNextFile(hFind, &fd));
+		::FindClose(hFind);
+	}
+	return names;
+}
+
+void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
+{
+	std::wstring appdata = _wgetenv(L"APPDATA");
+	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
+	std::filesystem::directory_iterator end_itr; // default construction yields past-the-end
+
+	std::vector<std::wstring> files = get_all_files_names_within_folder(appdata);
+	CShaderFileLoader* testshader = new CShaderFileLoader(L"");
+	std::vector<std::wstring> shaders;
+	std::string scl;
+	m_pCurrentScalerType = scalertype;
+	for (std::wstring fle : files)
+	{
+		scl = testshader->GetScalerType(appdata + fle);
+		if (scl == "UPSCALER" && scalertype == ScalerType::Upscaler)
+		{
+			shaders.push_back(fle);
+		}
+		else if (scl == "DOWNSCALER" && scalertype == ScalerType::Downscaler)
+		{
+			shaders.push_back(fle);
+		}
+		else if (scl == "CHROMASCALER" && scalertype == ScalerType::Chromaupscaler)
+		{
+			shaders.push_back(fle);
+		}
+		else if (scl == "IMAGEDOUBLER" && scalertype == ScalerType::ImageDouble)
+		{
+			shaders.push_back(fle);
+		}
+		else if (scl == "POST" && scalertype == ScalerType::PostShader)
+		{
+			shaders.push_back(fle);
+		}
+	}
+
+	LRESULT resindex = -1;
+	LRESULT selindex = -1;
+	std::wstring currentlyselected;
+	switch (scalertype)
+	{
+	case Upscaler:
+		currentlyselected = m_sCurrentUpScaler;
+		break;
+	case Downscaler:
+		currentlyselected = m_sCurrentDownScaler;
+		break;
+	case Chromaupscaler:
+		currentlyselected = m_sCurrentChromaUpscaler;
+		break;
+	case ImageDouble:
+		currentlyselected = m_sCurrentImageDoubler;
+		break;
+	case PostShader:
+		currentlyselected = m_sCurrentPostScaler;
+		break;
+	default:
+		break;
+	}
+	
+	for (std::wstring shdr : shaders)
+	{
+		resindex = ListboxAddString(m_hWnd, IDC_LIST_SCALERS, shdr.c_str());
+		if (shdr == currentlyselected)
+			selindex = resindex;
+	}
+	ListboxSetSelected(m_hWnd, IDC_LIST_SCALERS, selindex);
+	if (selindex == -1)
+		SetShaderDescription(L"");
+	else
+		SetShaderDescription(currentlyselected);
+		
+	
+	testshader = nullptr;
+}
+
+void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
+{
+	std::wstring appdata = _wgetenv(L"APPDATA");
+	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
+	appdata.append(file);
+	CShaderFileLoader* testshader = new CShaderFileLoader(file);
+	ShaderDesc desc;
+	testshader->Compile(desc, true);
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, L"");
+	SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, L"");
+	GetDlgItem(IDC_SLIDER1).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER2).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER3).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER4).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER5).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_SLIDER6).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT1).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT2).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT3).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT4).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT5).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_EDIT6).ShowWindow(SW_HIDE);
+	int configidx = 0;
+	for (ShaderConstantDesc sconst : desc.constants)
+	{
+		if (configidx == 0)
+		{
+			if (sconst.label.length()>0)
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR, Utility::UTF8ToWideString(sconst.label));
+			else
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR, Utility::UTF8ToWideString(sconst.name));
+			GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
+			GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
+			SetRangeMinMax(m_hWnd, IDC_SLIDER1, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
+			SetPos(m_hWnd, IDC_SLIDER1, (std::get<float>(sconst.defaultValue) * 100));
+			SetEditText(m_hWnd, IDC_EDIT1, std::get<float>(sconst.defaultValue));
+		}
+		else if (configidx == 1)
+		{
+			if (sconst.label.length() > 0)
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, Utility::UTF8ToWideString(sconst.label));
+			else
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, Utility::UTF8ToWideString(sconst.name));
+			GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
+			GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
+			SetRangeMinMax(m_hWnd, IDC_SLIDER2, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
+			SetPos(m_hWnd, IDC_SLIDER2, (std::get<float>(sconst.defaultValue) * 100));
+			SetEditText(m_hWnd, IDC_EDIT2, std::get<float>(sconst.defaultValue));
+		}
+		else if (configidx == 2)
+		{
+			if (sconst.label.length() > 0)
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, Utility::UTF8ToWideString(sconst.label));
+			else
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, Utility::UTF8ToWideString(sconst.name));
+			GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
+			GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
+			SetRangeMinMax(m_hWnd, IDC_SLIDER3, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
+			SetPos(m_hWnd, IDC_SLIDER3, (std::get<float>(sconst.defaultValue) * 100));
+			SetEditText(m_hWnd, IDC_EDIT3, std::get<float>(sconst.defaultValue));
+		}
+		else if (configidx == 3)
+		{
+			if (sconst.label.length() > 0)
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, Utility::UTF8ToWideString(sconst.label));
+			else
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, Utility::UTF8ToWideString(sconst.name));
+			GetDlgItem(IDC_SLIDER4).ShowWindow(SW_SHOW);
+			GetDlgItem(IDC_EDIT4).ShowWindow(SW_SHOW);
+			SetRangeMinMax(m_hWnd, IDC_SLIDER4, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
+			SetPos(m_hWnd, IDC_SLIDER4, (std::get<float>(sconst.defaultValue) * 100));
+			SetEditText(m_hWnd, IDC_EDIT4, std::get<float>(sconst.defaultValue));
+		}
+		configidx += 1;
+		
+
+	}
+	m_pCurrentShaderConstants = desc.constants;
+	testshader = nullptr;
+}
+
+void CD3D12SettingsPPage::SetShaderDescription(std::wstring file)
+{
+	if (file.size() == 0)
+	{
+		SetEditText(m_hWnd, IDC_EDIT_DESC, L"");
+		return;
+	}
+		std::wstring appdata = _wgetenv(L"APPDATA");
+	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
+	appdata.append(file);
+	CShaderFileLoader* testshader = new CShaderFileLoader(L"");
+	
+	SetEditText(m_hWnd, IDC_EDIT_DESC, Utility::UTF8ToWideString(testshader->GetScalerDescription(appdata)));
+	testshader = nullptr;
 }
 
 INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	LRESULT lValue;
 	if (uMsg == WM_HSCROLL)
 	{
 		int cValue = HIWORD(wParam);
@@ -519,40 +773,100 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 		}
 		if (nID == IDC_SLIDER1)
 		{
-			UpdateScroll(IDC_STATIC_XBR_STR, IDC_EDIT1,cValue);
+			UpdateScroll(0, IDC_EDIT1,cValue);
 			return 0;
 			
 		}
 		else if (nID == IDC_SLIDER2)
 		{
-			UpdateScroll(IDC_STATIC_XBR_STR2, IDC_EDIT2, cValue);
+			UpdateScroll(1, IDC_EDIT2, cValue);
 			return 0;
 		}
 		else if (nID == IDC_SLIDER3)
 		{
-			UpdateScroll(IDC_STATIC_XBR_STR3, IDC_EDIT3, cValue);
+			UpdateScroll(2, IDC_EDIT3, cValue);
 			return 0;
 		}
 		else if (nID == IDC_SLIDER4)
 		{
-			UpdateScroll(IDC_STATIC_XBR_STR4, IDC_EDIT4, cValue);
+			UpdateScroll(3, IDC_EDIT4, cValue);
 			return 0;
 		}
 		else if (nID == IDC_SLIDER5)
 		{
-			UpdateScroll(IDC_STATIC_XBR_STR5, IDC_EDIT5, cValue);
+			UpdateScroll(4, IDC_EDIT5, cValue);
 			return 0;
 		}
 		else if (nID == IDC_SLIDER6)
 		{
-			UpdateScroll(IDC_STATIC_XBR_STR6, IDC_EDIT6, cValue);
+			UpdateScroll(5, IDC_EDIT6, cValue);
 			return 0;
 		}
 	}
 
-	if (uMsg == WM_COMMAND) 
+	if (uMsg == WM_COMMAND)
 	{
+
 		const int nID = LOWORD(wParam);
+		//Scaler selection changed
+		if (IDC_RADIO1 <= nID && nID <= IDC_RADIO5 && HIWORD(wParam) == BN_CLICKED)
+		{
+			ListboxClear(m_hWnd, IDC_LIST_SCALERS);
+			if (nID == IDC_RADIO1 && m_sCurrentUpScaler.length()>0)
+			{
+				FillScalers(ScalerType::Upscaler);
+			}
+			else if (nID == IDC_RADIO2 && m_sCurrentDownScaler.length() > 0)
+			{
+				FillScalers(ScalerType::Downscaler);
+			}
+			else if (nID == IDC_RADIO3 && m_sCurrentChromaUpscaler.length() > 0)
+			{
+				FillScalers(ScalerType::Chromaupscaler);
+			}
+			else if (nID == IDC_RADIO4 && m_sCurrentImageDoubler.length() > 0)
+			{
+				FillScalers(ScalerType::ImageDouble);
+			}
+			else if (nID == IDC_RADIO5 && m_sCurrentPostScaler.length() > 0)
+			{
+				FillScalers(ScalerType::PostShader);
+			}
+			return 1l;
+		}
+		//listbox of current scaler changed
+		//m_pCurrentScalerType
+		if (nID == IDC_LIST_SCALERS)
+		{
+			std::wstring curscaler = ListboxGetCurrentText(m_hWnd,IDC_LIST_SCALERS);
+			if (m_pCurrentScalerType == ScalerType::Upscaler && curscaler.length() > 0 && m_sCurrentUpScaler != curscaler)
+			{
+				m_sCurrentUpScaler = curscaler;
+				D3D12Engine::g_D3D12Options->SetCurrentUpscaler(curscaler);
+				SetShaderDescription(curscaler);
+				SetShaderOptions(curscaler);
+			}
+			else if (m_pCurrentScalerType == ScalerType::Downscaler && curscaler.length() > 0)
+			{
+				D3D12Engine::g_D3D12Options->SetCurrentDownscaler(curscaler);
+			}
+			else if (m_pCurrentScalerType == ScalerType::Chromaupscaler && curscaler.length() > 0)
+			{
+				D3D12Engine::g_D3D12Options->SetCurrentChromaUpscaler(curscaler);
+			}
+			else if (m_pCurrentScalerType == ScalerType::ImageDouble && curscaler.length() > 0)
+			{
+				D3D12Engine::g_D3D12Options->SetCurrentImageDoubler(curscaler);
+			}
+			else if (m_pCurrentScalerType == ScalerType::PostShader && curscaler.length() > 0)
+			{
+				D3D12Engine::g_D3D12Options->SetCurrentPostShader(curscaler);
+			}
+			return 1l;
+		}
+
+	}
+#if 0
 		if (HIWORD(wParam) == CBN_SELCHANGE)
 		{
 			eD3D12Upscalers currentupscaler = (eD3D12Upscalers)D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
@@ -629,14 +943,14 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 			int currentbutton = 9 - (IDC_RADIO_CHROMAUP9 - nID);//IDC_RADIO_CHROMAUP1 + LOWORD(wParam);
 			lValue = GetRadioValue(m_hWnd, nID);
 			
-			if (currentbutton != (m_iCurrentChromaUpscaler))
+			if (currentbutton != (m_sCurrentChromaUpscaler))
 			{
 				SetDirty();
 				m_iCurrentChromaUpscaler = currentbutton;
 			}
 		}
 	}
-
+#endif
 
 	return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
@@ -648,23 +962,4 @@ HRESULT CD3D12SettingsPPage::OnApplyChanges()
 	m_pVideoRenderer->SaveSettings();
 	
 	return S_OK;
-}
-
-
-
-void CD3D12SettingsPPage::EnableControls()
-{
-	if (!IsWindows8OrGreater()) { // Windows 7
-		const BOOL bEnable = !m_SetsPP.D3D12Settings.bUseD3D12;
-		int i;
-		for (i = 0; i < 9; i++)
-			GetDlgItem(IDC_RADIO_CHROMAUP1+i).EnableScrollBar(bEnable);
-		for (i = 0; i < 5; i++)
-			GetDlgItem(IDC_RADIO_DOUBLING1 + i).EnableScrollBar(bEnable);
-		for (i = 0; i < 6; i++)
-			GetDlgItem(IDC_RADIO_UPSCALING1 + i).EnableScrollBar(bEnable);
-		for (i = 0; i < 6; i++)
-			GetDlgItem(IDC_RADIO_DOWNSCALING1 + i).EnableScrollBar(bEnable);
-	}
-	
 }

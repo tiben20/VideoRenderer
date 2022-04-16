@@ -138,10 +138,38 @@ void SIMDMemFill( void* __restrict _Dest, __m128 FillVector, size_t NumQuadwords
 
 std::wstring Utility::UTF8ToWideString( const std::string& str )
 {
-    wchar_t wstr[MAX_PATH];
-    if ( !MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, str.c_str(), -1, wstr, MAX_PATH) )
-        wstr[0] = L'\0';
+  
+  wchar_t wstr[MAX_PATH];
+  if (str.size() > MAX_PATH)
+  {
+    int sizeleft = str.size();
+    int currentpos = 0;
+    std::string currentconv;
+    std::wstring returnstr = L"";
+    while (true)
+    {
+      currentconv = str.substr(currentpos, MAX_PATH-1);
+      if (!MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, currentconv.c_str(), -1, wstr, MAX_PATH))
+      {
+        return returnstr;
+      }
+      returnstr.append(wstr);
+      currentpos = currentpos + MAX_PATH - 1;
+      sizeleft = sizeleft - currentpos;
+      if (sizeleft <= 0)
+        break;
+        
+    }
+    return returnstr;
+  }
+  else
+  {
+    if (!MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, str.c_str(), -1, wstr, MAX_PATH))
+      wstr[0] = L'\0';
     return wstr;
+  }
+  
+
 }
 
 std::string Utility::WideStringToUTF8( const std::wstring& wstr )
@@ -244,4 +272,65 @@ std::string Utility::RemoveExtension(const std::string& filePath)
 std::wstring Utility::RemoveExtension(const std::wstring& filePath)
 {
     return filePath.substr(0, filePath.rfind(L"."));
+}
+
+std::string Utility::Bin2Hex(BYTE* data, size_t len)
+{
+  if (!data || len == 0) {
+    return {};
+  }
+
+  static char oct2Hex[16] = {
+    '0','1','2','3','4','5','6','7',
+    '8','9','a','b','c','d','e','f'
+  };
+
+  std::string result(len * 2, 0);
+  char* pResult = &result[0];
+
+  for (size_t i = 0; i < len; ++i) {
+    BYTE b = *data++;
+    *pResult++ = oct2Hex[(b >> 4) & 0xf];
+    *pResult++ = oct2Hex[b & 0xf];
+  }
+
+  return result;
+}
+
+std::string Utility::UTF16ToUTF8(std::wstring_view str)
+{
+  int convertResult = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0, nullptr, nullptr);
+  if (convertResult <= 0) {
+    
+    assert(false);
+    return {};
+  }
+
+  std::string r(convertResult + 10, L'\0');
+  convertResult = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), &r[0], (int)r.size(), nullptr, nullptr);
+  if (convertResult <= 0) {
+    
+    assert(false);
+    return {};
+  }
+
+  return std::string(r.begin(), r.begin() + convertResult);
+}
+
+std::wstring Utility::UTF8ToUTF16(std::string_view str)
+{
+  int convertResult = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
+  if (convertResult <= 0) {
+
+    assert(false);
+    return {};
+  }
+  std::wstring r(convertResult + 10, L'\0');
+  convertResult = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), &r[0], (int)r.size());
+  if (convertResult <= 0) {
+    assert(false);
+    return {};
+  }
+
+  return std::wstring(r.begin(), r.begin() + convertResult);
 }

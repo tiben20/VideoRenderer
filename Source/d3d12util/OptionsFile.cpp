@@ -20,7 +20,7 @@
 #include <filesystem>
 #include "utils/util.h"
 #include <regex>
-
+#include "Utility.h"
 
 
 void CScalerOption::AddInt(const char* name, std::string value)
@@ -82,7 +82,8 @@ std::string GetScalerRegEx(std::string str)
 
 std::pair<std::string,std::string> GetOptionRegEx(std::string str)
 {
-  std::regex word_regex("(.*?)=([^w]+)");
+  //^([^=\r\n]+)=(.*) would be good too
+  std::regex word_regex("(.*?)=([^$]+)");
   auto words_begin =
     std::sregex_iterator(str.begin(), str.end(), word_regex);
   auto words_end = std::sregex_iterator();
@@ -109,11 +110,13 @@ void CD3D12Options::SaveCurrentSettings()
 
   outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   currentline = "currentupscaler=";
-  currentline.append(std::to_string(m_iCurrentUpScaler));
+  currentline.append(Utility::WideStringToUTF8(m_sCurrentUpScaler));
   currentline += "\ncurrentchromascaler=";  
-  currentline.append(std::to_string(m_iCurrentDownScaler));
+  currentline.append(Utility::WideStringToUTF8(m_sCurrentDownScaler));
   currentline += "\ncurrentdownscaler=";
-  currentline.append(std::to_string(m_iCurrentChromaUpscaler));
+  currentline.append(Utility::WideStringToUTF8(m_sCurrentChromaUpscaler));
+  currentline += "\currentimagedoubler=";
+  currentline.append(Utility::WideStringToUTF8(m_sCurrentImageDoubler));
   currentline += "\ndecoderbuffercount=";
   currentline.append(std::to_string(m_iDecoderBufferCount));
   currentline += "\nuploadbuffercount=";
@@ -194,11 +197,13 @@ void CD3D12Options::OpenSettingsFile()
 
             option = GetOptionRegEx(line);
             if (option.first.find("currentupscaler") != std::string::npos)
-              m_iCurrentUpScaler = std::stoi(option.second);
+              m_sCurrentUpScaler = Utility::UTF8ToWideString(option.second);
             if (option.first.find("currentdownscaler") != std::string::npos)
-              m_iCurrentDownScaler = std::stoi(option.second);
+              m_sCurrentDownScaler = Utility::UTF8ToWideString(option.second);
             if (option.first.find("currentchromascaler") != std::string::npos)
-              m_iCurrentChromaUpscaler = std::stoi(option.second);
+              m_sCurrentChromaUpscaler = Utility::UTF8ToWideString(option.second);
+            if (option.first.find("currentimagedoubler") != std::string::npos)
+              m_sCurrentImageDoubler = Utility::UTF8ToWideString(option.second);
             if (option.first.find("decoderbuffercount") != std::string::npos)
               m_iDecoderBufferCount = std::stoi(option.second);
             if (option.first.find("uploadbuffercount") != std::string::npos)

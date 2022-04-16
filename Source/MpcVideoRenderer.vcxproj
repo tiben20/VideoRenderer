@@ -90,6 +90,7 @@
     <ClCompile Include="d3d12util\RootSignature.cpp" />
     <ClCompile Include="d3d12util\SamplerManager.cpp" />
     <ClCompile Include="d3d12util\Scaler.cpp" />
+    <ClCompile Include="d3d12util\ShadersCache.cpp" />
     <ClCompile Include="d3d12util\ShadersLoader.cpp" />
     <ClCompile Include="d3d12util\SystemTime.cpp" />
     <ClCompile Include="d3d12util\TextRenderer.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="d3d12util\RootSignature.h" />
     <ClInclude Include="d3d12util\SamplerManager.h" />
     <ClInclude Include="d3d12util\Scaler.h" />
+    <ClInclude Include="d3d12util\ShadersCache.h" />
     <ClInclude Include="d3d12util\ShadersLoader.h" />
     <ClInclude Include="d3d12util\SystemTime.h" />
     <ClInclude Include="d3d12util\TextRenderer.h" />
@@ -227,6 +229,10 @@
   <ItemGroup>
     <None Include="..\Shaders\d3d12\super-xbr-params.inc" />
     <None Include="..\Shaders\d3d12\superxbr.hlsli" />
+    <CopyFileToFolders Include="d3d12util\d3d12renderer.original">
+      <FileType>Document</FileType>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)_bin\Filter_$(PlatformShortName)_Debug\</DestinationFolders>
+    </CopyFileToFolders>
     <None Include="d3d12util\math\Functions.inl" />
     <None Include="..\Shaders\d3d12\ColorSpaceUtility.hlsli" />
     <None Include="..\Shaders\d3d12\CommonRS.hlsli" />

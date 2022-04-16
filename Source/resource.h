@@ -166,6 +166,13 @@
 #define IDC_SLIDER6                     1093
 #define IDC_RADIO_DOUBLING3             1094
 #define IDC_STATIC_XBR_STR6             1094
+#define IDC_LIST_SCALERS                1095
+#define IDC_RADIO1                      1097
+#define IDC_RADIO2                      1101
+#define IDC_RADIO3                      1102
+#define IDC_RADIO4                      1103
+#define IDC_EDIT_DESC                   1104
+#define IDC_RADIO5                      1105
 
 // Next default values for new objects
 // 
@@ -173,7 +180,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1069
+#define _APS_NEXT_CONTROL_VALUE         1106
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

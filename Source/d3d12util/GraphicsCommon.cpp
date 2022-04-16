@@ -34,9 +34,11 @@ namespace D3D12Engine
     SamplerDesc SamplerAnisoWrapDesc;
     SamplerDesc SamplerShadowDesc;
     SamplerDesc SamplerLinearClampDesc;
+    SamplerDesc SamplerLinearClampLODDesc;
     SamplerDesc SamplerVolumeWrapDesc;
     SamplerDesc SamplerPointClampDesc;
     SamplerDesc SamplerPointBorderDesc;
+    SamplerDesc SamplerPointClampLODDesc;
     SamplerDesc SamplerLinearBorderDesc;
     SamplerDesc SamplerGeometryDesc;
     SamplerDesc SamplerfxrcnnxDesc;
@@ -45,8 +47,10 @@ namespace D3D12Engine
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerAnisoWrap;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerShadow;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearClamp;
+    D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearLODClamp;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerVolumeWrap;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointClamp;
+    D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointLODClamp;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointBorder;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerGeometry;
@@ -104,6 +108,9 @@ void D3D12Engine::InitializeCommonState(void)
     SamplerLinearClampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     SamplerLinearClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
     SamplerLinearClamp = SamplerLinearClampDesc.CreateDescriptor();
+    SamplerLinearClampLODDesc = SamplerLinearClampDesc;
+    SamplerLinearClampLODDesc.MaxLOD = 0;
+    SamplerLinearLODClamp = SamplerLinearClampLODDesc.CreateDescriptor();
 
     SamplerVolumeWrapDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
     SamplerVolumeWrap = SamplerVolumeWrapDesc.CreateDescriptor();
@@ -111,6 +118,9 @@ void D3D12Engine::InitializeCommonState(void)
     SamplerPointClampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
     SamplerPointClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
     SamplerPointClamp = SamplerPointClampDesc.CreateDescriptor();
+    SamplerPointClampLODDesc = SamplerPointClampDesc;
+    SamplerPointClampLODDesc.MaxLOD = 0;
+    SamplerPointLODClamp = SamplerPointClampLODDesc.CreateDescriptor();
 
     SamplerLinearBorderDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     SamplerLinearBorderDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_BORDER);

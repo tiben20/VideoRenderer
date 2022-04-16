@@ -99,7 +99,8 @@ private:
 	bool m_bSWRendering = false;
 	std::wstring m_pCurrentRenderTiming;
 	int m_pStatsDelay = 0;
-
+	std::wstring m_sScalerX = L"";
+	std::wstring m_sScalerY = L"";
 
 	bool resetquad = false;
 
