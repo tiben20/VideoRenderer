@@ -563,6 +563,31 @@ std::vector<std::wstring> get_all_files_names_within_folder(std::wstring folder)
 	return names;
 }
 
+void CD3D12SettingsPPage::SetControlConfig(HWND hwnd, int editidx, int slideridx, ShaderConstantDesc sconst)
+{
+	GetDlgItem(slideridx).ShowWindow(SW_SHOW);
+	GetDlgItem(editidx).ShowWindow(SW_SHOW);
+	if (sconst.type == ShaderConstantType::Float)
+	{
+		//std::monostate var = std::get<std::monostate>(sconst.maxValue);
+		if (sconst.maxValue.index() !=0)
+			SetRangeMinMax(hwnd, slideridx, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
+		else
+		  SetRangeMinMax(hwnd, slideridx, (std::get<float>(sconst.minValue) * 100), 1000);
+		SetPos(hwnd, slideridx, (std::get<float>(sconst.defaultValue) * 100));
+		SetEditText(hwnd, editidx, std::get<float>(sconst.defaultValue));
+	}
+	else
+	{
+		if (sconst.maxValue.index() != 0)
+			SetRangeMinMax(hwnd, slideridx, (std::get<int>(sconst.minValue)), (std::get<int>(sconst.maxValue)));
+		else
+			SetRangeMinMax(hwnd, slideridx, (std::get<int>(sconst.minValue)), 100);
+		SetPos(hwnd, slideridx, (std::get<int>(sconst.defaultValue)));
+		SetEditText(hwnd, editidx, std::get<int>(sconst.defaultValue));
+	}
+
+}
 void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 {
 	std::wstring appdata = _wgetenv(L"APPDATA");
@@ -674,11 +699,8 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR, Utility::UTF8ToWideString(sconst.label));
 			else
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR, Utility::UTF8ToWideString(sconst.name));
-			GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
-			SetRangeMinMax(m_hWnd, IDC_SLIDER1, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
-			SetPos(m_hWnd, IDC_SLIDER1, (std::get<float>(sconst.defaultValue) * 100));
-			SetEditText(m_hWnd, IDC_EDIT1, std::get<float>(sconst.defaultValue));
+			SetControlConfig(m_hWnd, IDC_EDIT1, IDC_SLIDER1, sconst);
+			
 		}
 		else if (configidx == 1)
 		{
@@ -686,11 +708,7 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, Utility::UTF8ToWideString(sconst.label));
 			else
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, Utility::UTF8ToWideString(sconst.name));
-			GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
-			SetRangeMinMax(m_hWnd, IDC_SLIDER2, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
-			SetPos(m_hWnd, IDC_SLIDER2, (std::get<float>(sconst.defaultValue) * 100));
-			SetEditText(m_hWnd, IDC_EDIT2, std::get<float>(sconst.defaultValue));
+			SetControlConfig(m_hWnd, IDC_EDIT2, IDC_SLIDER2, sconst);
 		}
 		else if (configidx == 2)
 		{
@@ -698,11 +716,7 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, Utility::UTF8ToWideString(sconst.label));
 			else
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, Utility::UTF8ToWideString(sconst.name));
-			GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
-			SetRangeMinMax(m_hWnd, IDC_SLIDER3, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
-			SetPos(m_hWnd, IDC_SLIDER3, (std::get<float>(sconst.defaultValue) * 100));
-			SetEditText(m_hWnd, IDC_EDIT3, std::get<float>(sconst.defaultValue));
+			SetControlConfig(m_hWnd, IDC_EDIT3, IDC_SLIDER3, sconst);
 		}
 		else if (configidx == 3)
 		{
@@ -710,11 +724,23 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, Utility::UTF8ToWideString(sconst.label));
 			else
 				SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, Utility::UTF8ToWideString(sconst.name));
-			GetDlgItem(IDC_SLIDER4).ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_EDIT4).ShowWindow(SW_SHOW);
-			SetRangeMinMax(m_hWnd, IDC_SLIDER4, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
-			SetPos(m_hWnd, IDC_SLIDER4, (std::get<float>(sconst.defaultValue) * 100));
-			SetEditText(m_hWnd, IDC_EDIT4, std::get<float>(sconst.defaultValue));
+			SetControlConfig(m_hWnd, IDC_EDIT4, IDC_SLIDER4, sconst);
+		}
+		else if (configidx == 4)
+		{
+			if (sconst.label.length() > 0)
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, Utility::UTF8ToWideString(sconst.label));
+			else
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, Utility::UTF8ToWideString(sconst.name));
+			SetControlConfig(m_hWnd, IDC_EDIT5, IDC_SLIDER5, sconst);
+		}
+		else if (configidx == 5)
+		{
+			if (sconst.label.length() > 0)
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, Utility::UTF8ToWideString(sconst.label));
+			else
+				SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, Utility::UTF8ToWideString(sconst.name));
+			SetControlConfig(m_hWnd, IDC_EDIT6, IDC_SLIDER6, sconst);
 		}
 		configidx += 1;
 		

@@ -299,10 +299,21 @@ void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBu
   DWParam scaley = (float)inputy.Float * (float)dstrect.Height();
   for (ShaderConstantDesc ss : m_pDesc.constants)
   {
-    if (ss.type == ShaderConstantType::Int)
-      params.push_back(std::get<int>(ss.currentValue));
-    if (ss.type == ShaderConstantType::Float)
-      params.push_back(std::get<float>(ss.currentValue));
+    if (ss.currentValue.index() != 0)
+    {
+      //sometimes value are in monostate so cant extract need to fix in the shaders loader
+      if (ss.type == ShaderConstantType::Int)
+        params.push_back(std::get<int>(ss.currentValue));
+      if (ss.type == ShaderConstantType::Float)
+        params.push_back(std::get<float>(ss.currentValue));
+    }
+    else
+    {
+      if (ss.type == ShaderConstantType::Int)
+        params.push_back(std::get<int>(ss.defaultValue));
+      if (ss.type == ShaderConstantType::Float)
+        params.push_back(std::get<float>(ss.defaultValue));
+    }
   }
 
   for (ShaderValueConstantDesc ss : m_pDesc.valueConstants)

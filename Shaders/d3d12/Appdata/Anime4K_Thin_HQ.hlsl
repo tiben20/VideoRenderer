@@ -6,7 +6,7 @@
 //!SCALER_TYPE UPSCALER
 //!OUTPUT_WIDTH INPUT_WIDTH
 //!OUTPUT_HEIGHT INPUT_HEIGHT
-//!DESCRIPTION Anime4K-v3.2-Thin-(HQ)-Luma
+//!DESCRIPTION Iterations Number of iterations for the forwards solver, decreasing strength and increasing iterations improves quality at the cost of speed. Strength of warping for each iteration
 
 //!CONSTANT
 //!VALUE INPUT_HEIGHT
@@ -21,6 +21,7 @@ float inputPtX;
 float inputPtY;
 
 //!CONSTANT
+//!LABEL Strength
 //!DEFAULT 0.6
 //!MIN 1e-5
 
@@ -28,6 +29,7 @@ float inputPtY;
 float strength;
 
 //!CONSTANT
+//!LABEL Iterations
 //!DEFAULT 1
 //!MIN 1
 

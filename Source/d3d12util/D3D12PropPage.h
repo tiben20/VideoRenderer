@@ -94,6 +94,7 @@ private:
 
 	void FillScalers(ScalerType scalertype);
 
+	void SetControlConfig(HWND hwnd, int editidx, int slideridx, ShaderConstantDesc sconst);
 	void SetShaderDescription(std::wstring file);
 	void SetShaderOptions(std::wstring file);
 

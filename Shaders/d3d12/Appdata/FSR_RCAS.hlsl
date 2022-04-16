@@ -14,8 +14,10 @@ float inputWidth;
 float inputHeight;
 
 //!CONSTANT
+//!LABEL Sharperness
 //!DEFAULT 0.87
 //!MIN 1e-5
+//!MAX 1.3
 float sharpness;
 
 //!TEXTURE
