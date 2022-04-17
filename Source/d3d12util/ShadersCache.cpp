@@ -322,16 +322,10 @@ bool ShaderCache::Load(const wchar_t* fileName, std::string_view hash, ShaderDes
 		desc = it->second;
 		return true;
 	}
-
-	if (!Utility::FileExists(cacheFileName.c_str()))
-	{
-		std::wstring appdata = _wgetenv(L"APPDATA");
-
-		appdata.append(L"\\MPCVideoRenderer\\Shaders\\cache\\");
-		cacheFileName.replace(0, 8, appdata);
-		if (!Utility::FileExists(cacheFileName.c_str()))
+	cacheFileName = Utility::GetFilePathExists(cacheFileName.c_str());
+	
+	if (cacheFileName == L"")
 			return false;
-	}
 
 	std::vector<BYTE> buf;
 	if (!Utility::ReadFile(cacheFileName.c_str(), buf) || buf.empty()) {
@@ -382,7 +376,7 @@ bool ShaderCache::Load(const wchar_t* fileName, std::string_view hash, ShaderDes
 		return false;
 	}
 
-	//_AddToMemCache(cacheFileName, desc);
+	_AddToMemCache(cacheFileName, desc);
 
 	
 	return true;
@@ -458,20 +452,16 @@ void ShaderCache::Save(const wchar_t* fileName, std::string_view hash, const Sha
 	}
 
 	std::wstring cacheFileName = _GetCacheFileName(fileName, hash);
-	if (!Utility::WriteFile(cacheFileName.c_str(), buf.data(), buf.size()))
+	
+	std::wstring cachePath = Utility::GetFilePathWrite(cacheFileName.c_str());
+	
+	
+	if (!Utility::WriteFile(cachePath.c_str(), buf.data(), buf.size()))
 	{
-		std::wstring appdata = _wgetenv(L"APPDATA");
-
-		appdata.append(L"\\MPCVideoRenderer\\Shaders\\cache\\");
-		cacheFileName.replace(0, 8, appdata);
-		if (!Utility::WriteFile(cacheFileName.c_str(), buf.data(), buf.size()))
-			DLog(L"asti");
-		else
-			DLog(L"asti");
-		//not in admin mode just save it it in appdata
+		DLog(L"cant write to {}",cachePath.c_str());
 	}
 
-	_AddToMemCache(cacheFileName, desc);
+	_AddToMemCache(cachePath, desc);
 
 	
 }

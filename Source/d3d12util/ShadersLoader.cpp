@@ -1642,12 +1642,8 @@ std::string CShaderFileLoader::GetScalerType(std::wstring filename)
 
 bool CShaderFileLoader::Compile(ShaderDesc& desc, bool usecache)
 {
-	std::wstring currentpath;
-	currentpath = _wgetenv(L"APPDATA");
-
-	currentpath.append(L"\\MPCVideoRenderer\\Shaders\\");
-	currentpath.append(m_pFile);
-	std::wstring currentsource;
+	std::wstring currentpath = Utility::GetFilePathExists(m_pFile.c_str());
+	
 	std::wifstream infile(currentpath.c_str());
 	std::string source;
 	bool cacheinit = Hasher::GetInstance().Initialize();
@@ -1883,20 +1879,12 @@ bool CShaderFileLoader::Compile(ShaderDesc& desc, bool usecache)
 
 HRESULT CShaderFileLoader::Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes)
 {
-	std::string currentpath;
-	currentpath = getenv("APPDATA");
-
-	currentpath.append("\\MPCVideoRenderer\\Shaders\\");
-
-	currentpath.append(pFileName);
-
-	/*if (!includeFile.Open(fileName))
-	{
+	std::wstring filepath = Utility::GetFilePathExists(Utility::UTF8ToWideString(pFileName).c_str());
+	if (filepath == L"")
 		return E_FAIL;
-	}*/
 	bool res;
 	std::string includeFile;
-	res = Utility::ReadTextFile(Utility::UTF8ToWideString(currentpath).c_str(), includeFile);
+	res = Utility::ReadTextFile(filepath.c_str(), includeFile);
 	RemoveComments(includeFile);
 	int64_t length = includeFile.size();
 	void* pData = malloc(length);

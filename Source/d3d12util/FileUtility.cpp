@@ -1,22 +1,31 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard 
-//
+/*
+ *
+ * (C) 2022 Ti-BEN
+ *
+ * This file is part of MPC-BE.
+ *
+ * MPC-BE is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPC-BE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include "stdafx.h"
 #include "FileUtility.h"
 #include <fstream>
 #include <mutex>
 #include "corecrt_io.h"
-//#include <zlib.h> // From NuGet package 
+#include "Utils/Util.h"
+
 
 using namespace std;
 using namespace Utility;
@@ -150,5 +159,68 @@ namespace Utility
     DWORD attrs = GetFileAttributesW(fileName);
     // exclude folders
     return (attrs != INVALID_FILE_ATTRIBUTES) && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+  }
+
+  std::wstring GetFilePathWrite(const wchar_t* fileName)
+  {
+    FILE* hFile;
+    std::wstring file = fileName;
+    if (_wfopen_s(&hFile, fileName, L"wb") || !hFile)
+    {
+      wchar_t* pValue;
+      size_t len;
+      errno_t err = _wdupenv_s(&pValue, &len, L"APPDATA");
+      if (err != 0)
+      {
+        DLog(L"Couldnt get appdata directory");
+        return L"";
+      }
+      std::wstring filestripped = file.substr(2);
+      file = pValue;
+      free(pValue);
+      file.append(L"\\MPCVideoRenderer\\Shaders\\");
+
+      file.append(filestripped);
+      if (_wfopen_s(&hFile, file.c_str(), L"wb") || !hFile)
+      {
+        DLog(L"This file cant be written {}", file);
+        return L"";
+      }
+      fclose(hFile);
+    }
+    return file;
+  }
+
+  std::wstring GetFilePathExists(const wchar_t* fileName)
+  {
+    std::wstring file = fileName;
+    if (!FileExists(file.c_str()))
+    {
+      wchar_t* pValue;
+      size_t len;
+      errno_t err = _wdupenv_s(&pValue, &len, L"APPDATA");
+      if (err != 0)
+      {
+        DLog(L"Couldnt get appdata directory");
+        return L"";
+      }
+      std::wstring filestripped;
+      if (file.substr(2, 2) == L".\\")
+        filestripped = file.substr(2);
+      else
+        filestripped = file;
+      file = pValue;
+      free(pValue);
+      file.append(L"\\MPCVideoRenderer\\Shaders\\");
+      
+      file.append(filestripped);
+      if (!FileExists(file.c_str()))
+      {
+        DLog(L"This file dosent exist {}", file);
+        return L"";
+      }
+    }
+    
+    return file;
   }
 }
