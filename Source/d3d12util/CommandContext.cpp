@@ -118,6 +118,21 @@ ComputeContext& ComputeContext::Begin(const std::wstring& ID, bool Async)
     return NewContext;
 }
 
+VideoCopyContext& VideoCopyContext::Begin(const std::wstring& ID)
+{
+  VideoCopyContext& NewContext = D3D12Engine::g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_COPY)->GetCopyContext();
+  NewContext.SetID(ID);
+  //if (ID.length() > 0)
+  //  assert(0);//EngineProfiling::BeginBlock(ID, NewContext);
+  return NewContext;
+}
+
+void VideoCopyContext::CopyTextureRegion(D3D12_TEXTURE_COPY_LOCATION* pDst, const D3D12_TEXTURE_COPY_LOCATION* pSrc)
+{
+  //the state should already be set
+  FlushResourceBarriers();
+  m_CommandList->CopyTextureRegion(pDst, 0, 0, 0, pSrc, nullptr);
+}
 uint64_t CommandContext::Flush(bool WaitForCompletion)
 {
     FlushResourceBarriers();
@@ -192,9 +207,6 @@ uint64_t CommandContext::Finish( bool WaitForCompletion )
     ASSERT(m_Type == D3D12_COMMAND_LIST_TYPE_DIRECT || m_Type == D3D12_COMMAND_LIST_TYPE_COMPUTE);
 
     FlushResourceBarriers();
-
-    //if (m_ID.length() > 0)
-    //  assert(0);//EngineProfiling::EndBlock(this);
 
     ASSERT(m_CurrentAllocator != nullptr);
 

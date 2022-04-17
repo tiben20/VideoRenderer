@@ -69,12 +69,13 @@ namespace D3D12Engine
 	CComPtr<IDXGIOutput>    m_pDXGIOutput;
 	CComPtr<IDXGIFactory1> m_pDXGIFactory1;
 
-	ID3D12Resource* SwapChainBuffer[3];
-	ColorBuffer SwapChainBufferColor[3];
+	
+	std::vector<ColorBuffer> SwapChainBufferColor;
 	ColorBuffer m_pVideoOutputResourcePreScale;// same format as back buffer,will have the plane rendered onto
 	ColorBuffer m_pVideoOutputResource;// same format as back buffer,will have the plane rendered onto
 	ColorBuffer m_pPlaneResource[2];//Those surface are for copy texture from nv12 to rgb
 	int p_CurrentBuffer = 0;
+	int g_CurrentBufferCount = 3;
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 	// swap chain format
 	//DXGI_FORMAT m_SwapChainFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
@@ -137,11 +138,11 @@ namespace D3D12Engine
 
 	void D3D12Engine::ReleaseSwapChain()
 	{
-		
-		for (uint32_t i = 0; i < 3; ++i)
+		for (uint32_t i = 0; i < SwapChainBufferColor.size(); ++i)
 		{
-			SwapChainBufferColor[i].Destroy();
+			SwapChainBufferColor.at(i).Destroy();
 		}
+
 		if (m_pDXGISwapChain1) {
 			m_pDXGISwapChain1->SetFullscreenState(FALSE, nullptr);
 		}
@@ -190,23 +191,27 @@ namespace D3D12Engine
 			//Reset();
 	}
 
-	HRESULT D3D12Engine::ResetSwapChain(CRect windowrect)
+	HRESULT D3D12Engine::ResetSwapChain(CRect windowrect, int presentSurfaceCount)
 	{
+		g_CurrentBufferCount = presentSurfaceCount;
 		const UINT w = windowrect.Width();
 		const UINT h = windowrect.Height();
 		if (m_pDXGISwapChain1)
 		{
 			D3D12Engine::g_CommandManager.IdleGPU();
-			for (uint32_t i = 0; i < 3; ++i)
+			for (uint32_t i = 0; i < SwapChainBufferColor.size(); ++i)
 			{
 				SwapChainBufferColor[i].Destroy();
 			}
-			HRESULT hr = m_pDXGISwapChain4->ResizeBuffers(3, w, h, m_SwapChainFmt, 0);
+			SwapChainBufferColor.resize(presentSurfaceCount);
+			if (!m_pDXGISwapChain4)
+				assert(0);
+			HRESULT hr = m_pDXGISwapChain4->ResizeBuffers(presentSurfaceCount, w, h, m_SwapChainFmt, 0);
 			if (SUCCEEDED(hr))
 			{
 				CComPtr<ID3D12Resource> DisplayPlane;
 
-				for (uint32_t i = 0; i < 3; ++i)
+				for (uint32_t i = 0; i < presentSurfaceCount; ++i)
 				{
 					CComPtr<ID3D12Resource> DisplayPlane;
 					m_pDXGISwapChain4->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane));
@@ -250,13 +255,6 @@ namespace D3D12Engine
 
 	HRESULT D3D12Engine::InitSwapChain(CRect windowRect)
 	{
-		for (int i = 0; i < 3; i++)
-		{
-			SwapChainBufferColor[i].Destroy();
-			if (SwapChainBuffer[i])
-				SwapChainBuffer[i]->Release();
-		}
-
 		m_pDXGISwapChain1.Release();
 
 		CComPtr<IDXGIFactory4> dxgiFactory;
@@ -265,12 +263,13 @@ namespace D3D12Engine
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.Width = windowRect.Width();
 		swapChainDesc.Height = windowRect.Height();
-		swapChainDesc.Format = m_SwapChainFmt;// DXGI_FORMAT_R10G10B10A2_UNORM;
+		swapChainDesc.Format = m_SwapChainFmt;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = 3;
+		swapChainDesc.BufferCount = g_D3D12Options->GetCurrentPresentBufferCount();
 		swapChainDesc.SampleDesc.Count = 1;
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.Scaling = DXGI_SCALING_NONE;
+		//d3d12 only support DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL or DXGI_SWAP_EFFECT_FLIP_DISCARD
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -289,11 +288,9 @@ namespace D3D12Engine
 
 		hr = m_pDXGISwapChain1->QueryInterface(MY_IID_PPV_ARGS(&m_pDXGISwapChain4));
 		m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
-		for (UINT i = 0; i < 3; i++)
-		{
-			hr = m_pDXGISwapChain4->GetBuffer(i, IID_ID3D12Resource, (void**)&SwapChainBuffer[i]);
-			SwapChainBufferColor[i].CreateFromSwapChain(L"Primary SwapChain Buffer", SwapChainBuffer[i]);
-		}
+		//Create ColorBuffer swap chain
+		if (FAILED(ResetSwapChain(windowRect, swapChainDesc.BufferCount)))
+			assert(0);
 
 		hr = m_pDXGISwapChain1->GetContainingOutput(&m_pDXGIOutput);
 		dxgiFactory.Release();
@@ -303,6 +300,7 @@ namespace D3D12Engine
 		if (desc2.OutputWindow != g_hWnd)
 			assert(0);
 		
+		//extract the data for the stats overlay
 		CComPtr<IDXGIAdapter> pDXGIAdapter;
 		for (UINT adapter = 0; m_pDXGIFactory1->EnumAdapters(adapter, &pDXGIAdapter) != DXGI_ERROR_NOT_FOUND; ++adapter) {
 			CComPtr<IDXGIOutput> pDXGIOutput;
@@ -326,11 +324,6 @@ namespace D3D12Engine
 			}
 
 			pDXGIAdapter.Release();
-		}
-		for (int xx = 0; xx < 3; xx++)
-		{
-			SwapChainBuffer[xx] = nullptr;
-
 		}
 
 		return S_OK;
@@ -433,8 +426,6 @@ namespace D3D12Engine
 
 	HRESULT D3D12Engine::RenderAlphaBitmap(GraphicsContext& Context, Texture resource, D3D12_VIEWPORT vp, RECT alphaBitmapRectSrc)
 	{
-		//Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
-		
 		Context.SetViewportAndScissor(vp.TopLeftX, vp.TopLeftY, vp.Width, vp.Height);
 		ImageScaling::RenderAlphaBitmap(Context, resource, alphaBitmapRectSrc);
 		//need to go back to where we were
@@ -495,25 +486,23 @@ namespace D3D12Engine
 			m_pVideoOutputResource.Create(L"Resize Scaling Resource Final", desc.Width, desc.Height, 1, m_SwapChainFmt);
 		}
 
-		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Render Video");
+		VideoCopyContext& pCopyContext = VideoCopyContext::Begin(L"Copy Video");
 
 
-		pVideoContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
-		pVideoContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST, true);
-		//need to flush if we dont want an error on the resource state
+		pCopyContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
+		pCopyContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST);
 
-		
 		D3D12_TEXTURE_COPY_LOCATION dst;
 		D3D12_TEXTURE_COPY_LOCATION src;
 		for (int i = 0; i < 2; i++)
 		{
 			dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pPlaneResource[i].GetResource());
 			src = CD3DX12_TEXTURE_COPY_LOCATION(resource, i);
-			pVideoContext.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+			pCopyContext.CopyTextureRegion(&dst, &src);
 		}
-		pVideoContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
+		//pCopyContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
 		
-		pVideoContext.Finish();
+		pCopyContext.Finish();
 		return S_OK;
 	}
 
@@ -631,7 +620,7 @@ namespace D3D12Engine
 	{
 		
 		m_pDXGISwapChain1->Present(1, 0);
-		p_CurrentBuffer = (p_CurrentBuffer + 1) % 3;
+		p_CurrentBuffer = (p_CurrentBuffer + 1) % g_CurrentBufferCount;
 	
 	}
 

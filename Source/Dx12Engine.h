@@ -60,6 +60,7 @@ namespace D3D12Engine
 	extern CD3D12DynamicScaler* m_pCurrentChromaScaler;
 	extern CD3D12DynamicScaler* m_pCurrentImageDoubler;
 	extern RootSignature g_RootScalers;
+	extern int g_CurrentBufferCount;
 	inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
 	{
 		return g_DescriptorAllocator[Type].Allocate(Count);
@@ -67,7 +68,7 @@ namespace D3D12Engine
 
 	HRESULT CreateDevice();
 	HRESULT InitSwapChain(CRect windowRect);
-	HRESULT ResetSwapChain(CRect windowrect);
+	HRESULT ResetSwapChain(CRect windowrect, int presentSurfaceCount);
 	HRESULT InitDXGIFactory();
 	void CheckSwapChain(CRect windowrect);
 

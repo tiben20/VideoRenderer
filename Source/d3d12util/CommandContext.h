@@ -44,6 +44,7 @@ class Texture;
 class VideoProcessorContext;
 class GraphicsContext;
 class ComputeContext;
+class VideoCopyContext;
 class UploadBuffer;
 class ReadbackBuffer;
 
@@ -125,10 +126,14 @@ public:
       ASSERT(m_Type != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
       return reinterpret_cast<VideoProcessorContext&>(*this);
     }
-      
+    
     GraphicsContext& GetGraphicsContext() {
         ASSERT(m_Type != D3D12_COMMAND_LIST_TYPE_COMPUTE, "Cannot convert async compute context to graphics");
         return reinterpret_cast<GraphicsContext&>(*this);
+    }
+
+    VideoCopyContext& GetCopyContext() {
+      return reinterpret_cast<VideoCopyContext&>(*this);
     }
 
     ComputeContext& GetComputeContext() {
@@ -305,8 +310,18 @@ public:
   void ProcessFrames(ID3D12VideoProcessor* pVideoProcessor, const D3D12_VIDEO_PROCESS_OUTPUT_STREAM_ARGUMENTS* pOutputArguments,
     UINT NumInputStreams, const D3D12_VIDEO_PROCESS_INPUT_STREAM_ARGUMENTS* pInputArguments);
   
-  uint64_t FlushVideo(bool WaitForCompletion);
+  uint64_t FlushVideo(bool WaitForCompletion) {};
 
+};
+
+class VideoCopyContext : public CommandContext
+{
+public:
+
+  static VideoCopyContext& Begin(const std::wstring& ID = L"");
+
+  void CopyTextureRegion(D3D12_TEXTURE_COPY_LOCATION* pDst, const D3D12_TEXTURE_COPY_LOCATION* pSrc);
+private:
 };
 
 class ComputeContext : public CommandContext
@@ -864,3 +879,4 @@ inline void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3
 {
     m_CommandList->ResolveQueryData(pQueryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0, NumQueries, pReadbackHeap, 0);
 }
+

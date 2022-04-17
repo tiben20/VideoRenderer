@@ -28,6 +28,8 @@ class GpuResource
     friend class CommandContext;
     friend class GraphicsContext;
     friend class ComputeContext;
+    friend class VideoCopyContext;
+	friend class VideoProcessorContext;
 
 public:
     GpuResource() : 

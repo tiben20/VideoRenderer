@@ -395,8 +395,6 @@ void CDX12VideoProcessor::CreateSubPicSurface()
 
 HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 {
-	//CheckPointer(m_pDXGISwapChain1, E_FAIL);
-
 	uint64_t tick = GetPreciseTick();
 	
 	// Get frame type
@@ -647,16 +645,14 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 	const long size = pSample->GetActualDataLength();
 	
 	if (FAILED(pSample->GetTime(&rtStart, &rtEnd)))
-	{
 		rtStart = m_pFilter->m_FrameStats.GeTimestamp();
-	}
+	
 	const REFERENCE_TIME rtFrameDur = m_pFilter->m_FrameStats.GetAverageFrameDuration();
 	rtEnd = rtStart + rtFrameDur;
 
 	m_rtStart = rtStart;
 	CRefTime rtClock(rtStart);
-
-
+	//copy sample via the videocopycontext
 	hr = CopySample(pSample);
 	
 	if (FAILED(hr))
@@ -1450,7 +1446,7 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 			m_pCurrentRenderTiming += fmt::format(L"\nSubtitles: {:.{}f}ms", sub, 2);
 		}
 		float present = (float)(m_RenderStats.presentticks * 1000) / ticks;
-		m_pCurrentRenderTiming += fmt::format(L"\nPresent: {:.{}f}ms", present, 2);
+		m_pCurrentRenderTiming += fmt::format(L"\nPresent: {:.{}f}ms BufferCount: {}", present, 2, g_CurrentBufferCount);
 		m_pCurrentRenderTiming += fmt::format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
 	}
 	str.append(m_pCurrentRenderTiming);
@@ -1665,7 +1661,7 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 	m_windowRect = windowRect;
 	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
 
-	D3D12Engine::ResetSwapChain(m_windowRect);
+	D3D12Engine::ResetSwapChain(m_windowRect, g_D3D12Options->GetCurrentPresentBufferCount());
 	D3D12Engine::SetVideoRect(m_videoRect);
 	D3D12Engine::SetWindowRect(m_windowRect);
 	D3D12Engine::SetRenderRect(m_renderRect);
@@ -1680,7 +1676,7 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 HRESULT CDX12VideoProcessor::Reset()
 {
 	//not sure about this
-	return D3D12Engine::ResetSwapChain(m_windowRect);
+	return D3D12Engine::ResetSwapChain(m_windowRect, g_D3D12Options->GetCurrentPresentBufferCount());
 }
 
 HRESULT CDX12VideoProcessor::GetCurentImage(long* pDIBImage)

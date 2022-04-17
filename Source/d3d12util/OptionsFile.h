@@ -77,7 +77,13 @@ public:
 	int GetCurrentDecoderBufferCount() { return m_iDecoderBufferCount; }
 	int GetCurrentUploadBufferCount() { return m_iUploadBufferCount; }
 	int GetCurrentRenderBufferCount() { return m_iRenderBufferCount; }
-	int GetCurrentPresentBufferCount() { return m_iPresentBufferCount; }
+	int GetCurrentPresentBufferCount()
+	{ 
+		if (m_iPresentBufferCount > 0)
+			return m_iPresentBufferCount;
+		else
+			return 3;
+	}
 	void SetCurrentDecoderBufferCount(int x) { m_iDecoderBufferCount = x; }
 	void SetCurrentUploadBufferCount(int x) { m_iUploadBufferCount = x; }
 	void SetCurrentRenderBufferCount(int x) { m_iRenderBufferCount = x; }

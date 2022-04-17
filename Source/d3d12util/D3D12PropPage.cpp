@@ -590,6 +590,7 @@ void CD3D12SettingsPPage::SetControlConfig(HWND hwnd, int editidx, int slideridx
 }
 void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 {
+	//TOFIX
 	std::wstring appdata = _wgetenv(L"APPDATA");
 	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
 	std::filesystem::directory_iterator end_itr; // default construction yields past-the-end

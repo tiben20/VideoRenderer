@@ -201,9 +201,6 @@
     <ClCompile Include="d3d12util\TextRenderer.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="DX12Engine.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="DX12Capabilities.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClCompile>
@@ -239,6 +236,9 @@
     </ClCompile>
     <ClCompile Include="d3d12util\Color.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12Engine.cpp">
+      <Filter>Header Files\d3d12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -443,9 +443,6 @@
     <ClInclude Include="d3d12util\TextRenderer.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="DX12Engine.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="DX12Capabilities.h">
       <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
@@ -475,6 +472,9 @@
     </ClInclude>
     <ClInclude Include="d3d12util\Color.h">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Engine.h">
+      <Filter>Header Files\d3d12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

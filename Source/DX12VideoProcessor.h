@@ -53,7 +53,10 @@ class CDX12VideoProcessor
 private:
 	friend class CVideoRendererInputPin;
 
-	
+	/*Threading*/
+	void GetNextRessource(ColorBuffer** resource) {};
+
+	/*end threading*/
 	void GetHardwareAdapter(
 		IDXGIFactory1* pFactory,
 		IDXGIAdapter1** ppAdapter,
@@ -72,17 +75,7 @@ private:
 	// D3D12 Video Processor
 	CD3D12VP m_D3D12VP;
 	const wchar_t* m_strCorrection = nullptr;
-	//Instead of dynamycally recreating the shaders we use a constant buffer
-	//TODO dont update it when it didn't change
-	typedef struct {
-		FLOAT Colorspace[4 * 3];
-		FLOAT Opacity;
-		FLOAT LuminanceScale;
-		FLOAT BoundaryX;
-		FLOAT BoundaryY;
-		FLOAT padding[48]; // 256 bytes alignment
-	} PS_CONSTANT_BUFFER;
-	PS_CONSTANT_BUFFER* m_sShaderConstants;
+
 
 	//ByteAddressBuffer m_pVideoQuadVertex;
 	//ByteAddressBuffer m_pVideoIndexBuffer;
@@ -101,7 +94,7 @@ private:
 	int m_pStatsDelay = 0;
 	std::wstring m_sScalerX = L"";
 	std::wstring m_sScalerY = L"";
-
+	
 	bool resetquad = false;
 
 	
