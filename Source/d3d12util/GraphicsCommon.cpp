@@ -31,30 +31,29 @@
 namespace D3D12Engine
 {
     SamplerDesc SamplerLinearWrapDesc;
-    SamplerDesc SamplerAnisoWrapDesc;
-    SamplerDesc SamplerShadowDesc;
+    
+    
     SamplerDesc SamplerLinearClampDesc;
     SamplerDesc SamplerLinearClampLODDesc;
-    SamplerDesc SamplerVolumeWrapDesc;
+    
     SamplerDesc SamplerPointClampDesc;
     SamplerDesc SamplerPointBorderDesc;
     SamplerDesc SamplerPointClampLODDesc;
     SamplerDesc SamplerLinearBorderDesc;
     SamplerDesc SamplerGeometryDesc;
-    SamplerDesc SamplerfxrcnnxDesc;
+    
 
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearWrap;
-    D3D12_CPU_DESCRIPTOR_HANDLE SamplerAnisoWrap;
-    D3D12_CPU_DESCRIPTOR_HANDLE SamplerShadow;
+    
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearClamp;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearLODClamp;
-    D3D12_CPU_DESCRIPTOR_HANDLE SamplerVolumeWrap;
+    
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointClamp;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointLODClamp;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerPointBorder;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerLinearBorder;
     D3D12_CPU_DESCRIPTOR_HANDLE SamplerGeometry;
-    D3D12_CPU_DESCRIPTOR_HANDLE Samplerfxrcnnx;
+
 
     D3D12_RASTERIZER_DESC RasterizerDefault;	// Counter-clockwise
     D3D12_RASTERIZER_DESC RasterizerDefaultCw;	// Clockwise winding
@@ -68,6 +67,7 @@ namespace D3D12Engine
     D3D12_BLEND_DESC BlendFont;
     D3D12_BLEND_DESC BlendSubPic;
     D3D12_BLEND_DESC Blendfxrcnnx;
+
     D3D12_DEPTH_STENCIL_DESC DepthStateDisabled;
 
     CommandSignature DispatchIndirectCommandSignature(1);
@@ -97,13 +97,6 @@ void D3D12Engine::InitializeCommonState(void)
     SamplerLinearWrapDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     SamplerLinearWrap = SamplerLinearWrapDesc.CreateDescriptor();
 
-    SamplerAnisoWrapDesc.MaxAnisotropy = 4;
-    SamplerAnisoWrap = SamplerAnisoWrapDesc.CreateDescriptor();
-
-    SamplerShadowDesc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-    SamplerShadowDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
-    SamplerShadowDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-    SamplerShadow = SamplerShadowDesc.CreateDescriptor();
 
     SamplerLinearClampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     SamplerLinearClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
@@ -111,9 +104,6 @@ void D3D12Engine::InitializeCommonState(void)
     SamplerLinearClampLODDesc = SamplerLinearClampDesc;
     SamplerLinearClampLODDesc.MaxLOD = 0;
     SamplerLinearLODClamp = SamplerLinearClampLODDesc.CreateDescriptor();
-
-    SamplerVolumeWrapDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-    SamplerVolumeWrap = SamplerVolumeWrapDesc.CreateDescriptor();
 
     SamplerPointClampDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
     SamplerPointClampDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
@@ -140,14 +130,6 @@ void D3D12Engine::InitializeCommonState(void)
     SamplerGeometryDesc.MaxLOD = 0.f;
     SamplerGeometry = SamplerGeometryDesc.CreateDescriptor();
 
-    SamplerfxrcnnxDesc.SetTextureAddressMode(D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-    SamplerfxrcnnxDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-    SamplerfxrcnnxDesc.MipLODBias = 0.f;
-    SamplerfxrcnnxDesc.MaxAnisotropy = 0;
-    SamplerfxrcnnxDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-    SamplerfxrcnnxDesc.MinLOD = 0.f;
-    SamplerfxrcnnxDesc.MaxLOD = 0.f;
-    Samplerfxrcnnx = SamplerfxrcnnxDesc.CreateDescriptor();
     // Default rasterizer states
     RasterizerDefault.FillMode = D3D12_FILL_MODE_SOLID;
     RasterizerDefault.CullMode = D3D12_CULL_MODE_BACK;
@@ -212,7 +194,7 @@ void D3D12Engine::InitializeCommonState(void)
     BlendFont.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
     BlendSubPic = {};
     BlendSubPic.AlphaToCoverageEnable = FALSE;
-    
+    /*subpicture blend*/
     BlendSubPic.IndependentBlendEnable = FALSE;
     BlendSubPic.RenderTarget[0].BlendEnable = TRUE;
     BlendSubPic.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
@@ -222,9 +204,9 @@ void D3D12Engine::InitializeCommonState(void)
     BlendSubPic.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
     BlendSubPic.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
     BlendSubPic.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-    
+
     Blendfxrcnnx = BlendDisable;
-    Blendfxrcnnx.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE; 
+    Blendfxrcnnx.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
     Blendfxrcnnx.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
     Blendfxrcnnx.RenderTarget[1] = Blendfxrcnnx.RenderTarget[0];
 }

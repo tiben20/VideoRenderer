@@ -526,12 +526,33 @@ namespace D3D12Engine
 		pVideoContext.SetViewportAndScissor(windowRect.left, windowRect.top, windowRect.Width(), windowRect.Height());
 	}
 
-	void D3D12Engine::Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw)
+	void D3D12Engine::Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler)
 	{
 		//we already copy to prescale with the texture copy
 		if (!sw)
 			DrawPlanes(Context, m_pVideoOutputResourcePreScale);
-		ImageScaling::Downscale(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale, srcRect, destRect);
+
+		bool res;
+		if (m_pCurrentDownScaler && m_pCurrentDownScaler->GetScalerName() != scaler)
+		{
+			UNLOAD_SCALER(m_pCurrentUpScaler)
+		}
+
+		if (!m_pCurrentDownScaler)
+		{
+			m_pCurrentDownScaler = new CD3D12DynamicScaler(scaler, &res);
+			if (!res)
+			{
+				UNLOAD_SCALER(m_pCurrentDownScaler)
+					DLog(L"ERROR loading scaler {}", scaler);
+				return;
+			}
+
+			m_pCurrentDownScaler->Init(DXGI_FORMAT_R8G8B8A8_UNORM, srcRect, destRect);
+
+		}
+
+		m_pCurrentDownScaler->Render(Context, destRect, m_pVideoOutputResource, m_pVideoOutputResourcePreScale);
 		
 	}
 

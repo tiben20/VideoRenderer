@@ -18,10 +18,6 @@
 *
 */
 
-#include "ShaderUtility.hlsli"
-#include "PresentRS.hlsli"
-
-
 Texture2D ColorTex[2] : register(t0);
 
 cbuffer Constants : register(b0)
@@ -34,7 +30,7 @@ cbuffer Constants : register(b0)
 
 SamplerState BilinearFilter : register(s0);
 
-[RootSignature(Present_RootSig)]
+
 float3 main(float4 position : SV_Position, float2 uv : TexCoord0) : SV_Target0
 {
     float colorY;

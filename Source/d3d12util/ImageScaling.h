@@ -73,10 +73,4 @@ namespace ImageScaling
 
   HRESULT RenderAlphaBitmap(GraphicsContext& Context, Texture& resource, RECT alpharect);
   HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer& resource, ColorBuffer& target, CRect srcRect, UINT srcW, UINT srcH);
-
-  void Downscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect,CRect destRect);
-  void Upscale(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect);
-  void UpscaleXbr(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect);
-  void Upscalefxrcnnx(GraphicsContext& Context, ColorBuffer& dest, ColorBuffer& source, CRect srcRect, CRect destRect);
-
 }

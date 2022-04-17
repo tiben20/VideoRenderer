@@ -1613,8 +1613,15 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 	
 	if (rSrc.Width() != dstRect.Width() && rSrc.Height() != dstRect.Height())
 	{
-		if( rSrc.Width()>dstRect.Width() || rSrc.Height() > dstRect.Height())
-			D3D12Engine::Downscale(pVideoContext, srcRect,dstRect, m_bSWRendering);
+		if (rSrc.Width() > dstRect.Width() || rSrc.Height() > dstRect.Height())
+		{
+			std::wstring scurrentscaler = D3D12Engine::g_D3D12Options->GetCurrentDownscaler();
+			if (scurrentscaler != m_sScalerX)
+				m_sScalerX = scurrentscaler;
+			if (scurrentscaler != m_sScalerY)
+				m_sScalerY = scurrentscaler;
+			D3D12Engine::Downscale(pVideoContext, srcRect, dstRect, m_bSWRendering, scurrentscaler);
+		}
 		else
 		{
 			std::wstring scurrentscaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();

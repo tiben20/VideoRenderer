@@ -100,7 +100,7 @@ namespace D3D12Engine
 	
 	void DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect = CRect());
 	void Noscale(GraphicsContext& Context, CRect dstRect, bool sw);
-	void Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw);
+	void Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler);
 	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler);
 
 	ColorBuffer GetPreScale();

@@ -18,8 +18,6 @@
 *
 */
 
-#include "PresentRS.hlsli"
-
 struct VS_INPUT
 {
     uint VertID : SV_VertexID;

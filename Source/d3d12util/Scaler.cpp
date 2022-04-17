@@ -350,8 +350,6 @@ void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBu
     }
 
   }
-  //DWParam const1;
-  
   
   Context.SetDynamicDescriptor(0, 0, source.GetSRV());
   for (ShaderPassDesc i : m_pDesc.passes)

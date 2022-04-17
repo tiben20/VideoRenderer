@@ -38,6 +38,7 @@
 #include "utility.h"
 #include "GraphicsCommon.h"
 #include "d3d12video.h"
+
 class ColorBuffer;
 class Texture;
 class VideoProcessorContext;

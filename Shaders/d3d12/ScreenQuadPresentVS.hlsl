@@ -1,26 +1,26 @@
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-// Developed by Minigraph
-//
-// Author:  James Stanard
-//
-// A vertex shader for full-screen effects without a vertex buffer.  The
-// intent is to output an over-sized triangle that encompasses the entire
-// screen.  By doing so, we avoid rasterization inefficiency that could
-// result from drawing two triangles with a shared edge.
-//
-// Use null input layout
-// Draw(3)
+/*
+* (C) 2022 Ti-BEN
+* Developed by Minigraph
+* Author:  James Stanard
+*
+* This file is part of MPC-BE.
+*
+* MPC-BE is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* MPC-BE is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 
-#include "PresentRS.hlsli"
 
-[RootSignature(Present_RootSig)]
 void main(
     in uint VertID : SV_VertexID,
     out float4 Pos : SV_Position,
