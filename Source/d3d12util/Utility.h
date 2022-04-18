@@ -19,6 +19,8 @@
 
 namespace Utility
 {
+  void SetThreadName(DWORD dwThreadID, LPCSTR szThreadName);
+
 #ifdef _CONSOLE
     inline void Print( const char* msg ) { printf("%s", msg); }
     inline void Print( const wchar_t* msg ) { wprintf(L"%ws", msg); }

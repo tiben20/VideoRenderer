@@ -240,6 +240,9 @@
     <ClCompile Include="DX12Engine.cpp">
       <Filter>Header Files\d3d12</Filter>
     </ClCompile>
+    <ClCompile Include="d3d12util\D3D12Thread.cpp">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -475,6 +478,9 @@
     </ClInclude>
     <ClInclude Include="DX12Engine.h">
       <Filter>Header Files\d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\D3D12Thread.h">
+      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

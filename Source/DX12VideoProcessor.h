@@ -30,12 +30,8 @@
 #include "D3D12VP.h"
 #include "DX9Device.h"
 #include "VideoProcessor.h"
-#include "PipelineState.h"
-#include "ColorBuffer.h"
-#include "gpubuffer.h"
-#include "CommandContext.h"
-#include "uploadbuffer.h"
-#include "ImageScaling.h"
+#include "D3D12Thread.h"
+
 #include "GeometryRenderer.h"
 
 #define TEST_SHADER 0
@@ -43,7 +39,7 @@
 
 
 class CVideoRendererInputPin;
-
+class CD3D12InputQueue;
 
 
 class CDX12VideoProcessor
@@ -75,7 +71,7 @@ private:
 	// D3D12 Video Processor
 	CD3D12VP m_D3D12VP;
 	const wchar_t* m_strCorrection = nullptr;
-
+	uint64_t m_iStartTick;
 
 	//ByteAddressBuffer m_pVideoQuadVertex;
 	//ByteAddressBuffer m_pVideoIndexBuffer;
@@ -86,7 +82,10 @@ private:
 	Texture      m_pAlphaBitmapTexture;
 	Texture m_pTexturePlane1;
 	Texture m_pTexturePlane2;
+	CD3D12InputQueue* m_pInputQueue;
 
+	CONSTANT_BUFFER_VAR m_pBufferVar;
+	bool m_PSConvColorData = false;
 	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
 	bool m_bSWRendering = false;
@@ -127,11 +126,13 @@ public:
 	void ClearPreScaleShaders() override;
 	void ClearPostScaleShaders() override;
 
+	HRESULT RenderSubpics(ColorBuffer input, GraphicsContext& Context);
 	
 	bool Initialized();
 
 	HRESULT InitializeTexVP(const FmtConvParams_t& params, const UINT width, const UINT height);
-
+	void SetShaderConvertColorParams(DXVA2_ExtendedFormat srcExFmt, FmtConvParams_t m_srcParams, DXVA2_ProcAmpValues m_DXVA2ProcAmpValues);
+	
 	void UpdateFrameProperties() {
 		m_srcPitch = m_srcWidth * m_srcParams.Packsize;
 		m_srcLines = m_srcHeight * m_srcParams.PitchCoeff / 2;

@@ -16,6 +16,33 @@
 #include <string>
 #include <locale>
 
+typedef struct tagTHREADNAME_INFO
+{
+  DWORD dwType;     // must be 0x1000
+  LPCSTR szName;    // pointer to name (in user addr space)
+  DWORD dwThreadID; // thread ID (-1=caller thread)
+  DWORD dwFlags;    // reserved for future use, must be zero
+} THREADNAME_INFO;
+
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
+void Utility::SetThreadName(DWORD dwThreadID, LPCSTR szThreadName)
+{
+  THREADNAME_INFO info;
+  info.dwType = 0x1000;
+  info.szName = szThreadName;
+  info.dwThreadID = dwThreadID;
+  info.dwFlags = 0;
+
+  __try
+  {
+    RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+}
+
 // A faster version of memcopy that uses SSE instructions.  TODO:  Write an ARM variant if necessary.
 void SIMDMemCopy( void* __restrict _Dest, const void* __restrict _Source, size_t NumQuadwords )
 {

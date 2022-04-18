@@ -144,7 +144,8 @@ using namespace D3D12Engine;
 CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
-	
+	m_pInputQueue = nullptr;
+	m_iStartTick = GetPreciseTick();//TODO remove for testing
 	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
 	m_bShowStats = config.bShowStats;
 	m_iResizeStats = config.iResizeStats;
@@ -349,6 +350,52 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	
 }
 
+void CDX12VideoProcessor::SetShaderConvertColorParams(DXVA2_ExtendedFormat srcExFmt, FmtConvParams_t m_srcParams, DXVA2_ProcAmpValues m_DXVA2ProcAmpValues)
+{
+	mp_csp_params csp_params;
+	set_colorspace(srcExFmt, csp_params.color);
+	csp_params.brightness = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Brightness) / 255;
+	csp_params.contrast = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Contrast);
+	csp_params.hue = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Hue) / 180 * acos(-1);
+	csp_params.saturation = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Saturation);
+	csp_params.gray = m_srcParams.CSType == CS_GRAY;
+
+	csp_params.input_bits = csp_params.texture_bits = m_srcParams.CDepth;
+
+	m_PSConvColorData =
+		m_srcParams.CSType == CS_YUV ||
+		m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16 ||
+		csp_params.gray ||
+		fabs(csp_params.brightness) > 1e-4f || fabs(csp_params.contrast - 1.0f) > 1e-4f;
+
+	mp_cmat cmatrix;
+	mp_get_csp_matrix(&csp_params, &cmatrix);
+	m_pBufferVar = {
+		{cmatrix.m[0][0], cmatrix.m[0][1], cmatrix.m[0][2], 0},
+		{cmatrix.m[1][0], cmatrix.m[1][1], cmatrix.m[1][2], 0},
+		{cmatrix.m[2][0], cmatrix.m[2][1], cmatrix.m[2][2], 0},
+		{cmatrix.c[0],    cmatrix.c[1],    cmatrix.c[2],    0},
+	};
+
+	if (m_srcParams.cformat == CF_Y410 || m_srcParams.cformat == CF_Y416) {
+		std::swap(m_pBufferVar.cm_r.x, m_pBufferVar.cm_r.y);
+		std::swap(m_pBufferVar.cm_g.x, m_pBufferVar.cm_g.y);
+		std::swap(m_pBufferVar.cm_b.x, m_pBufferVar.cm_b.y);
+	}
+	else if (m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16) {
+		std::swap(m_pBufferVar.cm_r.x, m_pBufferVar.cm_r.y); std::swap(m_pBufferVar.cm_r.y, m_pBufferVar.cm_r.z);
+		std::swap(m_pBufferVar.cm_g.x, m_pBufferVar.cm_g.y); std::swap(m_pBufferVar.cm_g.y, m_pBufferVar.cm_g.z);
+		std::swap(m_pBufferVar.cm_b.x, m_pBufferVar.cm_b.y); std::swap(m_pBufferVar.cm_b.y, m_pBufferVar.cm_b.z);
+	}
+	else if (csp_params.gray) {
+		m_pBufferVar.cm_g.x = m_pBufferVar.cm_g.y;
+		m_pBufferVar.cm_g.y = 0;
+		m_pBufferVar.cm_b.x = m_pBufferVar.cm_b.z;
+		m_pBufferVar.cm_b.z = 0;
+	}
+
+}
+
 void CDX12VideoProcessor::CreateSubPicSurface()
 {
 	m_pSurface9SubPic.Release();
@@ -395,6 +442,12 @@ void CDX12VideoProcessor::CreateSubPicSurface()
 
 HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 {
+	if (!m_pInputQueue)
+		m_pInputQueue = new CD3D12InputQueue(this);
+	HRESULT hrr = m_pInputQueue->Init(D3D12Engine::g_D3D12Options->GetCurrentUploadBufferCount(),m_srcRect, m_srcPitch, m_srcParams, m_pBufferVar);
+	//todo check if its really the source rect
+	hrr = m_pInputQueue->CopySample(pSample, m_srcRect);
+	return hrr;
 	uint64_t tick = GetPreciseTick();
 	
 	// Get frame type
@@ -591,22 +644,6 @@ HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 	
 	if (m_pTexturePlane1.GetWidth()>0)
 	{
-#if 0
-		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Create texture transit");
-		pVideoContext.TransitionResource(m_pTexturePlane1, D3D12_RESOURCE_STATE_COPY_DEST);
-		pVideoContext.TransitionResource(m_pTexturePlane2, D3D12_RESOURCE_STATE_COPY_DEST);
-		pVideoContext.Finish(true);
-		D3D12_SUBRESOURCE_DATA texResource1;
-		texResource1.pData = srcData;
-		texResource1.RowPitch = srcPitch;
-		texResource1.SlicePitch = srcPitch * m_srcHeight;
-		CommandContext::InitializeTexture(m_pTexturePlane1, 1, &texResource1);
-		D3D12_SUBRESOURCE_DATA texResource2;
-		texResource2.pData = srcData + firstplane;
-		texResource2.RowPitch = srcPitch;
-		texResource2.SlicePitch = srcPitch * layoutplane[1].Footprint.Height;
-		CommandContext::InitializeTexture(m_pTexturePlane2, 1, &texResource2);
-#endif
 		m_pTexturePlane1.Destroy();
 		m_pTexturePlane2.Destroy();
 		m_pTexturePlane1.Create2D(srcPitch, m_srcWidth, m_srcHeight, m_srcParams.pDX11Planes->FmtPlane1, srcData);
@@ -660,7 +697,7 @@ HRESULT CDX12VideoProcessor::ProcessSample(IMediaSample* pSample)
 		m_RenderStats.failed++;
 		return hr;
 	}
-
+	return hr;
 	// always Render(1) a frame after CopySample()
 	hr = Render(1);
 
@@ -1434,7 +1471,8 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 
 	if (m_pStatsDelay == 0)
 	{
-		m_pCurrentRenderTiming = fmt::format(L"\nTimings:");
+		uint64_t currenttick = GetPreciseTick() - m_iStartTick;
+		m_pCurrentRenderTiming = fmt::format(L"\nTimings: {}", currenttick);
 		uint64_t ticks = GetPreciseTicksPerSecondI();
 		float copy = (float)(m_RenderStats.copyticks * 1000) / ticks;
 		m_pCurrentRenderTiming += fmt::format(L"\nCopy: {:.{}f}ms", copy, 2);
@@ -1478,18 +1516,94 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 
 }
 
+HRESULT CDX12VideoProcessor::RenderSubpics(ColorBuffer input, GraphicsContext& pVideoContext)
+{
+	HRESULT hrSubPic = S_OK;
+	if (m_pFilter->m_pSubCallBack && m_pTextureSubPic.GetWidth() > 0)
+	{
+		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
+		const CRect rDstVid(m_videoRect);
+		const auto rtStart = m_pFilter->m_rtStartTime + m_rtStart;
+
+		if (m_bSubPicWasRendered) {
+			m_bSubPicWasRendered = false;
+			m_pD3DDevEx->ColorFill(m_pSurface9SubPic, nullptr, m_pFilter->m_bSubInvAlpha ? D3DCOLOR_ARGB(0, 0, 0, 0) : D3DCOLOR_ARGB(255, 0, 0, 0));
+		}
+
+		if (CComQIPtr<ISubRenderCallback4> pSubCallBack4 = m_pFilter->m_pSubCallBack) {
+			hrSubPic = pSubCallBack4->RenderEx3(rtStart, 0, m_rtAvgTimePerFrame, rDstVid, rDstVid, rSrcPri);
+		}
+		else {
+			hrSubPic = m_pFilter->m_pSubCallBack->Render(rtStart, rDstVid.left, rDstVid.top, rDstVid.right, rDstVid.bottom, rSrcPri.Width(), rSrcPri.Height());
+		}
+
+		if (S_OK == hrSubPic) {
+			m_bSubPicWasRendered = true;
+
+			// flush Direct3D9 for immediate update Direct3D11 texture
+			CComPtr<IDirect3DQuery9> pEventQuery;
+			m_pD3DDevEx->CreateQuery(D3DQUERYTYPE_EVENT, &pEventQuery);
+			if (pEventQuery) {
+				pEventQuery->Issue(D3DISSUE_END);
+				BOOL Data = FALSE;
+				while (S_FALSE == pEventQuery->GetData(&Data, sizeof(Data), D3DGETDATA_FLUSH));
+			}
+		}
+	}
+	
+	//Render the Subtitles
+	if (S_OK == hrSubPic) {
+		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
+
+		D3D11_VIEWPORT VP;
+		VP.TopLeftX = 0;
+		VP.TopLeftY = 0;
+		VP.Width = rSrcPri.Width();
+		VP.Height = rSrcPri.Height();
+		VP.MinDepth = 0.0f;
+		VP.MaxDepth = 1.0f;
+		hrSubPic = ImageScaling::RenderSubPic(pVideoContext, m_pTextureSubPic, input, rSrcPri, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+		//hrSubPic = D3D12Engine::RenderSubPic(pVideoContext, m_pTextureSubPic, rSrcPri, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+	}
+	pVideoContext.SetRenderTarget(input.GetRTV());
+	//will just desactive the overlay if stats are not on
+	DrawStats(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
+
+	if (m_bAlphaBitmapEnable)
+	{
+		D3D12_RESOURCE_DESC desc = D3D12Engine::GetSwapChainResourceDesc();
+
+		D3D12_VIEWPORT vp = {
+			m_AlphaBitmapNRectDest.left * desc.Width,
+			m_AlphaBitmapNRectDest.top * desc.Height,
+			(m_AlphaBitmapNRectDest.right - m_AlphaBitmapNRectDest.left) * desc.Width,
+			(m_AlphaBitmapNRectDest.bottom - m_AlphaBitmapNRectDest.top) * desc.Height,
+			0.0f,
+			1.0f
+		};
+		hrSubPic = D3D12Engine::RenderAlphaBitmap(pVideoContext, m_pAlphaBitmapTexture, vp, m_AlphaBitmapRectSrc);
+#ifdef TODO
+		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource, pBackBuffer, m_pAlphaBitmapVertex, &VP, m_pSamplerLinear);
+#endif
+	}
+	//TODO ADD HDR METADATA
+
+
+
+	return S_OK;
+}
+
 HRESULT CDX12VideoProcessor::Render(int field)
 {
 	//CheckPointer(m_pDXGISwapChain1, E_FAIL);
 	HRESULT hr = S_OK;
+	return hr;
 	if (field)
 		m_FieldDrawn = field;
 
 	uint64_t tick1 = GetPreciseTick();
 
 	HRESULT hrSubPic = E_FAIL;
-
-	
 
 	if (m_pFilter->m_pSubCallBack && m_pTextureSubPic.GetWidth()>0)
 	{

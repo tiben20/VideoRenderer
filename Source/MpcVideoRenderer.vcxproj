@@ -74,6 +74,7 @@
     <ClCompile Include="d3d12util\CommandListManager.cpp" />
     <ClCompile Include="d3d12util\CommandSignature.cpp" />
     <ClCompile Include="d3d12util\D3D12PropPage.cpp" />
+    <ClCompile Include="d3d12util\D3D12Thread.cpp" />
     <ClCompile Include="d3d12util\DescriptorHeap.cpp" />
     <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp" />
     <ClCompile Include="d3d12util\FileUtility.cpp" />
@@ -140,6 +141,7 @@
     <ClInclude Include="d3d12util\CommandListManager.h" />
     <ClInclude Include="d3d12util\CommandSignature.h" />
     <ClInclude Include="d3d12util\D3D12PropPage.h" />
+    <ClInclude Include="d3d12util\D3D12Thread.h" />
     <ClInclude Include="d3d12util\d3dx12.h" />
     <ClInclude Include="d3d12util\DescriptorHeap.h" />
     <ClInclude Include="d3d12util\DynamicDescriptorHeap.h" />

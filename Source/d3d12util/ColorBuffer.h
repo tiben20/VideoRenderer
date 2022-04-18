@@ -39,7 +39,13 @@ public:
         for (int i = 0; i < _countof(m_UAVHandle); ++i)
             m_UAVHandle[i].ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     }
-    
+    std::wstring GetName()
+    {
+      return m_Name;
+    }
+
+    void SetState(D3D12_RESOURCE_STATES NewState) { m_UsageState = NewState; }
+
     void DestroyBuffer()
     {
       //clear the value in case we use public buffer
@@ -100,7 +106,7 @@ public:
 
     
 protected:
-
+  std::wstring m_Name;
     D3D12_RESOURCE_FLAGS CombineResourceFlags( void ) const
     {
         D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE;

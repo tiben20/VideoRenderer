@@ -61,9 +61,14 @@ struct VERTEX_SUBPIC {
   DirectX::XMFLOAT2 TexCoord;
 };
 
+class RootSignature;
+class GraphicsPSO;
 namespace ImageScaling
 {
-
+  extern RootSignature s_PresentRSColor;
+  extern GraphicsPSO ColorConvertNV12PS;
+  extern RootSignature s_SubPicRS;
+  extern GraphicsPSO VideoRessourceCopyPS;
   void Initialize(DXGI_FORMAT DestFormat);
   void FreeImageScaling();
   

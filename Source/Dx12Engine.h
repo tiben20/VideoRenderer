@@ -55,6 +55,7 @@ namespace D3D12Engine
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
 	extern CD3D12Options* g_D3D12Options;
+
 	extern CD3D12DynamicScaler* m_pCurrentUpScaler;
 	extern CD3D12DynamicScaler* m_pCurrentDownScaler;
 	extern CD3D12DynamicScaler* m_pCurrentChromaScaler;
@@ -72,7 +73,7 @@ namespace D3D12Engine
 	HRESULT InitDXGIFactory();
 	void CheckSwapChain(CRect windowrect);
 
-	void SetShaderConvertColorParams(DXVA2_ExtendedFormat srcExFmt, FmtConvParams_t m_srcParams, DXVA2_ProcAmpValues m_DXVA2ProcAmpValues);
+	
 	bool ProcessHDR(DXVA2_ExtendedFormat srcExFmt, FmtConvParams_t m_srcParams);
 
 
@@ -105,6 +106,7 @@ namespace D3D12Engine
 	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler);
 
 	ColorBuffer GetPreScale();
+	void PresentBackBuffer(GraphicsContext& Context, ColorBuffer& source);
 	void PresentBackBuffer(GraphicsContext& Context);
 	void WaitForVBlank();
 	void Present();
