@@ -153,6 +153,7 @@ public:
     void CopyBufferRegion( GpuResource& Dest, size_t DestOffset, GpuResource& Src, size_t SrcOffset, size_t NumBytes );
     void CopySubresource(GpuResource& Dest, UINT DestSubIndex, GpuResource& Src, UINT SrcSubIndex);
     void CopyCounter(GpuResource& Dest, size_t DestOffset, StructuredBuffer& Src);
+    void CopyTextureRegion(GpuResource& Dest, int DestSub, GpuResource& Source, int SourceSub);
     void CopyTextureRegion(GpuResource& Dest, UINT x, UINT y, UINT z, GpuResource& Source, RECT& rect);
     void ResetCounter(StructuredBuffer& Buf, uint32_t Value = 0);
 
@@ -843,6 +844,21 @@ inline void CommandContext::CopyCounter(GpuResource& Dest, size_t DestOffset, St
     TransitionResource(Src.GetCounterBuffer(), D3D12_RESOURCE_STATE_COPY_SOURCE);
     FlushResourceBarriers();
     m_CommandList->CopyBufferRegion(Dest.GetResource(), DestOffset, Src.GetCounterBuffer().GetResource(), 0, 4);
+}
+
+inline void CommandContext::CopyTextureRegion(GpuResource& Dest, int DestSub, GpuResource& Source, int SourceSub)
+{
+  TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
+
+  FlushResourceBarriers();
+  D3D12_TEXTURE_COPY_LOCATION destLoc;
+  D3D12_TEXTURE_COPY_LOCATION srcLoc;
+
+  destLoc = CD3DX12_TEXTURE_COPY_LOCATION(Dest.GetResource());
+  srcLoc = CD3DX12_TEXTURE_COPY_LOCATION(Source.GetResource(), SourceSub);
+
+
+  m_CommandList->CopyTextureRegion(&destLoc, 0, 0, 0, &srcLoc, nullptr);
 }
 
 inline void CommandContext::CopyTextureRegion(GpuResource& Dest, UINT x, UINT y, UINT z, GpuResource& Source, RECT& Rect)

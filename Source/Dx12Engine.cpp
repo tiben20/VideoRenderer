@@ -486,19 +486,24 @@ namespace D3D12Engine
 			m_pVideoOutputResource.Create(L"Resize Scaling Resource Final", desc.Width, desc.Height, 1, m_SwapChainFmt);
 		}
 
-		VideoCopyContext& pCopyContext = VideoCopyContext::Begin(L"Copy Video");
+		GraphicsContext& pCopyContext = GraphicsContext::Begin(L"Copy Video");
 
 
-		pCopyContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
-		pCopyContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST);
+		//pCopyContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
+		//pCopyContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST);
+
+		GpuResource resour = GpuResource(resource, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		
+		
 
 		D3D12_TEXTURE_COPY_LOCATION dst;
 		D3D12_TEXTURE_COPY_LOCATION src;
 		for (int i = 0; i < 2; i++)
 		{
-			dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pPlaneResource[i].GetResource());
-			src = CD3DX12_TEXTURE_COPY_LOCATION(resource, i);
-			pCopyContext.CopyTextureRegion(&dst, &src);
+			pCopyContext.CopyTextureRegion(m_pPlaneResource[i], -1, resour, i);
+			//dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pPlaneResource[i].GetResource());
+			//src = CD3DX12_TEXTURE_COPY_LOCATION(resource, i);
+			
 		}
 		//pCopyContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
 		
