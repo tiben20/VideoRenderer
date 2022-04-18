@@ -1,5 +1,5 @@
 /*
-* (C) 2019-2021 see Authors.txt
+* (C) 2019-2022 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -113,6 +113,7 @@ const char code_Bicubic_UV[] =
 
 HRESULT GetShaderConvertColor(
 	const bool bDX11,
+	const UINT width,
 	const long texW, long texH,
 	const RECT rect,
 	const FmtConvParams_t& fmtParams,
@@ -169,14 +170,36 @@ HRESULT GetShaderConvertColor(
 		}
 	}
 
-	const int planes = fmtParams.pDX9Planes ? (fmtParams.pDX9Planes->FmtPlane3 ? 3 : 2) : 1;
-	ASSERT(planes == (fmtParams.pDX11Planes ? (fmtParams.pDX11Planes->FmtPlane3 ? 3 : 2) : 1));
+	int planes = 1;
+	if (bDX11) {
+		if (fmtParams.pDX11Planes) {
+			if (fmtParams.pDX11Planes->FmtPlane3) {
+				planes = 3;
+			}
+			else if (fmtParams.pDX11Planes->FmtPlane2) {
+				planes = 2;
+			}
+		}
+	} else {
+		if (fmtParams.pDX9Planes) {
+			if (fmtParams.pDX9Planes->FmtPlane3) {
+				planes = 3;
+			}
+			else if (fmtParams.pDX9Planes->FmtPlane2) {
+				planes = 2;
+			}
+		}
+	}
+
 	DLog(L"GetShaderConvertColor() frame consists of {} planes", planes);
 
-	code += fmt::format("#define w {}\n", (fmtParams.cformat == CF_YUY2) ? texW * 2 : texW);
+	const bool packed422 = (fmtParams.cformat == CF_YUY2 || fmtParams.cformat == CF_Y210 || fmtParams.cformat == CF_Y216);
+	const bool fix422 = (packed422 && texW * 2 == width);
+
+	code += fmt::format("#define w {}\n", fix422 ? width : texW);
 	code += fmt::format("#define dx (1.0/{})\n", texW);
 	code += fmt::format("#define dy (1.0/{})\n", texH);
-	code += fmt::format("static const float2 wh = {{{}, {}}};\n", (fmtParams.cformat == CF_YUY2) ? texW*2 : texW, texH);
+	code += fmt::format("static const float2 wh = {{{}, {}}};\n", fix422 ? width : texW, texH);
 	code += fmt::format("static const float2 dxdy2 = {{2.0/{}, 2.0/{}}};\n", texW, texH);
 
 	if (chromaScaling == CHROMA_CatmullRom && fmtParams.Subsampling == 422) {
@@ -275,7 +298,7 @@ HRESULT GetShaderConvertColor(
 		switch (planes) {
 		case 1:
 			code.append("float4 color = tex.Sample(samp, input.Tex);\n");
-			if (fmtParams.cformat == CF_YUY2) {
+			if (packed422) {
 				code.append("if (fmod(input.Tex.x*w, 2) < 1.0) {\n"
 					"color = float4(color[0], color[1], color[3], 1);\n"
 					"} else {\n");
@@ -448,7 +471,7 @@ HRESULT GetShaderConvertColor(
 				"{\n"
 				"float4 color = tex2D(s0, tex);\n"
 			);
-			if (fmtParams.cformat == CF_YUY2) {
+			if (packed422) {
 				code.append("if (fmod(tex.x*w, 2) < 1.0) {\n"
 					"color = float4(color[2], color[1], color[3], 1);\n"
 					"} else {\n");

@@ -92,9 +92,10 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 static const ScalingShaderResId s_Upscaling11ResIDs[UPSCALE_COUNT] = {
 	{0,                            0,                            L"Nearest-neighbor"  },
 	{IDF_PSH11_INTERP_MITCHELL4_X, IDF_PSH11_INTERP_MITCHELL4_Y, L"Mitchell-Netravali"},
-	{IDF_PSH11_INTERP_CATMULL4_X,  IDF_PSH11_INTERP_CATMULL4_Y , L"Catmull-Rom"       },
-	{IDF_PSH11_INTERP_LANCZOS2_X,  IDF_PSH11_INTERP_LANCZOS2_Y , L"Lanczos2"          },
-	{IDF_PSH11_INTERP_LANCZOS3_X,  IDF_PSH11_INTERP_LANCZOS3_Y , L"Lanczos3"          },
+	{IDF_PSH11_INTERP_CATMULL4_X,  IDF_PSH11_INTERP_CATMULL4_Y,  L"Catmull-Rom"       },
+	{IDF_PSH11_INTERP_LANCZOS2_X,  IDF_PSH11_INTERP_LANCZOS2_Y,  L"Lanczos2"          },
+	{IDF_PSH11_INTERP_LANCZOS3_X,  IDF_PSH11_INTERP_LANCZOS3_Y,  L"Lanczos3"          },
+	{IDF_PSH11_INTERP_JINC2,       IDF_PSH11_INTERP_JINC2,       L"Jinc2*"            },
 };
 
 static const ScalingShaderResId s_Downscaling11ResIDs[DOWNSCALE_COUNT] = {
@@ -788,7 +789,12 @@ void CDX11VideoProcessor::SetShaderConvertColorParams()
 		{cmatrix.c[0],    cmatrix.c[1],    cmatrix.c[2],    0},
 	};
 
-	if (m_srcParams.cformat == CF_Y410 || m_srcParams.cformat == CF_Y416) {
+	if (m_srcParams.cformat == CF_AYUV) {
+		std::swap(cbuffer.cm_r.x, cbuffer.cm_r.z);
+		std::swap(cbuffer.cm_g.x, cbuffer.cm_g.z);
+		std::swap(cbuffer.cm_b.x, cbuffer.cm_b.z);
+	}
+	else if (m_srcParams.cformat == CF_Y410 || m_srcParams.cformat == CF_Y416) {
 		std::swap(cbuffer.cm_r.x, cbuffer.cm_r.y);
 		std::swap(cbuffer.cm_g.x, cbuffer.cm_g.y);
 		std::swap(cbuffer.cm_b.x, cbuffer.cm_b.y);
@@ -1632,9 +1638,7 @@ HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 
 	DLog(L"CDX11VideoProcessor::InitializeTexVP() started with input surface: {}, {} x {}", DXGIFormatToString(srcDXGIFormat), width, height);
 
-	UINT texW = (params.cformat == CF_YUY2) ? width / 2 : width;
-
-	HRESULT hr = m_TexSrcVideo.CreateEx(m_pDevice, srcDXGIFormat, params.pDX11Planes, texW, height, Tex2D_DynamicShaderWrite);
+	HRESULT hr = m_TexSrcVideo.CreateEx(m_pDevice, srcDXGIFormat, params.pDX11Planes, width, height, Tex2D_DynamicShaderWrite);
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::InitializeTexVP() : m_TexSrcVideo.CreateEx() failed with error {}", HR2Str(hr));
 		return hr;
@@ -2294,7 +2298,11 @@ void CDX11VideoProcessor::UpdateUpscalingShaders()
 
 	if (m_iUpscaling != UPSCALE_Nearest) {
 		EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pShaderUpscaleX, s_Upscaling11ResIDs[m_iUpscaling].shaderX));
-		EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pShaderUpscaleY, s_Upscaling11ResIDs[m_iUpscaling].shaderY));
+		if (m_iUpscaling == UPSCALE_Jinc2) {
+			m_pShaderUpscaleY = m_pShaderUpscaleX;
+		} else {
+			EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pShaderUpscaleY, s_Upscaling11ResIDs[m_iUpscaling].shaderY));
+		}
 	}
 }
 
@@ -2317,6 +2325,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 		: SHADER_CONVERT_NONE;
 
 	HRESULT hr = GetShaderConvertColor(true,
+		m_srcWidth,
 		m_TexSrcVideo.desc.Width, m_TexSrcVideo.desc.Height,
 		m_srcRect, m_srcParams, m_srcExFmt,
 		m_iChromaScaling, convertType,
@@ -2418,6 +2427,14 @@ HRESULT CDX11VideoProcessor::ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2
 
 		D3D11_TEXTURE2D_DESC desc;
 		pRenderTarget->GetDesc(&desc);
+
+		if (resizerX == resizerY) {
+			// one pass resize
+			hr = TextureResizeShader(Tex, pRenderTarget, srcRect, dstRect, resizerX, rotation, m_bFlip);
+			DLogIf(FAILED(hr), L"CDX11VideoProcessor::ResizeShaderPass() : failed with error {}", HR2Str(hr));
+
+			return hr;
+		}
 
 		// check intermediate texture
 		const UINT texWidth  = desc.Width;
@@ -2875,6 +2892,70 @@ HRESULT CDX11VideoProcessor::GetVPInfo(std::wstring& str)
 	str += fmt::format(L"\nSource rect    : {},{},{},{} - {}x{}", m_srcRect.left, m_srcRect.top, m_srcRect.right, m_srcRect.bottom, m_srcRect.Width(), m_srcRect.Height());
 	str += fmt::format(L"\nVideo rect     : {},{},{},{} - {}x{}", m_videoRect.left, m_videoRect.top, m_videoRect.right, m_videoRect.bottom, m_videoRect.Width(), m_videoRect.Height());
 	str += fmt::format(L"\nWindow rect    : {},{},{},{} - {}x{}", m_windowRect.left, m_windowRect.top, m_windowRect.right, m_windowRect.bottom, m_windowRect.Width(), m_windowRect.Height());
+
+	if (m_pDevice) {
+		std::vector<std::pair<const DXGI_FORMAT, UINT>> formatsYUV = {
+			{ DXGI_FORMAT_NV12,               0 },
+			{ DXGI_FORMAT_P010,               0 },
+			{ DXGI_FORMAT_P016,               0 },
+			{ DXGI_FORMAT_YUY2,               0 },
+			{ DXGI_FORMAT_Y210,               0 },
+			{ DXGI_FORMAT_Y216,               0 },
+			{ DXGI_FORMAT_AYUV,               0 },
+			{ DXGI_FORMAT_Y410,               0 },
+			{ DXGI_FORMAT_Y416,               0 },
+		};
+		std::vector<std::pair<const DXGI_FORMAT, UINT>> formatsRGB = {
+			{ DXGI_FORMAT_B8G8R8X8_UNORM,     0 },
+			{ DXGI_FORMAT_B8G8R8A8_UNORM,     0 },
+			{ DXGI_FORMAT_R10G10B10A2_UNORM,  0 },
+			{ DXGI_FORMAT_R16G16B16A16_UNORM, 0 },
+		};
+		for (auto& [format, formatSupport] : formatsYUV) {
+			m_pDevice->CheckFormatSupport(format, &formatSupport);
+		}
+		for (auto& [format, formatSupport] : formatsRGB) {
+			m_pDevice->CheckFormatSupport(format, &formatSupport);
+		}
+
+		int count = 0;
+		str += L"\nD3D11 VP input formats  :";
+		for (const auto& [format, formatSupport] : formatsYUV) {
+			if (formatSupport & D3D11_FORMAT_SUPPORT_VIDEO_PROCESSOR_INPUT) {
+				str.append(L" ");
+				str.append(DXGIFormatToString(format));
+				count++;
+			}
+		}
+		if (count) {
+			str += L"\n ";
+		}
+		for (const auto& [format, formatSupport] : formatsRGB) {
+			if (formatSupport & D3D11_FORMAT_SUPPORT_VIDEO_PROCESSOR_INPUT) {
+				str.append(L" ");
+				str.append(DXGIFormatToString(format));
+			}
+		}
+
+		count = 0;
+		str += L"\nShader Texture2D formats:";
+		for (const auto& [format, formatSupport] : formatsYUV) {
+			if (formatSupport & (D3D11_FORMAT_SUPPORT_TEXTURE2D|D3D11_FORMAT_SUPPORT_SHADER_SAMPLE)) {
+				str.append(L" ");
+				str.append(DXGIFormatToString(format));
+				count++;
+			}
+		}
+		if (count) {
+			str += L"\n ";
+		}
+		for (const auto& [format, formatSupport] : formatsRGB) {
+			if (formatSupport & (D3D11_FORMAT_SUPPORT_TEXTURE2D | D3D11_FORMAT_SUPPORT_SHADER_SAMPLE)) {
+				str.append(L" ");
+				str.append(DXGIFormatToString(format));
+			}
+		}
+	}
 #endif
 
 	return S_OK;
