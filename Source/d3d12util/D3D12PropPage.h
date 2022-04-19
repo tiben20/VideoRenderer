@@ -23,7 +23,7 @@
 
 #include "IVideoRenderer.h"
 #include <map>
-
+#include "OptionsFile.h"
 
 // CD3D12SettingsPPage
 enum ScalerType
@@ -33,6 +33,14 @@ enum ScalerType
 	Chromaupscaler =2,
 	ImageDouble = 3,
 	PostShader = 4
+};
+
+static const char* s_scalertype[5] = {
+	{"UPSCALER"   },
+	{"DOWNSCALER"},
+	{"CHROMAUPSCALER"},
+	{"IMAGEDOUBLER"},
+	{"POST"}
 };
 
 static const char* s_upscalername[9] = {
@@ -109,7 +117,7 @@ private:
 		}
 	}
 	
-
+	CScalerOption* m_pCurrentScalerOption;
 	ScalerType   m_pCurrentScalerType;
 	std::wstring m_sCurrentUpScaler = L"";
 	std::wstring m_sCurrentDownScaler = L"";

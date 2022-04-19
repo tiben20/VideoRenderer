@@ -34,7 +34,7 @@ class DescriptorAllocator
 {
 public:
     DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE Type) : 
-        m_Type(Type), m_CurrentHeap(nullptr), m_DescriptorSize(0)
+        m_Type(Type), m_CurrentHeap(nullptr), m_DescriptorSize(0) , m_RemainingFreeHandles(0)
     {
         m_CurrentHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     }
@@ -114,7 +114,10 @@ class DescriptorHeap
 {
 public:
 
-    DescriptorHeap(void) {}
+  DescriptorHeap(void) :
+    m_HeapDesc(), m_DescriptorSize(0), m_NumFreeDescriptors(0)
+  { 
+  }
     ~DescriptorHeap(void) { Destroy(); }
 
     void Create(const std::wstring& DebugHeapName, D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t MaxCount );
@@ -137,9 +140,9 @@ public:
 private:
 
     CComPtr<ID3D12DescriptorHeap> m_Heap;
-    D3D12_DESCRIPTOR_HEAP_DESC m_HeapDesc;
-    uint32_t m_DescriptorSize;
-    uint32_t m_NumFreeDescriptors;
+    D3D12_DESCRIPTOR_HEAP_DESC m_HeapDesc = {};
+    uint32_t m_DescriptorSize = 0;
+    uint32_t m_NumFreeDescriptors = 0;
     DescriptorHandle m_FirstHandle;
     DescriptorHandle m_NextFreeHandle;
 };

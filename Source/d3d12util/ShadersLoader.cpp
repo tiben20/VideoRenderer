@@ -1575,7 +1575,7 @@ std::string CShaderFileLoader::GetScalerType(std::wstring filename)
 	if (!Utility::ReadTextFile(filename.c_str(), source))
 	{
 		DLog(L"couldn't read file for scaler {}", filename.c_str());
-		return false;
+		return "";
 	}
 
 	RemoveComments(source);
@@ -1676,7 +1676,7 @@ bool CShaderFileLoader::Compile(ShaderDesc& desc, bool usecache)
 
 	if (!CheckMagic(sourceView))
 	{
-		return 2;
+		return false;
 	}
 
 	enum class BlockType

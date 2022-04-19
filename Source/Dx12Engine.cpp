@@ -30,7 +30,7 @@
 #include "DisplayConfig.h"
 #include <map>
 #ifndef UNLOAD_SCALER
-#define UNLOAD_SCALER(x) if (x) {x->Unload();} x = nullptr;
+#define UNLOAD_SCALER(x) if (x) {x->Unload();} x = nullptr
 #endif
 
 namespace D3D12Engine
@@ -45,6 +45,7 @@ namespace D3D12Engine
 	CD3D12DynamicScaler* m_pCurrentDownScaler = nullptr;
 	CD3D12DynamicScaler* m_pCurrentChromaScaler = nullptr;
 	CD3D12DynamicScaler* m_pCurrentImageDoubler = nullptr;
+	std::vector<CD3D12DynamicScaler*> m_pCurrentPostScalers;
 	RootSignature g_RootScalers;
 	HWND g_hWnd = nullptr;
 	DWORD g_VendorId = 0;
@@ -154,10 +155,14 @@ namespace D3D12Engine
 	void D3D12Engine::ReleaseEngine()
 	{
 
-		UNLOAD_SCALER(m_pCurrentUpScaler)
-		UNLOAD_SCALER(m_pCurrentDownScaler)
-		UNLOAD_SCALER(m_pCurrentChromaScaler)
-		UNLOAD_SCALER(m_pCurrentImageDoubler)
+		UNLOAD_SCALER(m_pCurrentUpScaler);
+		UNLOAD_SCALER(m_pCurrentDownScaler);
+			UNLOAD_SCALER(m_pCurrentChromaScaler);
+			UNLOAD_SCALER(m_pCurrentImageDoubler);
+			for (CD3D12DynamicScaler* scal : m_pCurrentPostScalers)
+			{
+				UNLOAD_SCALER(scal);
+			}
 		/*Need this to have correct heap if we dont entirely close the module*/
 		g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		g_DescriptorAllocator[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
@@ -270,7 +275,7 @@ namespace D3D12Engine
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.Scaling = DXGI_SCALING_NONE;
 		//d3d12 only support DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL or DXGI_SWAP_EFFECT_FLIP_DISCARD
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
@@ -487,26 +492,11 @@ namespace D3D12Engine
 		}
 
 		GraphicsContext& pCopyContext = GraphicsContext::Begin(L"Copy Video");
-
-
-		//pCopyContext.TransitionResource(m_pPlaneResource[0], D3D12_RESOURCE_STATE_COPY_DEST);
-		//pCopyContext.TransitionResource(m_pPlaneResource[1], D3D12_RESOURCE_STATE_COPY_DEST);
-
 		GpuResource resour = GpuResource(resource, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		
-		
 
-		D3D12_TEXTURE_COPY_LOCATION dst;
-		D3D12_TEXTURE_COPY_LOCATION src;
 		for (int i = 0; i < 2; i++)
-		{
 			pCopyContext.CopyTextureRegion(m_pPlaneResource[i], -1, resour, i);
-			//dst = CD3DX12_TEXTURE_COPY_LOCATION(m_pPlaneResource[i].GetResource());
-			//src = CD3DX12_TEXTURE_COPY_LOCATION(resource, i);
-			
-		}
-		//pCopyContext.SetViewportAndScissor(0, 0, layoutplane[0].Footprint.Width, layoutplane[0].Footprint.Height);
-		
+
 		pCopyContext.Finish();
 		return S_OK;
 	}
@@ -529,7 +519,7 @@ namespace D3D12Engine
 		bool res;
 		if (m_pCurrentDownScaler && m_pCurrentDownScaler->GetScalerName() != scaler)
 		{
-			UNLOAD_SCALER(m_pCurrentUpScaler)
+			UNLOAD_SCALER(m_pCurrentUpScaler);
 		}
 
 		if (!m_pCurrentDownScaler)
@@ -537,8 +527,8 @@ namespace D3D12Engine
 			m_pCurrentDownScaler = new CD3D12DynamicScaler(scaler, &res);
 			if (!res)
 			{
-				UNLOAD_SCALER(m_pCurrentDownScaler)
-					DLog(L"ERROR loading scaler {}", scaler);
+				UNLOAD_SCALER(m_pCurrentDownScaler);
+				DLog(L"ERROR loading scaler {}", scaler);
 				return;
 			}
 
@@ -558,7 +548,7 @@ namespace D3D12Engine
 		bool res;
 		if (m_pCurrentUpScaler && m_pCurrentUpScaler->GetScalerName() != scaler)
 		{
-			UNLOAD_SCALER(m_pCurrentUpScaler)
+			UNLOAD_SCALER(m_pCurrentUpScaler);
 		}
 
 		if (!m_pCurrentUpScaler)
@@ -566,7 +556,7 @@ namespace D3D12Engine
 			m_pCurrentUpScaler = new CD3D12DynamicScaler(scaler, &res);
 			if (!res)
 			{
-				UNLOAD_SCALER(m_pCurrentUpScaler)
+				UNLOAD_SCALER(m_pCurrentUpScaler);
 				DLog(L"ERROR loading scaler {}", scaler);
 				return;
 			}

@@ -39,9 +39,9 @@ HRESULT CD3D12VP::InitVideoDevice(ID3D12Device *pDevice)
 	if (FAILED(hr)) {
 		DLog(L"CD3D11VP::InitVideoDevice() : QueryInterface(ID3D11VideoDevice) failed with error {}", HR2Str(hr));
 		ReleaseVideoDevice();
-		return hr;
+		
 	}
-	
+	return hr;
 }
 
 void CD3D12VP::ReleaseVideoDevice()

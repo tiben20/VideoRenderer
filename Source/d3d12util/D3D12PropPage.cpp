@@ -232,201 +232,20 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	CheckDlgButton(IDC_CHECK13, m_SetsPP.D3D12Settings.bUseD3D12 ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_CHECK17, m_SetsPP.D3D12Settings.bForceD3D12 ? BST_CHECKED : BST_UNCHECKED);
 	UpdateCurrentScaler();
+	GetDlgItem(IDC_LIST_POSTSCALERS).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_BUTTON_ADD).ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_BUTTON_REMOVE).ShowWindow(SW_HIDE);
 	return S_OK;
 }
 
 void CD3D12SettingsPPage::UpdateCurrentScaler()
 {
-#if 0
-	SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"");
-	SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"");
-	SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"");
-	SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, L"");
-	SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, L"");
-	SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, L"");
-	GetDlgItem(IDC_SLIDER1).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SLIDER2).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SLIDER3).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SLIDER4).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SLIDER5).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SLIDER6).ShowWindow(SW_HIDE);
-	//GetDlgItem(IDC_COMBO_OPTIONS).ShowWindow(SW_HIDE);
-	
-	GetDlgItem(IDC_EDIT1).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_EDIT2).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_EDIT3).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_EDIT4).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_EDIT5).ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_EDIT6).ShowWindow(SW_HIDE);
-	ResetContent(m_hWnd, IDC_COMBO_OPTIONS);
 	CScalerOption* opt;
-	eD3D12Upscalers currentupscaler = (eD3D12Upscalers)D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
-	//bilinear
-	if (currentupscaler == eD3D12Upscalers::bilinear)
-	{
-		
-	}
-	//DXVA2
-	if (currentupscaler == eD3D12Upscalers::d3d12)
-	{
-		
-	}
-	//Bicubuic
-	if (currentupscaler == eD3D12Upscalers::cubic)
-	{
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Mitchel-Netravali", 0);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 50 / Catmull-Rom", 1);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 60", 2);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 75", 3);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 100", 4);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 125", 5);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Bicubic 150", 6);
-		opt = D3D12Engine::g_D3D12Options->GetScaler("cubic");
-		int bicubicmode = opt->GetInt("bicubic");
-		SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_SETCURSEL, bicubicmode,0);
-	}
-	//lanczso
-	if (currentupscaler == eD3D12Upscalers::lanczos)
-	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("lanczos");
-		int taps = opt->GetInt("lanczostype");
-		
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Lanczsos2", 2);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Lanczsos3", 3);
-		SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_SETCURSEL, taps-2, 0);
-	}
-	//Spline
-	if (currentupscaler == eD3D12Upscalers::spline)
-	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("spline");
-		int taps = opt->GetInt("splinetype");
-		
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Mitchell-Netravali", 0);
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"Catmull-Rom", 1);
-		SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_SETCURSEL, taps, 0);
-	}
-	//Jinc
-	if (currentupscaler == eD3D12Upscalers::jinc)
-	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("jinc");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Window Sinc");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Sinc");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Anti-ringing Strength");
-		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
-		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0, 3);//0.44 0.0 1.0 0.01
-		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 3);//0.82 0.0 1.0 0.01
-		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//0.5 0.0 1.0 0.1
-		SetPos(m_hWnd, IDC_SLIDER1, opt->GetInt("windowsinc"));
-		SetPos(m_hWnd, IDC_SLIDER2, opt->GetInt("sinc"));
-		SetPos(m_hWnd, IDC_SLIDER3, opt->GetInt("str"));
-		SetEditText(m_hWnd, IDC_EDIT1, opt->GetInt("windowsinc"));
-		SetEditText(m_hWnd, IDC_EDIT2, opt->GetInt("sinc"));
-		SetEditText(m_hWnd, IDC_EDIT3, opt->GetInt("str"));
-	}
-	//super xbr
-	if (currentupscaler == eD3D12Upscalers::superxbr)
-	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("superxbr");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Strength");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Sharp");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Factor");
-		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
-		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0, 5);//str default 1
-		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
-		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
-		SetPos(m_hWnd, IDC_SLIDER1, opt->GetInt("strength"));
-		SetPos(m_hWnd, IDC_SLIDER2, (opt->GetFloat("sharp")*10));
-		SetPos(m_hWnd, IDC_SLIDER3, opt->GetInt("factor"));
-		SetEditText(m_hWnd, IDC_EDIT1, opt->GetInt("strength"));
-		SetEditText(m_hWnd, IDC_EDIT2, (opt->GetFloat("sharp")));
-		SetEditText(m_hWnd, IDC_EDIT3, s_factor[opt->GetInt("factor")]);
-		
+	opt = D3D12Engine::g_D3D12Options->GetScaler("Bicubic.hlsl");
+	std::string type = opt->GetString("type");
 
-	}
-	//fxrcnnx
-	if (currentupscaler == eD3D12Upscalers::fxrcnnx)
-	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("fxrcnnx");
-		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 1, 5);//passes
-		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 10);//float 0 to 1
-		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 10);//float 0 to 1
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Passes");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Strength");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Smoothness");
-		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
-		SetPos(m_hWnd, IDC_SLIDER1, opt->GetInt("passes"));
-		SetPos(m_hWnd, IDC_SLIDER2, (opt->GetFloat("strength") * 10));
-		SetPos(m_hWnd, IDC_SLIDER3, opt->GetFloat("smoothness")* 10 );
-		SetEditText(m_hWnd, IDC_EDIT1, opt->GetInt("passes"));
-		SetEditText(m_hWnd, IDC_EDIT2, (opt->GetFloat("strength") * 10));
-		SetEditText(m_hWnd, IDC_EDIT3, opt->GetFloat("smoothness") * 10);
-		
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"spline", 0);
-		//only one option will todo add more
-		SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_SETCURSEL, 0, 0);
-		//dither tools
-		//planar upscale
-	}
-	//Super res + xbr
-	if (currentupscaler == eD3D12Upscalers::superresxbr)
-	{
-		opt = D3D12Engine::g_D3D12Options->GetScaler("superresxbr");
-		SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0, 5);//str default 1
-		SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
-		SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2
-		SetRangeMinMax(m_hWnd, IDC_SLIDER4, 1, 5); //passes
-		SetRangeMinMax(m_hWnd, IDC_SLIDER5, 0, 10);//float 0 to 1
-		SetRangeMinMax(m_hWnd, IDC_SLIDER6, 0, 10);//float 0 to 1
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR, L"Xbr Strength");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR2, L"Xbr Sharp");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR3, L"Xbr Factor");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR4, L"Res passes");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR5, L"Res Strength");
-		SetEditText(m_hWnd, IDC_STATIC_XBR_STR6, L"Res Smoothness");
-		GetDlgItem(IDC_SLIDER1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER3).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER4).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER5).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_SLIDER6).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT1).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT2).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT3).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT4).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT5).ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_EDIT6).ShowWindow(SW_SHOW);
-		SetPos(m_hWnd, IDC_SLIDER1, opt->GetInt("xbrstrength"));
-		SetPos(m_hWnd, IDC_SLIDER2, (opt->GetFloat("xbrsharp") * 10));
-		SetPos(m_hWnd, IDC_SLIDER3, opt->GetInt("factor"));
-		SetPos(m_hWnd, IDC_SLIDER4, opt->GetInt("respasses"));
-		SetPos(m_hWnd, IDC_SLIDER5, (opt->GetFloat("resstrength") * 10));
-		SetPos(m_hWnd, IDC_SLIDER6, opt->GetFloat("ressmoothness") * 10);
-		SetEditText(m_hWnd, IDC_EDIT1, opt->GetInt("xbrstrength"));
-		SetEditText(m_hWnd, IDC_EDIT2, (opt->GetFloat("xbrsharp")));
-		SetEditText(m_hWnd, IDC_EDIT3, opt->GetInt("factor"));
-		SetEditText(m_hWnd, IDC_EDIT4, opt->GetInt("respasses"));
-		SetEditText(m_hWnd, IDC_EDIT5, (opt->GetFloat("resstrength")));
-		SetEditText(m_hWnd, IDC_EDIT6, opt->GetFloat("ressmoothness"));
+	opt = nullptr;
 
-		ComboBox_AddStringData(m_hWnd, IDC_COMBO_OPTIONS, L"spline", 0);
-		SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_SETCURSEL, 0, 0);
-	}
-#endif
 }
 
 std::string GetOptionName(std::wstring inp)
@@ -462,7 +281,6 @@ std::string GetOptionName(std::wstring inp)
 	return "";
 }
 
-
 int GetFactorUp(int in)
 {
 	for (int i = 0; i < 4; i++)
@@ -488,28 +306,16 @@ void CD3D12SettingsPPage::UpdateScroll(int index, int staticbutton, int value)
 		SetEditText(m_hWnd, staticbutton, (float)(((float)value) / 100));
 		m_pCurrentShaderConstants.at(index).currentValue = (float)(((float)value) / 100);
 	}
+	/*CScalerOption* opt;
+	opt = D3D12Engine::g_D3D12Options->GetScaler("Bicubic.hlsl");
+	std::string type = opt->GetString("type");
+
+	opt = nullptr;*/
 	if (D3D12Engine::m_pCurrentUpScaler)
 		D3D12Engine::m_pCurrentUpScaler->SetShaderConstants(m_pCurrentShaderConstants);
 }
 
-std::vector<std::wstring> get_all_files_names_within_folder(std::wstring folder)
-{
-	std::vector<std::wstring> names;
-	std::wstring search_path = folder + L"/*.hlsl";
-	WIN32_FIND_DATA fd;
-	HANDLE hFind = ::FindFirstFile(search_path.c_str(), &fd);
-	if (hFind != INVALID_HANDLE_VALUE) {
-		do {
-			// read all (real) files in current folder
-			// , delete '!' read other 2 default folder . and ..
-			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				names.push_back(fd.cFileName);
-			}
-		} while (::FindNextFile(hFind, &fd));
-		::FindClose(hFind);
-	}
-	return names;
-}
+
 
 void CD3D12SettingsPPage::SetControlConfig(HWND hwnd, int editidx, int slideridx, ShaderConstantDesc sconst)
 {
@@ -542,31 +348,36 @@ void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
 	std::filesystem::directory_iterator end_itr; // default construction yields past-the-end
 
-	std::vector<std::wstring> files = get_all_files_names_within_folder(appdata);
+	std::vector<std::wstring> files = Utility::GetAllHlslInFolder(appdata);
 	CShaderFileLoader* testshader = new CShaderFileLoader(L"");
 	std::vector<std::wstring> shaders;
 	std::string scl;
 	m_pCurrentScalerType = scalertype;
+	GetDlgItem(IDC_LIST_POSTSCALERS).ShowWindow((scalertype != ScalerType::PostShader) ? SW_HIDE : SW_SHOW);
+	GetDlgItem(IDC_BUTTON_ADD).ShowWindow((scalertype != ScalerType::PostShader) ? SW_HIDE : SW_SHOW);
+	GetDlgItem(IDC_BUTTON_REMOVE).ShowWindow((scalertype != ScalerType::PostShader) ? SW_HIDE : SW_SHOW);
+	//if (scalertype == ScalerType::PostShader)
 	for (std::wstring fle : files)
 	{
 		scl = testshader->GetScalerType(appdata + fle);
-		if (scl == "UPSCALER" && scalertype == ScalerType::Upscaler)
+
+		if (scl.find_first_of("UPSCALER") != std::string::npos && scalertype == ScalerType::Upscaler)
 		{
 			shaders.push_back(fle);
 		}
-		else if (scl == "DOWNSCALER" && scalertype == ScalerType::Downscaler)
+		else if (scl.find_first_of("DOWNSCALER") != std::string::npos && scalertype == ScalerType::Downscaler)
 		{
 			shaders.push_back(fle);
 		}
-		else if (scl == "CHROMASCALER" && scalertype == ScalerType::Chromaupscaler)
+		else if (scl.find_first_of("CHROMASCALER") != std::string::npos && scalertype == ScalerType::Chromaupscaler)
 		{
 			shaders.push_back(fle);
 		}
-		else if (scl == "IMAGEDOUBLER" && scalertype == ScalerType::ImageDouble)
+		else if (scl.find("IMAGEDOUBLER") != std::string::npos && scalertype == ScalerType::ImageDouble)
 		{
 			shaders.push_back(fle);
 		}
-		else if (scl == "POST" && scalertype == ScalerType::PostShader)
+		else if (scl.find("POST") != std::string::npos && scalertype == ScalerType::PostShader)
 		{
 			shaders.push_back(fle);
 		}
@@ -614,7 +425,7 @@ void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 
 void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 {
-	std::wstring appdata = _wgetenv(L"APPDATA");
+	std::wstring appdata = Utility::GetDirAppData();
 	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
 	appdata.append(file);
 	CShaderFileLoader* testshader = new CShaderFileLoader(file);
@@ -639,8 +450,24 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 	GetDlgItem(IDC_EDIT5).ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_EDIT6).ShowWindow(SW_HIDE);
 	int configidx = 0;
+	//add scaler to option if it does not exist
+	CScalerOption* opt;
+	std::string sclnameA = Utility::WideStringToUTF8(file);
+	
+	opt = D3D12Engine::g_D3D12Options->GetScaler(sclnameA.c_str());
+	if (!opt)
+		opt = D3D12Engine::g_D3D12Options->CreateScaler(sclnameA, s_scalertype[m_pCurrentScalerType]);
+	
+	std::string type = opt->GetString("type");
+
+	
 	for (ShaderConstantDesc sconst : desc.constants)
 	{
+		if (sconst.type == ShaderConstantType::Float)
+			opt->AddFloat(sconst.name.c_str(), fmt::to_string(std::get<float>(sconst.defaultValue)));
+		else if (sconst.type == ShaderConstantType::Int)
+			opt->AddInt(sconst.name.c_str(), fmt::to_string(std::get<int>(sconst.defaultValue)));
+		
 		if (configidx == 0)
 		{
 			if (sconst.label.length()>0)
@@ -694,6 +521,9 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 		
 
 	}
+	if (opt->HasOptions())
+		D3D12Engine::g_D3D12Options->SetScaler(s_scalertype[m_pCurrentScalerType], opt);
+	opt = nullptr;
 	m_pCurrentShaderConstants = desc.constants;
 	testshader = nullptr;
 }
@@ -705,7 +535,7 @@ void CD3D12SettingsPPage::SetShaderDescription(std::wstring file)
 		SetEditText(m_hWnd, IDC_EDIT_DESC, L"");
 		return;
 	}
-		std::wstring appdata = _wgetenv(L"APPDATA");
+std::wstring appdata = Utility::GetDirAppData();
 	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
 	appdata.append(file);
 	CShaderFileLoader* testshader = new CShaderFileLoader(L"");
@@ -786,27 +616,35 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 		if (IDC_RADIO1 <= nID && nID <= IDC_RADIO5 && HIWORD(wParam) == BN_CLICKED)
 		{
 			ListboxClear(m_hWnd, IDC_LIST_SCALERS);
-			if (nID == IDC_RADIO1 && m_sCurrentUpScaler.length()>0)
+			if (nID == IDC_RADIO1)
 			{
 				FillScalers(ScalerType::Upscaler);
 			}
-			else if (nID == IDC_RADIO2 && m_sCurrentDownScaler.length() > 0)
+			else if (nID == IDC_RADIO2)
 			{
 				FillScalers(ScalerType::Downscaler);
 			}
-			else if (nID == IDC_RADIO3 && m_sCurrentChromaUpscaler.length() > 0)
+			else if (nID == IDC_RADIO3)
 			{
 				FillScalers(ScalerType::Chromaupscaler);
 			}
-			else if (nID == IDC_RADIO4 && m_sCurrentImageDoubler.length() > 0)
+			else if (nID == IDC_RADIO4)
 			{
 				FillScalers(ScalerType::ImageDouble);
 			}
-			else if (nID == IDC_RADIO5 && m_sCurrentPostScaler.length() > 0)
+			else if (nID == IDC_RADIO5)
 			{
 				FillScalers(ScalerType::PostShader);
 			}
 			return 1l;
+		}
+		if (HIWORD(wParam) == BN_CLICKED && nID == IDC_BUTTON_ADD)
+		{
+			//shouldn't happen
+			if (m_pCurrentScalerType != ScalerType::PostShader)
+				assert(0);
+			std::wstring curscaler = ListboxGetCurrentText(m_hWnd, IDC_LIST_SCALERS);
+			ListboxAddString(m_hWnd, IDC_LIST_POSTSCALERS, curscaler.c_str());
 		}
 		//listbox of current scaler changed
 		//m_pCurrentScalerType
@@ -817,24 +655,28 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 			{
 				m_sCurrentUpScaler = curscaler;
 				D3D12Engine::g_D3D12Options->SetCurrentUpscaler(curscaler);
-				SetShaderDescription(curscaler);
-				SetShaderOptions(curscaler);
+
 			}
-			else if (m_pCurrentScalerType == ScalerType::Downscaler && curscaler.length() > 0)
+			else if (m_pCurrentScalerType == ScalerType::Downscaler && curscaler.length() > 0 && m_sCurrentDownScaler != curscaler)
 			{
 				D3D12Engine::g_D3D12Options->SetCurrentDownscaler(curscaler);
 			}
-			else if (m_pCurrentScalerType == ScalerType::Chromaupscaler && curscaler.length() > 0)
+			else if (m_pCurrentScalerType == ScalerType::Chromaupscaler && curscaler.length() > 0 && m_sCurrentChromaUpscaler != curscaler)
 			{
 				D3D12Engine::g_D3D12Options->SetCurrentChromaUpscaler(curscaler);
 			}
-			else if (m_pCurrentScalerType == ScalerType::ImageDouble && curscaler.length() > 0)
+			else if (m_pCurrentScalerType == ScalerType::ImageDouble && curscaler.length() > 0 && m_sCurrentImageDoubler != curscaler)
 			{
 				D3D12Engine::g_D3D12Options->SetCurrentImageDoubler(curscaler);
 			}
 			else if (m_pCurrentScalerType == ScalerType::PostShader && curscaler.length() > 0)
 			{
-				D3D12Engine::g_D3D12Options->SetCurrentPostShader(curscaler);
+				//D3D12Engine::g_D3D12Options->SetCurrentPostShader(curscaler);
+			}
+			if (curscaler.length() > 0)
+			{
+				SetShaderDescription(curscaler);
+				SetShaderOptions(curscaler);
 			}
 			return 1l;
 		}
@@ -852,78 +694,6 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 			return (LRESULT)1;
 		}
 	}
-
-#if 0
-		if (HIWORD(wParam) == CBN_SELCHANGE)
-		{
-			eD3D12Upscalers currentupscaler = (eD3D12Upscalers)D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
-			if (nID == IDC_COMBO_OPTIONS && currentupscaler == eD3D12Upscalers::lanczos)
-			{
-				lValue = SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_GETCURSEL, 0, 0);
-				lValue += 2;//lanczos 2 and 3
-				CScalerOption* opt = D3D12Engine::g_D3D12Options->GetScaler("lanczos");
-				if (opt->GetInt("lanczostype") != lValue)
-				{
-					SetDirty();
-					opt->SetInt("lanczostype", lValue);
-					D3D12Engine::g_D3D12Options->SetScaler("lanczos",opt);
-				}
-				return (LRESULT)1;
-			}
-			else if (nID == IDC_COMBO_OPTIONS && currentupscaler == eD3D12Upscalers::spline)
-			{
-				lValue = SendDlgItemMessageW(IDC_COMBO_OPTIONS, CB_GETCURSEL, 0, 0);
-				CScalerOption* opt = D3D12Engine::g_D3D12Options->GetScaler("spline");
-				if (opt->GetInt("splinetype") != lValue)
-				{
-					SetDirty();
-					opt->SetInt("splinetype", lValue);
-					D3D12Engine::g_D3D12Options->SetScaler("spline", opt);
-				}
-				return (LRESULT)1;
-			}
-		}
-
-
-		if (IDC_RADIO_DOWNSCALING1 <= nID && nID <= IDC_RADIO_DOWNSCALING6 && HIWORD(wParam) == BN_CLICKED)
-		{
-			//0 based and we got 6 value so 5 - (IDC_RADIO_DOWNSCALING6 - currentvalue)
-			int currentbutton = 5 - (IDC_RADIO_DOWNSCALING6 - nID);
-			lValue = GetRadioValue(m_hWnd, nID);
-			if (currentbutton != (m_iCurrentDownScaler))
-			{
-				SetDirty();
-				m_iCurrentDownScaler = currentbutton;
-			}
-		}
-		else if (IDC_RADIO_UPSCALING1 <= nID && nID <= IDC_RADIO_UPSCALING9 && HIWORD(wParam) == BN_CLICKED)
-		{
-			int currentbutton = 8 - (IDC_RADIO_UPSCALING9 - nID);
-			m_iCurrentUpScaler = currentbutton;
-			lValue = GetRadioValue(m_hWnd, nID);
-
-			if (currentbutton != (D3D12Engine::g_D3D12Options->GetCurrentUpscaler()))
-			{
-				D3D12Engine::g_D3D12Options->SetCurrentUpscaler(currentbutton);
-				UpdateCurrentScaler();
-				SetDirty();
-				
-			}
-
-		}
-		else if (IDC_RADIO_CHROMAUP1 <= nID && nID <= IDC_RADIO_CHROMAUP9 && HIWORD(wParam) == BN_CLICKED)
-		{
-			int currentbutton = 9 - (IDC_RADIO_CHROMAUP9 - nID);//IDC_RADIO_CHROMAUP1 + LOWORD(wParam);
-			lValue = GetRadioValue(m_hWnd, nID);
-			
-			if (currentbutton != (m_sCurrentChromaUpscaler))
-			{
-				SetDirty();
-				m_iCurrentChromaUpscaler = currentbutton;
-			}
-		}
-	}
-#endif
 
 	return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }

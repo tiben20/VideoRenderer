@@ -173,6 +173,10 @@
 #define IDC_RADIO4                      1103
 #define IDC_EDIT_DESC                   1104
 #define IDC_RADIO5                      1105
+#define IDC_LIST_POSTSCALERS            1106
+#define IDC_BUTTON2                     1107
+#define IDC_BUTTON_REMOVE               1107
+#define IDC_BUTTON_ADD                  1108
 
 // Next default values for new objects
 // 
@@ -180,7 +184,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1106
+#define _APS_NEXT_CONTROL_VALUE         1109
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

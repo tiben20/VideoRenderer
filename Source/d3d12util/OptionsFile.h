@@ -47,6 +47,7 @@ public:
 	std::map<std::string, int> GetIntMap() { return m_pIntOptions; }
 	std::map<std::string, float> GetFloatMap() { return m_pFloatOptions; }
 	std::map<std::string, std::string> GetStrMap() { return m_pStringOptions; }
+	bool HasOptions() { if ((m_pIntOptions.size() + m_pFloatOptions.size()) > 0) return true; else return false; }
 private:
 	
 	std::map<std::string, int> m_pIntOptions;
@@ -88,6 +89,7 @@ public:
 	void SetCurrentUploadBufferCount(int x) { m_iUploadBufferCount = x; }
 	void SetCurrentRenderBufferCount(int x) { m_iRenderBufferCount = x; }
 	void SetCurrentPresentBufferCount(int x) { m_iPresentBufferCount = x; }
+
 	void SetScaler(std::string name, CScalerOption* opt)
 	{
 		for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
@@ -108,6 +110,13 @@ public:
 				return *it;
 		}
 		return nullptr;
+	}
+	CScalerOption* CreateScaler(std::string name, std::string type)
+	{
+		CScalerOption* newscaler = new CScalerOption(name.c_str());
+		newscaler->AddString("type", type);
+		m_pOptions.push_back(newscaler);
+		return newscaler;
 	}
 private:
 	std::vector<CScalerOption*> m_pOptions;
