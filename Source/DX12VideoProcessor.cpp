@@ -205,10 +205,7 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	GeometryRenderer::Shutdown();
 	ReleaseSwapChain();
 	m_pAlphaBitmapTexture.Destroy();
-	m_pVertexBuffer.Destroy();
-	m_pIndexBuffer.Destroy();
-	m_pViewpointShaderConstant.Destroy();
-	m_pPixelShaderConstants.Destroy();
+
 	m_pTexturePlane1.Destroy();
 	m_pTexturePlane2.Destroy();
 	ReleaseDevice();
@@ -1229,11 +1226,6 @@ void CDX12VideoProcessor::ReleaseDevice()
 	DLog(L"CDX12VideoProcessor::ReleaseDevice()");
 	ReleaseVP();
 	m_D3D12VP.ReleaseVideoDevice();
-	m_pVertexBuffer.Destroy();
-	m_pIndexBuffer.Destroy();
-	m_pViewpointShaderConstant.Destroy();
-	m_pPixelShaderConstants.Destroy();
-	
 	g_Device = nullptr;
 	
 	
@@ -1633,26 +1625,18 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 		//even with no scale we need a dstrect if we resize the window only in x or y position
 		D3D12Engine::Noscale(pVideoContext, dstRect, m_bSWRendering);
 	}
-	
-
 	return hr;
 }
 
 HRESULT CDX12VideoProcessor::FillBlack()
 {
-	
     return S_OK;
 }
 
 void CDX12VideoProcessor::SetVideoRect(const CRect& videoRect)
 {
-
 	m_videoRect = videoRect;
 	UpdateRenderRect();
-		
-	//m_renderRect.IntersectRect(m_videoRect, m_windowRect);
-	
-	resetquad = true;
 }
 
 HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
@@ -1669,7 +1653,6 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 	
 	SetGraphSize();
 	UpdateStatsStatic();
-	resetquad = true;
 	return S_OK;
 }
 

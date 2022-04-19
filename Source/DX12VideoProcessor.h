@@ -52,11 +52,6 @@ class CDX12VideoProcessor
 {
 private:
 	friend class CVideoRendererInputPin;
-
-	/*Threading*/
-	void GetNextRessource(ColorBuffer** resource) {};
-
-	/*end threading*/
 	void GetHardwareAdapter(
 		IDXGIFactory1* pFactory,
 		IDXGIAdapter1** ppAdapter,
@@ -64,48 +59,30 @@ private:
 
 	//video prop
 	D3D12_VIDEO_FIELD_TYPE m_SampleFormat;
-
 	/*d3d9 subpic*/
 	CComPtr<IDirect3DSurface9>        m_pSurface9SubPic;
+	//shared resource with the d3d9 device
 	ColorBuffer                       m_pTextureSubPic;
-
 	bool                              m_bSubPicWasRendered = false;
-
-	DXGI_SWAP_EFFECT              m_UsedSwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	// D3D12 Video Processor
 	CD3D12VP m_D3D12VP;
 	const wchar_t* m_strCorrection = nullptr;
-
-
-	//ByteAddressBuffer m_pVideoQuadVertex;
-	//ByteAddressBuffer m_pVideoIndexBuffer;
-	UploadBuffer m_pVertexBuffer;
-	UploadBuffer m_pIndexBuffer;
-	UploadBuffer m_pViewpointShaderConstant;
-	UploadBuffer m_pPixelShaderConstants;
-	Texture      m_pAlphaBitmapTexture;
-	Texture m_pTexturePlane1;
-	Texture m_pTexturePlane2;
-
-	D3D12_VERTEX_BUFFER_VIEW m_pVertexBufferView;
-	D3D12_INDEX_BUFFER_VIEW m_pIndexBufferView;
-	bool m_bSWRendering = false;
-	std::wstring m_pCurrentRenderTiming;
-	int m_pStatsDelay = 0;
-	std::wstring m_sScalerX = L"";
-	std::wstring m_sScalerY = L"";
-	
-	bool resetquad = false;
-
-	
-	D3DCOLOR m_dwStatsTextColor = D3DCOLOR_ARGB(255, 255, 255, 255);
-	
-
+	//texture containing the alpha bitmap from the player
+	Texture                           m_pAlphaBitmapTexture;
+	//texture for planes on sw rendering 
+	Texture                           m_pTexturePlane1;
+	Texture                           m_pTexturePlane2;
+	bool                              m_bSWRendering = false;
+	int                               m_pStatsDelay = 0;
+	std::wstring                      m_sScalerX = L"";
+	std::wstring                      m_sScalerY = L"";
 	//Graph rendering
-	GraphRectangle m_StatsBackground;
-	GraphRectangle m_Rect3D;
-	GraphRectangle m_Underlay;
-	std::vector<GraphLine> m_Lines;
+	D3DCOLOR                          m_dwStatsTextColor = D3DCOLOR_ARGB(255, 255, 255, 255);
+	std::wstring                      m_pCurrentRenderTiming;//string containing the stats for the copy paint subs and present timing
+	GraphRectangle                    m_StatsBackground;
+	GraphRectangle                    m_Rect3D;
+	GraphRectangle                    m_Underlay;
+	std::vector<GraphLine>            m_Lines;
 
 public:
 	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
@@ -115,21 +92,17 @@ public:
 	int Type() override { return VP_DX12; }
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	HRESULT Render(int field) override;
+	//TODO
 	HRESULT AddPreScaleShader(const std::wstring& name, const std::string& srcCode) override;
 	HRESULT AddPostScaleShader(const std::wstring& name, const std::string& srcCode) override;
-
 	BOOL VerifyMediaType(const CMediaType* pmt) override;
 	BOOL InitMediaType(const CMediaType* pmt) override;
-
 	void Configure(const Settings_t& config) override;
 	void SetRotation(int value) override;
 	void Flush() override;
 	void ClearPreScaleShaders() override;
 	void ClearPostScaleShaders() override;
-
-	
 	bool Initialized();
-
 	HRESULT InitializeTexVP(const FmtConvParams_t& params, const UINT width, const UINT height);
 
 	void UpdateFrameProperties() {
@@ -140,9 +113,9 @@ public:
 private:
 	void ReleaseDevice();
 	void ReleaseVP();
-
 	bool HandleHDRToggle();
 	bool m_bForceD3D12 = false;
+	//TODO
 	struct HDRMetadata {
 		DXGI_HDR_METADATA_HDR10 hdr10 = {};
 		bool bValid = false;
