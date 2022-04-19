@@ -1,5 +1,6 @@
 /*
- * (C) 2018-2021 see Authors.txt
+ *
+ * (C) 2022 Ti-BEN
  *
  * This file is part of MPC-BE.
  *
@@ -27,6 +28,7 @@
 #include "Dx12Engine.h"
 #include <iostream>
 #include <filesystem>
+#include "FileUtility.h"
 enum eD3D12Upscalers
 {
 	bilinear = 0,
@@ -186,18 +188,18 @@ HRESULT CD3D12SettingsPPage::OnConnect(IUnknown *pUnk)
 	if (pUnk == nullptr) return E_POINTER;
 
 	m_pVideoRenderer = pUnk;
-	if (!m_pVideoRenderer) {
+	if (!m_pVideoRenderer)
 		return E_NOINTERFACE;
-	}
+	
 
 	return S_OK;
 }
 
 HRESULT CD3D12SettingsPPage::OnDisconnect()
 {
-	if (m_pVideoRenderer == nullptr) {
+	if (m_pVideoRenderer == nullptr)
 		return E_UNEXPECTED;
-	}
+	
 
 	m_pVideoRenderer.Release();
 
@@ -227,32 +229,8 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	SetRadioValue(m_hWnd, IDC_RADIO1, BM_SETCHECK, BST_CHECKED, 0);
 	FillScalers(ScalerType::Upscaler);
 	SetShaderOptions(m_sCurrentUpScaler);
-#if 0
-	int i;
-	for (i = 0; i < 9; i++)
-		SetRadioValue(m_hWnd, IDC_RADIO_CHROMAUP1 + i, BM_SETCHECK, (m_iCurrentChromaUpscaler == (i)), 0);
-	//for (i = 0; i < 5; i++)
-		//SetRadioValue(m_hWnd, IDC_RADIO_DOUBLING1 + i, BM_SETCHECK, (m_SetsPP.D3D12Settings.imageUpscalingDoubling == (i)), 0);
-	for (i = 0; i < 9; i++)
-		SetRadioValue(m_hWnd, IDC_RADIO_UPSCALING1 + i, BM_SETCHECK, (m_iCurrentUpScaler == (i)), 0);
-	
-	for (i = 0; i < 6; i++)
-		SetRadioValue(m_hWnd, IDC_RADIO_DOWNSCALING1 + i, BM_SETCHECK, (m_iCurrentDownScaler == (i)), 0);
-
 	CheckDlgButton(IDC_CHECK13, m_SetsPP.D3D12Settings.bUseD3D12 ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_CHECK17, m_SetsPP.D3D12Settings.bForceD3D12 ? BST_CHECKED : BST_UNCHECKED);
-	
-	/*SetRangeMinMax(m_hWnd, IDC_SLIDER1, 0, 5);//str default 1
-	SetRangeMinMax(m_hWnd, IDC_SLIDER2, 0, 15);//sharp 0 to 1.5  default 1
-	SetRangeMinMax(m_hWnd, IDC_SLIDER3, 0, 3);//factor 2, 4 , 8 , 16 default 2*/
-	/*SetPos(m_hWnd, IDC_SLIDER1, (m_SetsPP.D3D12Settings.xbrConfig.iStrength));
-	SetEditText(m_hWnd, IDC_EDIT1, m_SetsPP.D3D12Settings.xbrConfig.iStrength);
-	SetPos(m_hWnd, IDC_SLIDER2, (m_SetsPP.D3D12Settings.xbrConfig.fSharp * 10));
-	SetEditText(m_hWnd, IDC_EDIT2, m_SetsPP.D3D12Settings.xbrConfig.fSharp);
-	SetPos(m_hWnd, IDC_SLIDER3, (m_SetsPP.D3D12Settings.xbrConfig.iFactor));
-	SetEditText(m_hWnd, IDC_EDIT3, m_SetsPP.D3D12Settings.xbrConfig.iStrength);*/
-	
-#endif
 	UpdateCurrentScaler();
 	return S_OK;
 }
@@ -512,36 +490,6 @@ void CD3D12SettingsPPage::UpdateScroll(int index, int staticbutton, int value)
 	}
 	if (D3D12Engine::m_pCurrentUpScaler)
 		D3D12Engine::m_pCurrentUpScaler->SetShaderConstants(m_pCurrentShaderConstants);
-	
-#if 0
-	std::wstring strstatic = GetEditText(m_hWnd, button);
-	SetDirty();
-	CScalerOption* opt = D3D12Engine::g_D3D12Options->GetScaler(s_upscalername[m_iCurrentUpScaler]);
-
-	if (strstatic.find(L"Factor") != std::wstring::npos)
-	{
-		
-		int fact = s_factor[value];
-		SetEditText(m_hWnd, staticbutton, fact);
-		opt->SetInt("factor", value);
-	}
-	else if (strstatic == L"Xbr Strength" || strstatic == L"Res passes" || strstatic == L"Passes" || strstatic == L"Strength")
-	{
-		SetEditText(m_hWnd, staticbutton, value);
-		opt->SetInt(GetOptionName(strstatic), value);
-	}
-	else if (strstatic == L"Window Sinc" || strstatic == L"Sinc" || strstatic == L"Anti-ringing Strength")
-	{
-		SetEditText(m_hWnd, staticbutton, value);
-		opt->SetInt(GetOptionName(strstatic), value);
-	}
-	else
-	{
-		SetEditText(m_hWnd, staticbutton, float(float(value) / 10));
-		opt->SetFloat(GetOptionName(strstatic), float(float(value) / 10));
-	}
-	D3D12Engine::g_D3D12Options->SetScaler(s_upscalername[m_iCurrentUpScaler], opt);
-#endif
 }
 
 std::vector<std::wstring> get_all_files_names_within_folder(std::wstring folder)
@@ -590,8 +538,7 @@ void CD3D12SettingsPPage::SetControlConfig(HWND hwnd, int editidx, int slideridx
 }
 void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 {
-	//TOFIX
-	std::wstring appdata = _wgetenv(L"APPDATA");
+	std::wstring appdata = Utility::GetDirAppData();
 	appdata.append(L"\\MPCVideoRenderer\\Shaders\\");
 	std::filesystem::directory_iterator end_itr; // default construction yields past-the-end
 
@@ -891,8 +838,21 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 			}
 			return 1l;
 		}
+		if (nID == IDC_CHECK13)
+		{
+			m_SetsPP.D3D12Settings.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
+			SetDirty();
+			return (LRESULT)1;
+		}
 
+		if (nID == IDC_CHECK17)
+		{
+			m_SetsPP.D3D12Settings.bForceD3D12 = IsDlgButtonChecked(IDC_CHECK17) == BST_CHECKED;
+			SetDirty();
+			return (LRESULT)1;
+		}
 	}
+
 #if 0
 		if (HIWORD(wParam) == CBN_SELCHANGE)
 		{
@@ -923,21 +883,7 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				return (LRESULT)1;
 			}
 		}
-		if (nID == IDC_CHECK13)
-		{
-			m_SetsPP.D3D12Settings.bUseD3D12 = IsDlgButtonChecked(IDC_CHECK13) == BST_CHECKED;
-			EnableControls();
-			SetDirty();
-			return (LRESULT)1;
-		}
 
-		if (nID == IDC_CHECK17)
-		{
-			m_SetsPP.D3D12Settings.bForceD3D12 = IsDlgButtonChecked(IDC_CHECK17) == BST_CHECKED;
-			EnableControls();
-			SetDirty();
-			return (LRESULT)1;
-		}
 
 		if (IDC_RADIO_DOWNSCALING1 <= nID && nID <= IDC_RADIO_DOWNSCALING6 && HIWORD(wParam) == BN_CLICKED)
 		{

@@ -1,5 +1,6 @@
 /*
- * (C) 2018-2021 see Authors.txt
+ *
+ * (C) 2022 Ti-BEN
  *
  * This file is part of MPC-BE.
  *

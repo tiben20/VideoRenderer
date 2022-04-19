@@ -13,6 +13,7 @@
 
 #include "stdafx.h"
 #include "Utility.h"
+#include "math/Common.h"
 #include <string>
 #include <locale>
 

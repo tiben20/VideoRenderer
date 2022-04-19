@@ -57,6 +57,7 @@ namespace Utility
     bool DirExists(const wchar_t* fileName);
     bool FileExists(const wchar_t* fileName);
 
+    std::wstring GetDirAppData();
     std::wstring GetFilePathWrite(const wchar_t* fileName);
     std::wstring GetFilePathExists(const wchar_t* fileName);
 } // namespace Utility

@@ -20,7 +20,7 @@
 #pragma once
 
 #include "Color.h"
-#include "Math/Vector.h"
+
 #include <string>
 
 class Color;

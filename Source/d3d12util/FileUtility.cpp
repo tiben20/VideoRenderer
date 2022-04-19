@@ -42,6 +42,7 @@ namespace Utility
     str.replace(start_pos, from.length(), to);
     return true;
   }
+
   std::wstring thisDllDirPath()
   {
     std::wstring thisPath = L"";
@@ -59,6 +60,7 @@ namespace Utility
     }
     return thisPath;
   }
+
   ByteArray ReadFileHelper(const wstring& fileName)
   {
     struct _stat64 fileStat;
@@ -189,6 +191,23 @@ namespace Utility
       fclose(hFile);
     }
     return file;
+  }
+
+  std::wstring GetDirAppData()
+  {
+    std::wstring returnValue = L"";
+    wchar_t* pValue;
+    size_t len;
+    errno_t err = _wdupenv_s(&pValue, &len, L"APPDATA");
+    if (err != 0)
+    {
+      DLog(L"Couldnt get appdata directory");
+      return L"";
+    }
+
+    returnValue = pValue;
+    free(pValue);
+    return returnValue;
   }
 
   std::wstring GetFilePathExists(const wchar_t* fileName)

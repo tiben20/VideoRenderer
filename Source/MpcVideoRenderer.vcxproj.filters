@@ -132,9 +132,6 @@
     <ClCompile Include="MediaSampleSideData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\math\Random.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClCompile>
     <ClCompile Include="d3d12util\ColorBuffer.cpp">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
     </ClCompile>
@@ -344,27 +341,6 @@
     <ClInclude Include="DX12VideoProcessor.h">
       <Filter>Header Files\d3d12</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\math\Matrix3.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Matrix4.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Quaternion.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Random.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Scalar.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Transform.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Vector.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\math\Common.h">
       <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
@@ -415,9 +391,6 @@
     </ClInclude>
     <ClInclude Include="d3d12util\RootSignature.h">
       <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\VectorMath.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\Texture.h">
       <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
