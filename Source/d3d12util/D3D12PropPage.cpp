@@ -218,77 +218,70 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 
 	m_pVideoRenderer->GetSettings(m_SetsPP);
 
-	if (!D3D12Engine::g_D3D12Options)
-		D3D12Engine::g_D3D12Options = new CD3D12Options();
-	m_sCurrentUpScaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
-	m_sCurrentChromaUpscaler = D3D12Engine::g_D3D12Options->GetCurrentChromaUpscaler();
-	m_sCurrentDownScaler = D3D12Engine::g_D3D12Options->GetCurrentDownscaler();
-	m_sCurrentImageDoubler = D3D12Engine::g_D3D12Options->GetCurrentImageDoubler();
-	
-	//todo postscaler m_sCurrentDownScaler = D3D12Engine::g_D3D12Options->get();
+	if (!D3D12Engine::g_Options)
+		D3D12Engine::g_Options = new CD3D12Options();
+	m_sCurrentUpScaler = D3D12Engine::g_Options->GetCurrentUpscaler();
+	m_sCurrentChromaUpscaler = D3D12Engine::g_Options->GetCurrentChromaUpscaler();
+	m_sCurrentDownScaler = D3D12Engine::g_Options->GetCurrentDownscaler();
+	m_sCurrentImageDoubler = D3D12Engine::g_Options->GetCurrentImageDoubler();
+	m_sCurrentPostScaler = D3D12Engine::g_Options->GetCurrentPostscaler();
+
+	//todo postscaler m_sCurrentDownScaler = D3D12Engine::g_Options->get();
 	SetRadioValue(m_hWnd, IDC_RADIO1, BM_SETCHECK, BST_CHECKED, 0);
 	FillScalers(ScalerType::Upscaler);
 	SetShaderOptions(m_sCurrentUpScaler);
 	CheckDlgButton(IDC_CHECK13, m_SetsPP.D3D12Settings.bUseD3D12 ? BST_CHECKED : BST_UNCHECKED);
 	CheckDlgButton(IDC_CHECK17, m_SetsPP.D3D12Settings.bForceD3D12 ? BST_CHECKED : BST_UNCHECKED);
-	UpdateCurrentScaler();
+	//UpdateCurrentScaler();
 	GetDlgItem(IDC_LIST_POSTSCALERS).ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_BUTTON_ADD).ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_BUTTON_REMOVE).ShowWindow(SW_HIDE);
 	return S_OK;
 }
 
-void CD3D12SettingsPPage::UpdateCurrentScaler()
+void CD3D12SettingsPPage::UpdateCurrentPostScaler()
 {
-	CScalerOption* opt;
-	opt = D3D12Engine::g_D3D12Options->GetScaler("Bicubic.hlsl");
-	std::string type = opt->GetString("type");
+
+}
+
+void CD3D12SettingsPPage::UpdateCurrentScaler(std::vector<ShaderConstantDesc> shaderconst)
+{
+	CScalerOption* opt = nullptr;
+	std::wstring type = Utility::UTF8ToWideString(s_scalertype[Upscaler]);
+	switch (m_pCurrentScalerType)
+	{
+	case Upscaler:
+		opt = D3D12Engine::g_Options->GetScaler(m_sCurrentUpScaler, type);
+		break;
+	case Downscaler:
+		opt = D3D12Engine::g_Options->GetScaler(m_sCurrentDownScaler, type);
+		break;
+	case Chromaupscaler:
+		opt = D3D12Engine::g_Options->GetScaler(m_sCurrentChromaUpscaler, type);
+		break;
+	case ImageDouble:
+		opt = D3D12Engine::g_Options->GetScaler(m_sCurrentImageDoubler, type);
+		break;
+	case PostShader:
+	default:
+		return;
+		break;
+	}
+	if (!opt)
+		return;
+	for (ShaderConstantDesc xx : shaderconst)
+	{
+		if (xx.type == ShaderConstantType::Int)
+			opt->SetInt(xx.label, std::get<int>(xx.currentValue));
+		else if (xx.type == ShaderConstantType::Float)
+			opt->SetInt(xx.label, std::get<float>(xx.currentValue));
+	}
+
+	D3D12Engine::g_Options->SetScaler(opt->m_pScalerName, s_scalertype[Upscaler],opt);
+	
 
 	opt = nullptr;
 
-}
-
-std::string GetOptionName(std::wstring inp)
-{
-	if (inp == L"Taps")
-		return "taps";
-	if (inp == L"Bicubic")
-		return "bicubic";
-	if (inp == L"Strength")
-		return "strength";
-	if (inp == L"Sharp")
-		return "sharp";
-	if (inp == L"Passes")
-		return "passes";
-	if (inp == L"Smoothness")
-		return "smoothness";
-	if (inp == L"Xbr Strength")
-		return "xbrstrength";
-	if (inp == L"Xbr Sharp")
-		return "xbrsharp";
-	if (inp == L"Res passes")
-		return "respasses";
-	if (inp == L"Res Strength")
-		return "resstrength";
-	if (inp == L"Res Smoothness")
-		return "ressmoothness";
-	if (inp == L"Window Sinc")
-		return "windowsinc";
-	if (inp == L"Sinc")
-		return "sinc";
-	if (inp == L"Anti-ringing Strength")
-		return "str";
-	return "";
-}
-
-int GetFactorUp(int in)
-{
-	for (int i = 0; i < 4; i++)
-	{
-		if (s_factor[i] == in)
-			return i;
-	}
-	return 0;
 }
 
 void CD3D12SettingsPPage::UpdateScroll(int index, int staticbutton, int value)
@@ -307,7 +300,7 @@ void CD3D12SettingsPPage::UpdateScroll(int index, int staticbutton, int value)
 		m_pCurrentShaderConstants.at(index).currentValue = (float)(((float)value) / 100);
 	}
 	/*CScalerOption* opt;
-	opt = D3D12Engine::g_D3D12Options->GetScaler("Bicubic.hlsl");
+	opt = D3D12Engine::g_Options->GetScaler("Bicubic.hlsl");
 	std::string type = opt->GetString("type");
 
 	opt = nullptr;*/
@@ -328,8 +321,8 @@ void CD3D12SettingsPPage::SetControlConfig(HWND hwnd, int editidx, int slideridx
 			SetRangeMinMax(hwnd, slideridx, (std::get<float>(sconst.minValue) * 100), (std::get<float>(sconst.maxValue) * 100));
 		else
 		  SetRangeMinMax(hwnd, slideridx, (std::get<float>(sconst.minValue) * 100), 1000);
-		SetPos(hwnd, slideridx, (std::get<float>(sconst.defaultValue) * 100));
-		SetEditText(hwnd, editidx, std::get<float>(sconst.defaultValue));
+		SetPos(hwnd, slideridx, (std::get<float>(sconst.currentValue) * 100));
+		SetEditText(hwnd, editidx, std::get<float>(sconst.currentValue));
 	}
 	else
 	{
@@ -337,8 +330,8 @@ void CD3D12SettingsPPage::SetControlConfig(HWND hwnd, int editidx, int slideridx
 			SetRangeMinMax(hwnd, slideridx, (std::get<int>(sconst.minValue)), (std::get<int>(sconst.maxValue)));
 		else
 			SetRangeMinMax(hwnd, slideridx, (std::get<int>(sconst.minValue)), 100);
-		SetPos(hwnd, slideridx, (std::get<int>(sconst.defaultValue)));
-		SetEditText(hwnd, editidx, std::get<int>(sconst.defaultValue));
+		SetPos(hwnd, slideridx, (std::get<int>(sconst.currentValue)));
+		SetEditText(hwnd, editidx, std::get<int>(sconst.currentValue));
 	}
 
 }
@@ -386,6 +379,7 @@ void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 	LRESULT resindex = -1;
 	LRESULT selindex = -1;
 	std::wstring currentlyselected;
+	bool postshader = false;
 	switch (scalertype)
 	{
 	case Upscaler:
@@ -401,24 +395,44 @@ void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 		currentlyselected = m_sCurrentImageDoubler;
 		break;
 	case PostShader:
-		currentlyselected = m_sCurrentPostScaler;
+		postshader = true;
 		break;
 	default:
 		break;
 	}
-	
+
 	for (std::wstring shdr : shaders)
 	{
 		resindex = ListboxAddString(m_hWnd, IDC_LIST_SCALERS, shdr.c_str());
 		if (shdr == currentlyselected)
 			selindex = resindex;
 	}
-	ListboxSetSelected(m_hWnd, IDC_LIST_SCALERS, selindex);
-	if (selindex == -1)
-		SetShaderDescription(L"");
+	
+	if (!postshader)
+	{
+		ListboxSetSelected(m_hWnd, IDC_LIST_SCALERS, selindex);
+		if (selindex == -1)
+			SetShaderDescription(L"");
+		else
+			SetShaderDescription(currentlyselected);
+	}
 	else
-		SetShaderDescription(currentlyselected);
-		
+	{
+		//select the first one
+		ListboxClear(m_hWnd, IDC_LIST_POSTSCALERS);
+		ListboxSetSelected(m_hWnd, IDC_LIST_SCALERS, 0);
+		if (m_sCurrentPostScaler.size() > 0)
+		{
+			for (std::wstring xx : m_sCurrentPostScaler)
+				ListboxAddString(m_hWnd, IDC_LIST_POSTSCALERS, xx.c_str());
+
+			SetShaderDescription(m_sCurrentPostScaler.at(0));
+			SetShaderOptions(m_sCurrentPostScaler.at(0));
+		}
+		ListboxSetSelected(m_hWnd, IDC_LIST_POSTSCALERS, 0);
+	}
+	
+	
 	
 	testshader = nullptr;
 }
@@ -452,21 +466,42 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 	int configidx = 0;
 	//add scaler to option if it does not exist
 	CScalerOption* opt;
+	bool scalerHasConfig = true;
 	std::string sclnameA = Utility::WideStringToUTF8(file);
 	
-	opt = D3D12Engine::g_D3D12Options->GetScaler(sclnameA.c_str());
+	opt = D3D12Engine::g_Options->GetScaler(sclnameA.c_str(),s_scalertype[m_pCurrentScalerType]);
+
 	if (!opt)
-		opt = D3D12Engine::g_D3D12Options->CreateScaler(sclnameA, s_scalertype[m_pCurrentScalerType]);
+	{
+		opt = D3D12Engine::g_Options->CreateScaler(sclnameA, s_scalertype[m_pCurrentScalerType]);
+		scalerHasConfig = false;
+	}
 	
 	std::string type = opt->GetString("type");
+	//need this when we add post shaders
+	if (opt->HasString("new") && opt->GetString("new") == "YES")
+		scalerHasConfig = false;
 
-	
+
 	for (ShaderConstantDesc sconst : desc.constants)
 	{
-		if (sconst.type == ShaderConstantType::Float)
-			opt->AddFloat(sconst.name.c_str(), fmt::to_string(std::get<float>(sconst.defaultValue)));
-		else if (sconst.type == ShaderConstantType::Int)
-			opt->AddInt(sconst.name.c_str(), fmt::to_string(std::get<int>(sconst.defaultValue)));
+		if (!scalerHasConfig)
+		{
+			if (sconst.type == ShaderConstantType::Float)
+			{
+				opt->AddFloat(sconst.name.c_str(), fmt::to_string(std::get<float>(sconst.defaultValue)));
+			}
+			else if (sconst.type == ShaderConstantType::Int)
+				opt->AddInt(sconst.name.c_str(), fmt::to_string(std::get<int>(sconst.defaultValue)));
+			sconst.currentValue = sconst.defaultValue;
+		}
+		else
+		{
+			if (sconst.type == ShaderConstantType::Float)
+				sconst.currentValue = opt->GetFloat(sconst.name.c_str());
+			else if (sconst.type == ShaderConstantType::Int)
+				sconst.currentValue = opt->GetInt(sconst.name.c_str());
+		}
 		
 		if (configidx == 0)
 		{
@@ -521,8 +556,9 @@ void CD3D12SettingsPPage::SetShaderOptions(std::wstring file)
 		
 
 	}
+
 	if (opt->HasOptions())
-		D3D12Engine::g_D3D12Options->SetScaler(s_scalertype[m_pCurrentScalerType], opt);
+		D3D12Engine::g_Options->SetScaler(opt->m_pScalerName, s_scalertype[m_pCurrentScalerType], opt);
 	opt = nullptr;
 	m_pCurrentShaderConstants = desc.constants;
 	testshader = nullptr;
@@ -610,7 +646,6 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 
 	if (uMsg == WM_COMMAND)
 	{
-
 		const int nID = LOWORD(wParam);
 		//Scaler selection changed
 		if (IDC_RADIO1 <= nID && nID <= IDC_RADIO5 && HIWORD(wParam) == BN_CLICKED)
@@ -645,6 +680,10 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				assert(0);
 			std::wstring curscaler = ListboxGetCurrentText(m_hWnd, IDC_LIST_SCALERS);
 			ListboxAddString(m_hWnd, IDC_LIST_POSTSCALERS, curscaler.c_str());
+			SetDirty();
+			m_sCurrentPostScaler.push_back(curscaler);
+			D3D12Engine::g_Options->AddPostScaler(curscaler);
+			return 1l;
 		}
 		//listbox of current scaler changed
 		//m_pCurrentScalerType
@@ -654,25 +693,31 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 			if (m_pCurrentScalerType == ScalerType::Upscaler && curscaler.length() > 0 && m_sCurrentUpScaler != curscaler)
 			{
 				m_sCurrentUpScaler = curscaler;
-				D3D12Engine::g_D3D12Options->SetCurrentUpscaler(curscaler);
-
+				D3D12Engine::g_Options->SetCurrentUpscaler(curscaler);
 			}
 			else if (m_pCurrentScalerType == ScalerType::Downscaler && curscaler.length() > 0 && m_sCurrentDownScaler != curscaler)
 			{
-				D3D12Engine::g_D3D12Options->SetCurrentDownscaler(curscaler);
+				D3D12Engine::g_Options->SetCurrentDownscaler(curscaler);
 			}
 			else if (m_pCurrentScalerType == ScalerType::Chromaupscaler && curscaler.length() > 0 && m_sCurrentChromaUpscaler != curscaler)
 			{
-				D3D12Engine::g_D3D12Options->SetCurrentChromaUpscaler(curscaler);
+				D3D12Engine::g_Options->SetCurrentChromaUpscaler(curscaler);
 			}
 			else if (m_pCurrentScalerType == ScalerType::ImageDouble && curscaler.length() > 0 && m_sCurrentImageDoubler != curscaler)
 			{
-				D3D12Engine::g_D3D12Options->SetCurrentImageDoubler(curscaler);
+				D3D12Engine::g_Options->SetCurrentImageDoubler(curscaler);
 			}
-			else if (m_pCurrentScalerType == ScalerType::PostShader && curscaler.length() > 0)
+
+			if (curscaler.length() > 0 && m_pCurrentScalerType != ScalerType::PostShader)
 			{
-				//D3D12Engine::g_D3D12Options->SetCurrentPostShader(curscaler);
+				SetShaderDescription(curscaler);
+				SetShaderOptions(curscaler);
 			}
+			return 1l;
+		}
+		if (nID == IDC_LIST_POSTSCALERS)
+		{
+			std::wstring curscaler = ListboxGetCurrentText(m_hWnd, IDC_LIST_POSTSCALERS);
 			if (curscaler.length() > 0)
 			{
 				SetShaderDescription(curscaler);
@@ -700,7 +745,9 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 
 HRESULT CD3D12SettingsPPage::OnApplyChanges()
 {
-	D3D12Engine::g_D3D12Options->SaveCurrentSettings();
+
+	D3D12Engine::g_Options->SaveCurrentSettings();
+	
 	m_pVideoRenderer->SetSettings(m_SetsPP);
 	m_pVideoRenderer->SaveSettings();
 	

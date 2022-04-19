@@ -1642,6 +1642,8 @@ std::string CShaderFileLoader::GetScalerType(std::wstring filename)
 
 bool CShaderFileLoader::Compile(ShaderDesc& desc, bool usecache)
 {
+	if (m_pFile == L"")
+		return false;
 	std::wstring currentpath = Utility::GetFilePathExists(m_pFile.c_str());
 	
 	std::wifstream infile(currentpath.c_str());

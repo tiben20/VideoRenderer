@@ -12,8 +12,6 @@
 
 #pragma once
 
-//#include "Commond3d12.h"
-
 // This requires SSE4.2 which is present on Intel Nehalem (Nov. 2008)
 // and AMD Bulldozer (Oct. 2011) processors.  I could put a runtime
 // check for this, but I'm just going to assume people playing with

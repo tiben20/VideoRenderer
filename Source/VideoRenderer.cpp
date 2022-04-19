@@ -147,8 +147,10 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	m_pInputPin = new CVideoRendererInputPin(this, phr, L"In", this);
 	ASSERT(S_OK == *phr);
 
-	// read settings
+	
 	m_pTrayIcon = new CBaseTrayIcon(this, L"MPCVideo Renderer", IDI_ICON1);
+	// read settings
+
 	CRegKey key;
 	
 	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_LAVD3D12, KEY_READ))
@@ -292,7 +294,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 CMpcVideoRenderer::~CMpcVideoRenderer()
 {
 	DLog(L"CMpcVideoRenderer::~CMpcVideoRenderer()");
-
+	SAFE_DELETE(m_pTrayIcon);
 	if (m_hWndWindow) {
 		::SendMessageW(m_hWndWindow, WM_CLOSE, 0, 0);
 	}
@@ -307,7 +309,6 @@ CMpcVideoRenderer::~CMpcVideoRenderer()
 		PostMessageW(m_hWndParentMain, WM_SWITCH_FULLSCREEN, 0, 0);
 	}
 
-	SAFE_DELETE(m_pTrayIcon);
 	SAFE_DELETE(m_VideoProcessor);
 	
 	g_nInstance--; // always decrement g_nInstance in the destructor

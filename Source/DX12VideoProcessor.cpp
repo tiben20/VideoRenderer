@@ -209,6 +209,7 @@ CDX12VideoProcessor::~CDX12VideoProcessor()
 	m_pTexturePlane1.Destroy();
 	m_pTexturePlane2.Destroy();
 	ReleaseDevice();
+
 	MH_RemoveHook(SetWindowPos);
 	MH_RemoveHook(SetWindowLongA);
 	
@@ -1256,12 +1257,12 @@ void CDX12VideoProcessor::UpdateRenderRect()
 
 	m_sScalerX = (w1 == w2) ? L""
 		: (w1 > k * w2)
-		? g_D3D12Options->GetCurrentDownscaler().c_str()
-		: g_D3D12Options->GetCurrentUpscaler().c_str();
+		? g_Options->GetCurrentDownscaler().c_str()
+		: g_Options->GetCurrentUpscaler().c_str();
 	m_sScalerY = (h1 == h2) ? L""
 		: (h1 > k * h2)
-			? g_D3D12Options->GetCurrentDownscaler().c_str()
-			: g_D3D12Options->GetCurrentUpscaler().c_str();
+			? g_Options->GetCurrentDownscaler().c_str()
+			: g_Options->GetCurrentUpscaler().c_str();
 
 }
 
@@ -1400,12 +1401,12 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 
 		/*m_strShaderX = (w1 == w2) ? nullptr
 			: (w1 > k * w2)
-			? g_D3D12Options->GetCurrentDownscaler().c_str()
-			: g_D3D12Options->GetCurrentUpscaler().c_str();
+			? g_Options->GetCurrentDownscaler().c_str()
+			: g_Options->GetCurrentUpscaler().c_str();
 		m_strShaderY = (h1 == h2) ? nullptr
 			: (h1 > k * h2)
-			? g_D3D12Options->GetCurrentDownscaler().c_str()
-			: g_D3D12Options->GetCurrentUpscaler().c_str();*/
+			? g_Options->GetCurrentDownscaler().c_str()
+			: g_Options->GetCurrentUpscaler().c_str();*/
 		if (m_sScalerX.length()>0)
 		{
 			str.append(m_sScalerX);
@@ -1480,8 +1481,6 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	uint64_t tick1 = GetPreciseTick();
 
 	HRESULT hrSubPic = E_FAIL;
-
-	
 
 	if (m_pFilter->m_pSubCallBack && m_pTextureSubPic.GetWidth()>0)
 	{
@@ -1572,11 +1571,8 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	pVideoContext.TransitionResource(D3D12Engine::GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_PRESENT);
 	pVideoContext.Finish();
 	
-	
-	
-
-	
-	D3D12Engine::WaitForVBlank();
+	if (m_bVBlankBeforePresent)
+		D3D12Engine::WaitForVBlank();
 
 	g_bPresent12 = true;
 	D3D12Engine::Present();
@@ -1603,7 +1599,7 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 	{
 		if (rSrc.Width() > dstRect.Width() || rSrc.Height() > dstRect.Height())
 		{
-			std::wstring scurrentscaler = D3D12Engine::g_D3D12Options->GetCurrentDownscaler();
+			std::wstring scurrentscaler = D3D12Engine::g_Options->GetCurrentDownscaler();
 			if (scurrentscaler != m_sScalerX)
 				m_sScalerX = scurrentscaler;
 			if (scurrentscaler != m_sScalerY)
@@ -1612,7 +1608,7 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 		}
 		else
 		{
-			std::wstring scurrentscaler = D3D12Engine::g_D3D12Options->GetCurrentUpscaler();
+			std::wstring scurrentscaler = D3D12Engine::g_Options->GetCurrentUpscaler();
 			if (scurrentscaler != m_sScalerX)
 				m_sScalerX = scurrentscaler;
 			if (scurrentscaler != m_sScalerY)
@@ -1645,7 +1641,7 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 	m_windowRect = windowRect;
 	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
 
-	D3D12Engine::ResetSwapChain(m_windowRect, g_D3D12Options->GetCurrentPresentBufferCount());
+	D3D12Engine::ResetSwapChain(m_windowRect, g_Options->GetCurrentPresentBufferCount());
 	D3D12Engine::SetVideoRect(m_videoRect);
 	D3D12Engine::SetWindowRect(m_windowRect);
 	D3D12Engine::SetRenderRect(m_renderRect);
@@ -1659,7 +1655,7 @@ HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 HRESULT CDX12VideoProcessor::Reset()
 {
 	//not sure about this
-	return D3D12Engine::ResetSwapChain(m_windowRect, g_D3D12Options->GetCurrentPresentBufferCount());
+	return D3D12Engine::ResetSwapChain(m_windowRect, g_Options->GetCurrentPresentBufferCount());
 }
 
 HRESULT CDX12VideoProcessor::GetCurentImage(long* pDIBImage)

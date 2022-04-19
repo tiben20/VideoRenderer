@@ -107,15 +107,20 @@ std::pair<std::string,std::string> GetOptionRegEx(std::string str)
 
   return { "","" };
 }
-
+/*
+[POST]
+scaler=Bicubic.hlsl
+paramB=0.333333
+paramC=0.333333
+scaler=SSimDownscaler.hlsl
+variant=0*/
 void CD3D12Options::SaveCurrentSettings()
 {
   std::ofstream outfile;
   outfile.open(m_pFilePath.c_str());
   
   std::string currentline;
-  currentline = "[renderersettings]";  
-
+  currentline = "[renderersettings]";
   outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
   currentline = "currentupscaler=";
   currentline.append(Utility::WideStringToUTF8(m_sCurrentUpScaler));
@@ -123,7 +128,7 @@ void CD3D12Options::SaveCurrentSettings()
   currentline.append(Utility::WideStringToUTF8(m_sCurrentDownScaler));
   currentline += "\ncurrentdownscaler=";
   currentline.append(Utility::WideStringToUTF8(m_sCurrentChromaUpscaler));
-  currentline += "\currentimagedoubler=";
+  currentline += "\ncurrentimagedoubler=";
   currentline.append(Utility::WideStringToUTF8(m_sCurrentImageDoubler));
   currentline += "\ndecoderbuffercount=";
   currentline.append(std::to_string(m_iDecoderBufferCount));
@@ -134,18 +139,62 @@ void CD3D12Options::SaveCurrentSettings()
   currentline += "\npresentbuffercount=";
   currentline.append(std::to_string(m_iPresentBufferCount));
   outfile.write(currentline.append("\n").c_str(), currentline.size() + 1);
-  for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end();it++)
+  for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
   {
-    currentline = "[";
-    currentline.append((*it)->m_pScalerName).append("]").append("\n");
+    //only write to options if it has more than the scaler type
+    if (((*it)->GetFloatMap().size() + (*it)->GetIntMap().size() + (*it)->GetStrMap().size()) > 1)
+    {
+      currentline = "[";
+      currentline.append((*it)->m_pScalerName).append("]").append("\n");
+      outfile.write(currentline.c_str(), currentline.size());
+      std::map<std::string, std::string> strmap = (*it)->GetStrMap();
+      for (std::map<std::string, std::string>::iterator itt = strmap.begin(); itt != strmap.end(); itt++)
+      {
+        currentline = (*itt).first;
+        currentline.append("=");
+        currentline.append((*itt).second).append("\n");
+        outfile.write(currentline.c_str(), currentline.size());
+      }
+      std::map<std::string, int> intmap = (*it)->GetIntMap();
+      for (std::map<std::string, int>::iterator itt = intmap.begin(); itt != intmap.end(); itt++)
+      {
+        currentline = (*itt).first;
+        currentline.append("=");
+        currentline.append(std::to_string((*itt).second)).append("\n");
+        outfile.write(currentline.c_str(), currentline.size());
+      }
+      std::map<std::string, float> floatmap = (*it)->GetFloatMap();
+      for (std::map<std::string, float>::iterator itt = floatmap.begin(); itt != floatmap.end(); itt++)
+      {
+        currentline = (*itt).first;
+        currentline.append("=");
+        currentline.append(std::to_string((*itt).second)).append("\n");
+        outfile.write(currentline.c_str(), currentline.size());
+      }
+    }
+  }
+  if (m_pPostScalerOptions.size() > 0)
+  {
+    currentline = "[POST]\n";
+    outfile.write(currentline.c_str(), currentline.size());
+  }
+  for (std::vector<CScalerOption*>::iterator it = m_pPostScalerOptions.begin(); it != m_pPostScalerOptions.end(); it++)
+  {
+    
+    currentline = "scaler=";
+    currentline.append((*it)->m_pScalerName);
+    currentline.append("\n");
     outfile.write(currentline.c_str(), currentline.size());
     std::map<std::string, std::string> strmap = (*it)->GetStrMap();
     for (std::map<std::string, std::string>::iterator itt = strmap.begin(); itt != strmap.end(); itt++)
     {
-      currentline = (*itt).first;
-      currentline.append("=");
-      currentline.append((*itt).second).append("\n");
-      outfile.write(currentline.c_str(), currentline.size());
+      if ((*itt).first != "type" && (*itt).first != "scaler" && (*itt).first != "new")
+      {
+        currentline = (*itt).first;
+        currentline.append("=");
+        currentline.append((*itt).second).append("\n");
+        outfile.write(currentline.c_str(), currentline.size());
+      }
     }
     std::map<std::string, int> intmap = (*it)->GetIntMap();
     for (std::map<std::string, int>::iterator itt = intmap.begin(); itt != intmap.end(); itt++)
@@ -163,7 +212,7 @@ void CD3D12Options::SaveCurrentSettings()
       currentline.append(std::to_string((*itt).second)).append("\n");
       outfile.write(currentline.c_str(), currentline.size());
     }
-
+     
   }
   outfile.close();
 }
@@ -224,20 +273,64 @@ void CD3D12Options::OpenSettingsFile()
           }
           goto scaler;
         }
-        optscaler = new CScalerOption(scaler.c_str());
-        while (std::getline(infile, line))
+        if (scaler == "POST")
         {
-          option = GetOptionRegEx(line);
-          if (option.first.size() == 0)
-            goto scaler;
-          if (option.second.find_first_of(digits) == std::string::npos)
-            optscaler->AddString(option.first.c_str(), option.second);
-          else
+          //post scalers
+          optscaler = nullptr;
+          while (std::getline(infile, line))
           {
-            if (option.second.find(".") != std::string::npos)//float
-              optscaler->AddFloat(option.first.c_str(), option.second.c_str());
+            
+            option = GetOptionRegEx(line);
+            //we hit header []
+            if (option.first.size() == 0)
+            {
+              //fill and go to next
+              if (optscaler)
+                m_pPostScalerOptions.push_back(optscaler);
+              goto scaler;
+            }
+            if (option.first == "scaler")
+            {
+              //if scaler not null we already filled one earlier
+              if (optscaler)
+                m_pPostScalerOptions.push_back(optscaler);
+              optscaler = new CScalerOption(option.second);
+              optscaler->SetString("type", "POST");
+            }
+            if (option.second.find_first_of(digits) == std::string::npos)
+              optscaler->AddString(option.first.c_str(), option.second);
             else
-              optscaler->AddInt(option.first.c_str(), option.second.c_str());
+            {
+              if (option.second.find(".") != std::string::npos)//float
+                optscaler->AddFloat(option.first.c_str(), option.second.c_str());
+              else
+                optscaler->AddInt(option.first.c_str(), option.second.c_str());
+            }
+          }
+          if (optscaler)
+          {
+            m_pPostScalerOptions.push_back(optscaler);
+            optscaler = nullptr;
+          }
+        }
+        else
+        {
+          //unique scaler for types
+          optscaler = new CScalerOption(scaler.c_str());
+          while (std::getline(infile, line))
+          {
+            option = GetOptionRegEx(line);
+            if (option.first.size() == 0)
+              goto scaler;
+            if (option.second.find_first_of(digits) == std::string::npos)
+              optscaler->AddString(option.first.c_str(), option.second);
+            else
+            {
+              if (option.second.find(".") != std::string::npos)//float
+                optscaler->AddFloat(option.first.c_str(), option.second.c_str());
+              else
+                optscaler->AddInt(option.first.c_str(), option.second.c_str());
+            }
           }
         }
       }

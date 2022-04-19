@@ -99,7 +99,8 @@ private:
 	INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	HRESULT OnApplyChanges() override;
 	
-	void UpdateCurrentScaler();
+	void UpdateCurrentPostScaler();
+	void UpdateCurrentScaler(std::vector<ShaderConstantDesc> shaderconst);
 
 	void FillScalers(ScalerType scalertype);
 
@@ -123,6 +124,6 @@ private:
 	std::wstring m_sCurrentDownScaler = L"";
 	std::wstring m_sCurrentChromaUpscaler = L"";
 	std::wstring m_sCurrentImageDoubler = L"";
-	std::wstring m_sCurrentPostScaler = L"";
+	std::vector<std::wstring> m_sCurrentPostScaler;
 	std::vector<ShaderConstantDesc> m_pCurrentShaderConstants;
 };

@@ -38,7 +38,7 @@ namespace D3D12Engine
 	//using namespace ImageScaling;
 
 	ID3D12Device* g_Device = nullptr;
-	CD3D12Options* g_D3D12Options;
+	CD3D12Options* g_Options;
 	CommandListManager g_CommandManager;
 	ContextManager g_ContextManager;
 	CD3D12DynamicScaler* m_pCurrentUpScaler = nullptr;
@@ -181,7 +181,7 @@ namespace D3D12Engine
 		m_pDXGIFactory1.Release();
 		m_pDXGIOutput.Release();
 		p_CurrentBuffer = 0;
-		g_D3D12Options = nullptr;
+		g_Options = nullptr;
 
 	}
 
@@ -204,7 +204,7 @@ namespace D3D12Engine
 		if (m_pDXGISwapChain1)
 		{
 			D3D12Engine::g_CommandManager.IdleGPU();
-			for (uint32_t i = 0; i < SwapChainBufferColor.size(); ++i)
+			for (size_t i = 0; i < SwapChainBufferColor.size(); ++i)
 			{
 				SwapChainBufferColor[i].Destroy();
 			}
@@ -216,7 +216,7 @@ namespace D3D12Engine
 			{
 				CComPtr<ID3D12Resource> DisplayPlane;
 
-				for (uint32_t i = 0; i < presentSurfaceCount; ++i)
+				for (int i = 0; i < presentSurfaceCount; ++i)
 				{
 					CComPtr<ID3D12Resource> DisplayPlane;
 					m_pDXGISwapChain4->GetBuffer(i, MY_IID_PPV_ARGS(&DisplayPlane));
@@ -270,7 +270,7 @@ namespace D3D12Engine
 		swapChainDesc.Height = windowRect.Height();
 		swapChainDesc.Format = m_SwapChainFmt;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.BufferCount = g_D3D12Options->GetCurrentPresentBufferCount();
+		swapChainDesc.BufferCount = g_Options->GetCurrentPresentBufferCount();
 		swapChainDesc.SampleDesc.Count = 1;
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.Scaling = DXGI_SCALING_NONE;
@@ -341,8 +341,8 @@ namespace D3D12Engine
 			DLog(L"CDX12VideoProcessor::CDX12VideoProcessor() : CreateDXGIFactory1() failed with error {}", HR2Str(hr));
 
 		}
-		if (!g_D3D12Options)
-			g_D3D12Options = new CD3D12Options();
+		if (!g_Options)
+			g_Options = new CD3D12Options();
 		return hr;
 	}
 

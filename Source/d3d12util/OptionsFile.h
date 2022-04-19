@@ -28,15 +28,16 @@
 #include <ppl.h>
 #include "ppltasks.h"
 #include <map>
-
+#include "Utility.h"
 class CScalerOption
 {
 public:
-	CScalerOption(const char* name) { m_pScalerName = name; }
+	CScalerOption(std::string name){m_pScalerName = name;}
 	~CScalerOption() {};
 	void AddInt(const char* name, std::string value);
 	void AddFloat(const char* name, std::string value);
-	void AddString(const char* name, std::string value) { m_pStringOptions.insert({ name,value }); }
+	void AddString(const char* name, std::string value) { m_pStringOptions[name] = value; }
+	bool HasString(const char* name) { auto search = m_pStringOptions.find(name); return (search != m_pStringOptions.end()); }
 	int GetInt(std::string name) { return m_pIntOptions[name.c_str()]; }
 	float GetFloat(std::string name) { return m_pFloatOptions[name.c_str()]; }
 	std::string GetString(std::string name) { return m_pStringOptions[name.c_str()]; }
@@ -63,6 +64,17 @@ public:
 	void SaveCurrentSettings();
 	void OpenSettingsFile();
 	void CreateSettingsFile();
+	std::vector<std::wstring> GetCurrentPostscaler()
+	{
+		if (m_pPostScalerOptions.size() == 0)
+			return {};
+		std::vector<std::wstring> retvalue;
+		for (CScalerOption* x :m_pPostScalerOptions)
+		{
+			retvalue.push_back(Utility::UTF8ToWideString(x->m_pScalerName));
+		}
+		return retvalue;
+	}
 	std::wstring GetCurrentUpscaler() { return m_sCurrentUpScaler; }
 	std::wstring GetCurrentDownscaler() { return m_sCurrentDownScaler; }
 	std::wstring GetCurrentChromaUpscaler() { return m_sCurrentChromaUpscaler; }
@@ -74,7 +86,6 @@ public:
 	void SetCurrentDownscaler(std::wstring x) { m_sCurrentDownScaler = x; }
 	void SetCurrentChromaUpscaler(std::wstring x) { m_sCurrentChromaUpscaler = x; }
 	void SetCurrentImageDoubler(std::wstring x) { m_sCurrentImageDoubler = x; }
-	void SetCurrentPostShader(std::wstring x) { m_sCurrentPostShader = x; }
 	int GetCurrentDecoderBufferCount() { return m_iDecoderBufferCount; }
 	int GetCurrentUploadBufferCount() { return m_iUploadBufferCount; }
 	int GetCurrentRenderBufferCount() { return m_iRenderBufferCount; }
@@ -90,36 +101,96 @@ public:
 	void SetCurrentRenderBufferCount(int x) { m_iRenderBufferCount = x; }
 	void SetCurrentPresentBufferCount(int x) { m_iPresentBufferCount = x; }
 
-	void SetScaler(std::string name, CScalerOption* opt)
+	void SetScaler(std::string name,std::string scalertype, CScalerOption* opt)
 	{
-		for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
+		if (scalertype == "POST")
 		{
-			if ((*it)->m_pScalerName == name)
+			for (std::vector<CScalerOption*>::iterator it = m_pPostScalerOptions.begin(); it != m_pPostScalerOptions.end(); it++)
 			{
-				*it = opt;
-				return;
+				if ((*it)->m_pScalerName == name && (*it)->GetString("type") == scalertype)
+				{
+					*it = opt;
+					return;
+				}
+			}
+			m_pPostScalerOptions.push_back(opt);
+		}
+		else
+		{
+			for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
+			{
+				if ((*it)->m_pScalerName == name && (*it)->GetString("type") == scalertype)
+				{
+					*it = opt;
+					return;
+				}
 			}
 		}
 
 	}
-	CScalerOption* GetScaler(const char* name)
+
+	void AddPostScaler(std::wstring postnamew)
 	{
+		std::string postname = Utility::WideStringToUTF8(postnamew);
+		CScalerOption* post = new CScalerOption(postname);
+		post->SetString("type", "POST");
+		//need this to set new default values on new scaler
+		post->SetString("new", "YES");
+		m_pPostScalerOptions.push_back(post);
+	}
+
+	std::vector<CScalerOption*> GetPostScaler()
+	{
+		return m_pPostScalerOptions;
+	}
+	
+	CScalerOption* GetScaler(std::wstring namew,std::wstring scalertypew)
+	{
+		std::string name = Utility::WideStringToUTF8(namew);
+		std::string scalertype = Utility::WideStringToUTF8(scalertypew);
 		for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
 		{
-			if ((*it)->m_pScalerName == name)
+			if ((*it)->m_pScalerName == name && (*it)->GetString("type") == scalertype)
 				return *it;
 		}
 		return nullptr;
 	}
+
+	CScalerOption* GetScaler(std::string name, std::string scalertype)
+	{
+		if (scalertype == "POST")
+		{
+			for (std::vector<CScalerOption*>::iterator it = m_pPostScalerOptions.begin(); it != m_pPostScalerOptions.end(); it++)
+			{
+				if ((*it)->m_pScalerName == name && (*it)->GetString("type") == scalertype)
+					return *it;
+			}
+		}
+		else
+		{
+			for (std::vector<CScalerOption*>::iterator it = m_pOptions.begin(); it != m_pOptions.end(); it++)
+			{
+				if ((*it)->m_pScalerName == name && (*it)->GetString("type") == scalertype)
+					return *it;
+			}
+		}
+		return nullptr;
+	}
+
 	CScalerOption* CreateScaler(std::string name, std::string type)
 	{
 		CScalerOption* newscaler = new CScalerOption(name.c_str());
-		newscaler->AddString("type", type);
-		m_pOptions.push_back(newscaler);
+		newscaler->SetString("type", type);
+		if (type != "POST")
+			m_pOptions.push_back(newscaler);
+
 		return newscaler;
 	}
+
+	
 private:
 	std::vector<CScalerOption*> m_pOptions;
+	std::vector<CScalerOption*> m_pPostScalerOptions;
 	std::string m_pFilePath;
 	int m_iDecoderBufferCount;
 	int m_iUploadBufferCount;

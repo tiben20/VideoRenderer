@@ -54,7 +54,7 @@ namespace D3D12Engine
 	extern CRect g_videoRect;
 	extern CRect g_windowRect;
 	extern CRect g_renderRect;
-	extern CD3D12Options* g_D3D12Options;
+	extern CD3D12Options* g_Options;
 	extern CD3D12DynamicScaler* m_pCurrentUpScaler;
 	extern CD3D12DynamicScaler* m_pCurrentDownScaler;
 	extern CD3D12DynamicScaler* m_pCurrentChromaScaler;
