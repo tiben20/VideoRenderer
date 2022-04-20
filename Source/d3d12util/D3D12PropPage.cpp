@@ -142,6 +142,12 @@ inline int GetSliderID(HWND hWnd)
 	return GetDlgCtrlID(hWnd);
 }
 
+inline int ListboxGetItemCount(HWND hWnd, int nIDListBox)
+{
+	return SendDlgItemMessageW(hWnd, nIDListBox, LB_GETCOUNT, 0, 0);
+	
+}
+
 inline void ListboxClear(HWND hWnd, int nIDListBox)
 {
 	SendDlgItemMessageW(hWnd, nIDListBox, LB_RESETCONTENT, 0, 0);
@@ -299,11 +305,7 @@ void CD3D12SettingsPPage::UpdateScroll(int index, int staticbutton, int value)
 		SetEditText(m_hWnd, staticbutton, (float)(((float)value) / 100));
 		m_pCurrentShaderConstants.at(index).currentValue = (float)(((float)value) / 100);
 	}
-	/*CScalerOption* opt;
-	opt = D3D12Engine::g_Options->GetScaler("Bicubic.hlsl");
-	std::string type = opt->GetString("type");
-
-	opt = nullptr;*/
+	//update loaded shaders
 	if (D3D12Engine::m_pCurrentUpScaler)
 		D3D12Engine::m_pCurrentUpScaler->SetShaderConstants(m_pCurrentShaderConstants);
 }
@@ -370,10 +372,10 @@ void CD3D12SettingsPPage::FillScalers(ScalerType scalertype)
 		{
 			shaders.push_back(fle);
 		}
-		else if (scl.find("POST") != std::string::npos && scalertype == ScalerType::PostShader)
-		{
-			shaders.push_back(fle);
-		}
+		/*else if (scl.find("POST") != std::string::npos && scalertype == ScalerType::PostShader)*/
+		//{
+		shaders.push_back(fle);
+		//}
 	}
 
 	LRESULT resindex = -1;
@@ -582,8 +584,10 @@ std::wstring appdata = Utility::GetDirAppData();
 
 INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+
 	if (uMsg == WM_HSCROLL)
 	{
+		SetDirty();
 		int cValue = HIWORD(wParam);
 		const int nID = GetSliderID((HWND)lParam);
 		//cValue
@@ -644,6 +648,15 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 		}
 	}
 
+	if (uMsg == WM_LBUTTONDOWN)
+	{
+		//TODO drag and drop 
+		if (LOWORD(wParam) == IDC_LIST_POSTSCALERS)
+		{
+			m_pDragPostScaler = CPoint((int)LOWORD(lParam), (int)(short)HIWORD(lParam));
+			
+		}
+	}// == IDC_LIST_POSTSCALERS)
 	if (uMsg == WM_COMMAND)
 	{
 		const int nID = LOWORD(wParam);
@@ -685,6 +698,26 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 			D3D12Engine::g_Options->AddPostScaler(curscaler);
 			return 1l;
 		}
+		if (HIWORD(wParam) == BN_CLICKED && nID == IDC_BUTTON_REMOVE)
+		{
+			//shouldn't happen
+			if (m_pCurrentScalerType != ScalerType::PostShader)
+				assert(0);
+			//too lazy right now will just remove and recreate
+			std::wstring curscaler = ListboxGetCurrentText(m_hWnd, IDC_LIST_POSTSCALERS);
+			std::vector<std::wstring>::iterator position = std::find(m_sCurrentPostScaler.begin(), m_sCurrentPostScaler.end(), curscaler);
+			if (position != m_sCurrentPostScaler.end()) // == myVector.end() means the element was not found
+				m_sCurrentPostScaler.erase(position);
+			
+			
+			ListboxClear(m_hWnd, IDC_LIST_POSTSCALERS);
+			for (std::wstring xx : m_sCurrentPostScaler)
+				ListboxAddString(m_hWnd, IDC_LIST_POSTSCALERS, xx.c_str());
+			SetDirty();
+
+			D3D12Engine::g_Options->RemovePostScaler(curscaler);
+			return 1l;
+		}
 		//listbox of current scaler changed
 		//m_pCurrentScalerType
 		if (nID == IDC_LIST_SCALERS)
@@ -708,7 +741,7 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 				D3D12Engine::g_Options->SetCurrentImageDoubler(curscaler);
 			}
 
-			if (curscaler.length() > 0 && m_pCurrentScalerType != ScalerType::PostShader)
+			if (curscaler.length() > 0)
 			{
 				SetShaderDescription(curscaler);
 				SetShaderOptions(curscaler);
@@ -745,7 +778,13 @@ INT_PTR CD3D12SettingsPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 
 HRESULT CD3D12SettingsPPage::OnApplyChanges()
 {
+	//todo fix beter than this removing the postscaler
+	if (ListboxGetItemCount(m_hWnd, IDC_LIST_POSTSCALERS) == 0)
+	{
+		D3D12Engine::g_Options->RemovePostScaler(L"*");
+		m_sCurrentPostScaler.clear();
 
+	}
 	D3D12Engine::g_Options->SaveCurrentSettings();
 	
 	m_pVideoRenderer->SetSettings(m_SetsPP);

@@ -154,7 +154,8 @@ void CD3D12Scaler::SetDynTextureSrv(GraphicsContext& Context, std::vector<UINT> 
     if (x == 0)
     {
       //sometimes the source is used in passes after the first pass
-      Context.TransitionResource(srcInputBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+      //Cant put source state when source is user as render target
+      //Context.TransitionResource(srcInputBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
       Context.SetDynamicDescriptor(0, curidx, srcInputBuffer.GetSRV());
     }
     else
@@ -368,6 +369,7 @@ void CD3D12DynamicScaler::Render(GraphicsContext& Context,CRect dstrect, ColorBu
     {
       //last pass so set viewport and output render target
       Context.SetRenderTarget(dest.GetRTV());
+      //Context.BeginResourceTransition(dest, D3D12_RESOURCE_STATE_RENDER_TARGET);
       Context.SetViewportAndScissor(dstrect.left, dstrect.top, dstrect.Width(), dstrect.Height());
     }
     //set the passes pipeline
@@ -397,7 +399,8 @@ void CD3D12DynamicScaler::Unload()
     m_pPSO.clear();
   }
   
-  m_pScaler->FreeDynTexture();
+  if (m_pScaler)
+    m_pScaler->FreeDynTexture();
   m_pScaler = nullptr;
 }
 CD3D12DynamicScaler::~CD3D12DynamicScaler()

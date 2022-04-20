@@ -314,6 +314,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	
 	ImageScaling::Initialize(D3D12Engine::GetSwapChainFormat());
 	
+	
 	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
 	UpdateStatsStatic();
 	IDXGIAdapter* pDXGIAdapter = nullptr;
@@ -569,7 +570,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch, size_t bufferlength)
 {
 	HRESULT hr = S_FALSE;
-	
+
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layoutplane[2];
 	UINT64 pitch_plane[2];
 	UINT rows_plane[2];
@@ -584,31 +585,49 @@ HRESULT CDX12VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 	}
 	
 	size_t firstplane = pitch_plane[0] * m_srcHeight;
-	Texture texture1;
-	Texture texture2;
 	
 	if (m_pTexturePlane1.GetWidth()>0)
 	{
-#if 0
-		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Create texture transit");
-		pVideoContext.TransitionResource(m_pTexturePlane1, D3D12_RESOURCE_STATE_COPY_DEST);
-		pVideoContext.TransitionResource(m_pTexturePlane2, D3D12_RESOURCE_STATE_COPY_DEST);
-		pVideoContext.Finish(true);
+#if 1
 		D3D12_SUBRESOURCE_DATA texResource1;
 		texResource1.pData = srcData;
 		texResource1.RowPitch = srcPitch;
 		texResource1.SlicePitch = srcPitch * m_srcHeight;
-		CommandContext::InitializeTexture(m_pTexturePlane1, 1, &texResource1);
 		D3D12_SUBRESOURCE_DATA texResource2;
 		texResource2.pData = srcData + firstplane;
 		texResource2.RowPitch = srcPitch;
 		texResource2.SlicePitch = srcPitch * layoutplane[1].Footprint.Height;
+		GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Create texture transit");
+		pVideoContext.TransitionResource(m_pTexturePlane1, D3D12_RESOURCE_STATE_COPY_DEST);
+		pVideoContext.TransitionResource(m_pTexturePlane2, D3D12_RESOURCE_STATE_COPY_DEST,true);
+		pVideoContext.Finish();
+
+		CommandContext::InitializeTexture(m_pTexturePlane1, 1, &texResource1);
 		CommandContext::InitializeTexture(m_pTexturePlane2, 1, &texResource2);
-#endif
+#else
+
+
+		
+		/*D3D12_SUBRESOURCE_DATA texResource[2];
+		texResource[0].pData = srcData;
+		texResource[0].RowPitch = srcPitch;
+		texResource[0].SlicePitch = srcPitch * m_srcHeight;
+		texResource[1].pData = srcData + firstplane;
+		texResource[1].RowPitch = srcPitch;
+		texResource[1].SlicePitch = srcPitch * layoutplane[1].Footprint.Height;*/
+		//need to transit the resource if we don't have a state error
+		/*GraphicsContext& pVideoContext = GraphicsContext::Begin(L"Alphabitmaptransit");
+		pVideoContext.TransitionResource(m_pTexturePlane1, D3D12_RESOURCE_STATE_COPY_DEST);
+		pVideoContext.TransitionResource(m_pTexturePlane2, D3D12_RESOURCE_STATE_COPY_DEST);
+		pVideoContext.Finish();*/
+
+		//CommandContext::InitializeTexture(m_pTexturePlane1, 1, &texResource[0]);
+		//CommandContext::InitializeTexture(m_pTexturePlane2, 1, &texResource[1]);
 		m_pTexturePlane1.Destroy();
 		m_pTexturePlane2.Destroy();
 		m_pTexturePlane1.Create2D(srcPitch, m_srcWidth, m_srcHeight, m_srcParams.pDX11Planes->FmtPlane1, srcData);
 		m_pTexturePlane2.Create2D(srcPitch, layoutplane[1].Footprint.Width, layoutplane[1].Footprint.Height, m_srcParams.pDX11Planes->FmtPlane2, srcData + firstplane);
+#endif
 	}
 	else
 	{
@@ -945,6 +964,8 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 #endif
 	//Update the colors in case we are using sw for rendering
 	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
+	//init post shaders cant do it in init since the srcrect is not set
+	D3D12Engine::InitPostShaders(D3D12Engine::g_Options->GetPostScaler(), m_srcRect, m_videoRect);
 	UpdateStatsStatic();
 	return TRUE;
 }
@@ -1022,6 +1043,7 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	bool changeDowndcalingShader = false;
 	bool changeNumTextures = false;
 	bool changeResizeStats = false;
+	m_bUpdatePostShaders = true;
 	//TODO
 	//add config for internal scaler
 
@@ -1477,7 +1499,11 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	HRESULT hr = S_OK;
 	if (field)
 		m_FieldDrawn = field;
-
+	if (m_bUpdatePostShaders)
+	{
+		D3D12Engine::InitPostShaders(D3D12Engine::g_Options->GetPostScaler(), m_srcRect, m_videoRect);
+		m_bUpdatePostShaders = false;
+	}
 	uint64_t tick1 = GetPreciseTick();
 
 	HRESULT hrSubPic = E_FAIL;
@@ -1500,7 +1526,8 @@ HRESULT CDX12VideoProcessor::Render(int field)
 			hrSubPic = m_pFilter->m_pSubCallBack->Render(rtStart, rDstVid.left, rDstVid.top, rDstVid.right, rDstVid.bottom, rSrcPri.Width(), rSrcPri.Height());
 		}
 
-		if (S_OK == hrSubPic) {
+		if (S_OK == hrSubPic)
+		{
 			m_bSubPicWasRendered = true;
 
 			// flush Direct3D9 for immediate update Direct3D11 texture
@@ -1528,9 +1555,9 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	
 
 	//Render the Subtitles
-	if (S_OK == hrSubPic) {
+	if (S_OK == hrSubPic)
+	{
 		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
-
 		D3D11_VIEWPORT VP;
 		VP.TopLeftX = 0;
 		VP.TopLeftY = 0;
@@ -1544,7 +1571,6 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	//will just desactive the overlay if stats are not on
 	DrawStats(pVideoContext, 10, 10, m_windowRect.Width(), m_windowRect.Height());
 
-	
 	if (m_bAlphaBitmapEnable)
 	{
 		D3D12_RESOURCE_DESC desc = D3D12Engine::GetSwapChainResourceDesc();
@@ -1621,6 +1647,7 @@ HRESULT CDX12VideoProcessor::Process(GraphicsContext& pVideoContext,const CRect&
 		//even with no scale we need a dstrect if we resize the window only in x or y position
 		D3D12Engine::Noscale(pVideoContext, dstRect, m_bSWRendering);
 	}
+	D3D12Engine::PostShaders(pVideoContext, srcRect, dstRect);
 	return hr;
 }
 
@@ -1637,11 +1664,12 @@ void CDX12VideoProcessor::SetVideoRect(const CRect& videoRect)
 
 HRESULT CDX12VideoProcessor::SetWindowRect(const CRect& windowRect)
 {
-	
+	DLog(L"Set Window Rect Width: {} Height: {}", windowRect.Width(), windowRect.Height());
 	m_windowRect = windowRect;
 	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
 
 	D3D12Engine::ResetSwapChain(m_windowRect, g_Options->GetCurrentPresentBufferCount());
+
 	D3D12Engine::SetVideoRect(m_videoRect);
 	D3D12Engine::SetWindowRect(m_windowRect);
 	D3D12Engine::SetRenderRect(m_renderRect);
@@ -1729,6 +1757,8 @@ STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetProcAmpValues(DWORD dwF
 
 STDMETHODIMP_(HRESULT __stdcall) CDX12VideoProcessor::SetAlphaBitmap(const MFVideoAlphaBitmap* pBmpParms)
 {
+	//its actually working but the it sometimes crash on resize
+	return S_FALSE;
 	DLog(L"CDX12VideoProcessor::SetAlphaBitmap");
 	CheckPointer(pBmpParms, E_POINTER);
 

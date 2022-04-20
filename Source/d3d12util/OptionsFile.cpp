@@ -297,14 +297,16 @@ void CD3D12Options::OpenSettingsFile()
               optscaler = new CScalerOption(option.second);
               optscaler->SetString("type", "POST");
             }
-            if (option.second.find_first_of(digits) == std::string::npos)
-              optscaler->AddString(option.first.c_str(), option.second);
-            else
+            if (option.second.find_first_of(digits) != std::string::npos && option.second.find_first_of(".hlsl") == std::string::npos)
             {
               if (option.second.find(".") != std::string::npos)//float
                 optscaler->AddFloat(option.first.c_str(), option.second.c_str());
               else
                 optscaler->AddInt(option.first.c_str(), option.second.c_str());
+            }
+            else
+            {
+              optscaler->AddString(option.first.c_str(), option.second);
             }
           }
           if (optscaler)

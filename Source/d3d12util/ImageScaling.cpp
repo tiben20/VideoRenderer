@@ -53,7 +53,7 @@ namespace ImageScaling
     /*dynamic scalers root signature */
     g_RootScalers.Reset(4, 2);
     g_RootScalers[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 8);
-    g_RootScalers[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+    g_RootScalers[1].InitAsConstants(0, 25, D3D12_SHADER_VISIBILITY_ALL);
     g_RootScalers[2].InitAsBufferSRV(8, D3D12_SHADER_VISIBILITY_PIXEL);
     g_RootScalers[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 2);
     g_RootScalers.InitStaticSampler(0, SamplerPointClampLODDesc);

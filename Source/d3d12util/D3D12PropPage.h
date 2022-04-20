@@ -118,6 +118,7 @@ private:
 		}
 	}
 	
+	CPoint         m_pDragPostScaler;
 	CScalerOption* m_pCurrentScalerOption;
 	ScalerType   m_pCurrentScalerType;
 	std::wstring m_sCurrentUpScaler = L"";

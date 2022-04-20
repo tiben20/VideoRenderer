@@ -29,11 +29,18 @@
 #include "ppltasks.h"
 #include <map>
 #include "Utility.h"
+
+
+
 class CScalerOption
 {
 public:
 	CScalerOption(std::string name){m_pScalerName = name;}
-	~CScalerOption() {};
+	~CScalerOption()
+	{
+		m_pStringOptions.clear();
+	};
+
 	void AddInt(const char* name, std::string value);
 	void AddFloat(const char* name, std::string value);
 	void AddString(const char* name, std::string value) { m_pStringOptions[name] = value; }
@@ -64,6 +71,9 @@ public:
 	void SaveCurrentSettings();
 	void OpenSettingsFile();
 	void CreateSettingsFile();
+
+
+
 	std::vector<std::wstring> GetCurrentPostscaler()
 	{
 		if (m_pPostScalerOptions.size() == 0)
@@ -129,6 +139,25 @@ public:
 
 	}
 
+	void RemovePostScaler(std::wstring postnamew)
+	{
+		if (postnamew == L"*")
+		{
+			m_pPostScalerOptions.clear();
+			return;
+		}
+		std::string postname = Utility::WideStringToUTF8(postnamew);
+		for (int x = 0; x < m_pPostScalerOptions.size(); x++)
+		{
+			if (m_pPostScalerOptions.at(x)->m_pScalerName == postname)
+			{
+				m_pPostScalerOptions.erase(m_pPostScalerOptions.begin()+x);
+				break;
+			}
+		}
+	
+	}
+	
 	void AddPostScaler(std::wstring postnamew)
 	{
 		std::string postname = Utility::WideStringToUTF8(postnamew);

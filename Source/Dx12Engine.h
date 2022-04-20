@@ -94,7 +94,7 @@ namespace D3D12Engine
 	HRESULT RenderAlphaBitmap(GraphicsContext& Context, Texture resource, D3D12_VIEWPORT vp, RECT alphaBitmapRectSrc);
 	HRESULT RenderSubPic(GraphicsContext& Context, ColorBuffer resource, CRect srcRect, UINT srcW, UINT srcH);
 	
-	HRESULT CopySampleShaderPassSW(Texture buf1, Texture buf2, CRect dstRect);
+	HRESULT CopySampleShaderPassSW(Texture& buf1, Texture& buf2, CRect dstRect);
 	HRESULT CopySample(ID3D12Resource* resource);
 	
 	void ClearBackBuffer(GraphicsContext& Context, CRect windowRect );
@@ -103,6 +103,8 @@ namespace D3D12Engine
 	void Noscale(GraphicsContext& Context, CRect dstRect, bool sw);
 	void Downscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler);
 	void Upscale(GraphicsContext& Context, CRect srcRect, CRect destRect, bool sw, std::wstring scaler);
+	void PostShaders(GraphicsContext& Context, CRect srcRect, CRect destRect);
+	void InitPostShaders(std::vector<CScalerOption*> options, CRect srcRect, CRect destRect);
 
 	ColorBuffer GetPreScale();
 	void PresentBackBuffer(GraphicsContext& Context);

@@ -123,7 +123,7 @@ private:
 	HDRMetadata m_hdr10 = {};
 	HDRMetadata m_lastHdr10 = {};
 	bool m_bCallbackDeviceIsSet = false;
-
+	bool m_bUpdatePostShaders = false;
 	void SetCallbackDevice(const bool bChangeDevice = false);
 //CVideoProcessor
 	void SetGraphSize() override;

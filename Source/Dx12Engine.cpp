@@ -439,7 +439,7 @@ namespace D3D12Engine
 		return S_OK;
 	}
 	
-	HRESULT D3D12Engine::CopySampleShaderPassSW(Texture buf1, Texture buf2,CRect dstRect)
+	HRESULT D3D12Engine::CopySampleShaderPassSW(Texture& buf1, Texture& buf2,CRect dstRect)
 	{
 		GraphicsContext& pShaderContext = GraphicsContext::Begin(L"Shader Context");
 		if (m_pVideoOutputResourcePreScale.GetWidth() != dstRect.Width() || m_pVideoOutputResourcePreScale.GetHeight() != dstRect.Height())
@@ -452,7 +452,7 @@ namespace D3D12Engine
 		ImageScaling::CopyPlanesSW(pShaderContext, m_pVideoOutputResourcePreScale, buf1, buf2, m_pBufferVar, dstRect);
 
 		//need the buffer to be done because were releasing it right after
-		pShaderContext.Finish(true);
+		pShaderContext.Finish();
 		return S_OK;
 	}
 
@@ -581,6 +581,54 @@ namespace D3D12Engine
 			ImageScaling::RenderToBackBuffer(Context, m_pVideoOutputResource, m_pVideoOutputResourcePreScale);
 		}
 	}
+
+	void D3D12Engine::InitPostShaders(std::vector<CScalerOption*> options, CRect srcRect, CRect destRect)
+	{
+		if (m_pCurrentPostScalers.size() > 0)
+		{
+			//to test
+			D3D12Engine::g_CommandManager.IdleGPU();
+			for (CD3D12DynamicScaler* xx : m_pCurrentPostScalers)
+			{
+				UNLOAD_SCALER(xx);
+			}
+			m_pCurrentPostScalers.clear();
+		}
+
+		bool res = true;
+		for (CScalerOption* opt : options)
+		{
+			CD3D12DynamicScaler* cur = new CD3D12DynamicScaler(Utility::UTF8ToWideString(opt->m_pScalerName), &res);
+			if (!res)
+			{
+				UNLOAD_SCALER(cur);
+				DLog(L"ERROR loading scaler {}", Utility::UTF8ToWideString(opt->m_pScalerName));
+			}
+			else
+			{
+				if (destRect.IsRectEmpty())
+					destRect = srcRect;
+				cur->Init(DXGI_FORMAT_R8G8B8A8_UNORM, srcRect, destRect);
+				m_pCurrentPostScalers.push_back(cur);
+			}
+		}
+	}
+
+	void D3D12Engine::PostShaders(GraphicsContext& Context, CRect srcRect, CRect destRect)
+	{
+		if (m_pCurrentPostScalers.size() == 0)
+			return;
+		//should already be set
+		//Context.TransitionResource(m_pVideoOutputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		for (CD3D12DynamicScaler* xx : m_pCurrentPostScalers)
+		{
+			xx->Render(Context, destRect, m_pVideoOutputResource, m_pVideoOutputResource);
+		}
+
+			
+		
+	}
+
 
 	void D3D12Engine::DrawPlanes(GraphicsContext& Context, ColorBuffer& output, CRect dstRect)
 	{
