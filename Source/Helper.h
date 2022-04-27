@@ -190,3 +190,7 @@ HRESULT SaveToImage(BYTE* src, const UINT pitch, const UINT width, const UINT he
 DXVA2_ExtendedFormat SpecifyExtendedFormat(DXVA2_ExtendedFormat exFormat, const FmtConvParams_t& fmtParams, const UINT width, const UINT height);
 
 void GetExtendedFormatString(LPCSTR (&strs)[6], const DXVA2_ExtendedFormat exFormat, const ColorSystem_t colorSystem);
+
+
+
+void SetThreadName(DWORD dwThreadID, LPCSTR szThreadName);

@@ -27,6 +27,8 @@
 #include "IVideoRenderer.h"
 #include "DX9VideoProcessor.h"
 #include "DX11VideoProcessor.h"
+#include "RenderThreadDX11.h"
+
 #include "../Include/ISubRender.h"
 #include "../Include/ID3DFullscreenControl.h"
 #include "../Include/FilterInterfacesImpl.h"
@@ -83,7 +85,11 @@ private:
 	friend class CVideoProcessor;
 	friend class CDX9VideoProcessor;
 	friend class CDX11VideoProcessor;
+	friend class CRenderThread;
+	//friend class CRenderThread9;
+	friend class CRenderThread11;
 
+	
 	// Options
 	Settings_t m_Sets;
 
@@ -106,6 +112,8 @@ private:
 
 	// VideoProcessor
 	CVideoProcessor* m_VideoProcessor = nullptr;
+	//renderthread
+	CRenderThread* m_pRenderThread = nullptr;
 
 	CMediaType m_inputMT;
 

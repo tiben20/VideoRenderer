@@ -241,6 +241,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		if (FAILED(hr)) {
 			SAFE_DELETE(m_VideoProcessor);
 		}
+		m_pRenderThread = new CRenderThread11((CDX11VideoProcessor*)m_VideoProcessor);
 		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
 	}
 
@@ -431,14 +432,15 @@ HRESULT CMpcVideoRenderer::SetMediaType(const CMediaType *pmt)
 		}
 	}
 
+	m_pRenderThread->Init(8, 8, 8, m_VideoProcessor->GetSourceParams());
 	return S_OK;
 }
 
 HRESULT CMpcVideoRenderer::DoRenderSample(IMediaSample* pSample)
 {
 	CheckPointer(pSample, E_POINTER);
-
-	HRESULT hr = m_VideoProcessor->ProcessSample(pSample);
+	HRESULT hr = m_pRenderThread->ProcessSample(pSample);
+	//HRESULT hr = m_VideoProcessor->ProcessSample(pSample);
 
 	if (SUCCEEDED(hr)) {
 		m_bValidBuffer = true;
@@ -633,7 +635,7 @@ STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** 
 STDMETHODIMP CMpcVideoRenderer::Run(REFERENCE_TIME rtStart)
 {
 	DLog(L"CMpcVideoRenderer::Run()");
-
+	m_pRenderThread->StartThreads();
 	if (m_State == State_Running) {
 		return NOERROR;
 	}
@@ -1019,7 +1021,6 @@ HRESULT CMpcVideoRenderer::Init(const bool bCreateWindow/* = false*/)
 
 	bool bChangeDevice = false;
 	hr = m_VideoProcessor->Init(m_hWnd, &bChangeDevice);
-
 	if (bChangeDevice) {
 		DoAfterChangingDevice();
 	}

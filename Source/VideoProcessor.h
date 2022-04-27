@@ -23,6 +23,7 @@
 #include <evr9.h>
 #include "DisplayConfig.h"
 #include "FrameStats.h"
+#include "RenderThread.h"
 
 enum : int {
 	VP_DX9 = 9,
@@ -35,6 +36,9 @@ class CVideoProcessor
 	: public IMFVideoProcessor
 	, public IMFVideoMixerBitmap
 {
+private:
+	friend class CRenderThread;
+	friend class CRenderThread11;
 protected:
 	long m_nRefCount = 1;
 	CMpcVideoRenderer* m_pFilter = nullptr;
@@ -131,7 +135,6 @@ protected:
 	int m_Yscale = 2;
 	RECT m_GraphRect = {};
 	int m_Yaxis  = 0;
-
 	CVideoProcessor(CMpcVideoRenderer* pFilter) : m_pFilter(pFilter) {}
 
 public:
@@ -160,6 +163,7 @@ public:
 	virtual bool IsInit() const { return false; }
 
 	ColorFormat_t GetColorFormat() { return m_srcParams.cformat; }
+	FmtConvParams_t GetSourceParams() { return m_srcParams; }
 
 	void GetSourceRect(CRect& sourceRect) { sourceRect = m_srcRect; }
 	void GetVideoRect(CRect& videoRect) { videoRect = m_videoRect; }

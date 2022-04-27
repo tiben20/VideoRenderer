@@ -19,6 +19,9 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{ba2bad6e-f01e-4ea9-9209-8005fcd5bc5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\RenderThread">
+      <UniqueIdentifier>{d68a0b86-1077-479f-b2b6-d171e05c87a2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -104,6 +107,12 @@
     </ClCompile>
     <ClCompile Include="MediaSampleSideData.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderThread.cpp">
+      <Filter>Source Files\RenderThread</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderThreadDX11.cpp">
+      <Filter>Source Files\RenderThread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +214,12 @@
     </ClInclude>
     <ClInclude Include="Utils\gpu_memcpy_sse4.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderThread.h">
+      <Filter>Source Files\RenderThread</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderThreadDX11.h">
+      <Filter>Source Files\RenderThread</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -43,6 +43,7 @@ class CDX11VideoProcessor
 {
 private:
 	friend class CVideoRendererInputPin;
+	friend class CRenderThread11;
 
 	// Direct3D 11
 	CComPtr<ID3D11Device1>        m_pDevice;
@@ -240,10 +241,12 @@ private:
 	HRESULT UpdateConvertColorShader();
 
 	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
+	HRESULT ConvertColorPassThread(ID3D11Texture2D* pRenderTarget, Tex11Video_t src);
 	HRESULT ConvertColorPass(ID3D11Texture2D* pRenderTarget);
 	HRESULT ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const int rotation);
 	HRESULT FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect);
-
+	
+	HRESULT ProcessThread(ID3D11Texture2D* pRenderTarget, ID3D11Texture2D* pSrcTexture, ID3D11ShaderResourceView* pShaderResource,const CRect& srcRect, const CRect& dstRect, const bool second);
 	HRESULT Process(ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
 
 	HRESULT AlphaBlt(ID3D11ShaderResourceView* pShaderResource, ID3D11Texture2D* pRenderTarget,
