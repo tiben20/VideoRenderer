@@ -308,6 +308,39 @@ HRESULT CDX11VideoProcessor::AlphaBltSub(ID3D11ShaderResourceView* pShaderResour
 	return hr;
 }
 
+HRESULT CDX11VideoProcessor::TextureCopyRectThread(
+	ID3D11ShaderResourceView* pShaderRes, ID3D11Texture2D* pRenderTarget,
+	const CRect& srcRect, const CRect& destRect,
+	ID3D11PixelShader* pPixelShader, ID3D11Buffer* pConstantBuffer,
+	const int iRotation, const bool bFlip)
+{
+	CComPtr<ID3D11RenderTargetView> pRenderTargetView;
+	CComPtr<ID3D11Buffer> pVertexBuffer;
+
+	HRESULT hr = m_pDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	if (FAILED(hr)) {
+		DLog(L"TextureCopyRect() : CreateRenderTargetView() failed with error {}", HR2Str(hr));
+		return hr;
+	}
+
+	hr = CreateVertexBuffer(m_pDevice, &pVertexBuffer, destRect.Width(), destRect.Height(), srcRect, iRotation, bFlip);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	D3D11_VIEWPORT VP;
+	VP.TopLeftX = (FLOAT)destRect.left;
+	VP.TopLeftY = (FLOAT)destRect.top;
+	VP.Width = (FLOAT)destRect.Width();
+	VP.Height = (FLOAT)destRect.Height();
+	VP.MinDepth = 0.0f;
+	VP.MaxDepth = 1.0f;
+
+	TextureBlt11(m_pDeviceContext, pRenderTargetView, VP, m_pVSimpleInputLayout, m_pVS_Simple, pPixelShader, pShaderRes, m_pSamplerPoint, pConstantBuffer, pVertexBuffer);
+
+	return hr;
+}
+
 HRESULT CDX11VideoProcessor::TextureCopyRect(
 	const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
 	const CRect& srcRect, const CRect& destRect,
@@ -881,6 +914,49 @@ void CDX11VideoProcessor::SetGraphSize()
 		}
 		m_Lines.UpdateVertexBuffer();
 	}
+}
+
+HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideoThread(const BYTE* srcData, const int srcPitch, Tex11Video_t&outBuf)
+{
+	HRESULT hr = S_FALSE;
+	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+
+	if (outBuf.pTexture2) {
+		hr = m_pDeviceContext->Map(outBuf.pTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (SUCCEEDED(hr)) {
+			CopyFrameAsIs(m_srcHeight, (BYTE*)mappedResource.pData, mappedResource.RowPitch, srcData, srcPitch);
+			m_pDeviceContext->Unmap(outBuf.pTexture, 0);
+
+			hr = m_pDeviceContext->Map(outBuf.pTexture2, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			if (SUCCEEDED(hr)) {
+				const UINT cromaH = m_srcHeight / m_srcParams.pDX11Planes->div_chroma_h;
+				const int cromaPitch = (outBuf.pTexture3) ? srcPitch / m_srcParams.pDX11Planes->div_chroma_w : srcPitch;
+				srcData += srcPitch * m_srcHeight;
+				CopyFrameAsIs(cromaH, (BYTE*)mappedResource.pData, mappedResource.RowPitch, srcData, cromaPitch);
+				m_pDeviceContext->Unmap(outBuf.pTexture2, 0);
+
+				if (outBuf.pTexture3) {
+					hr = m_pDeviceContext->Map(outBuf.pTexture3, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+					if (SUCCEEDED(hr)) {
+						srcData += cromaPitch * cromaH;
+						CopyFrameAsIs(cromaH, (BYTE*)mappedResource.pData, mappedResource.RowPitch, srcData, cromaPitch);
+						m_pDeviceContext->Unmap(outBuf.pTexture3, 0);
+					}
+				}
+			}
+		}
+	}
+	else {
+		hr = m_pDeviceContext->Map(outBuf.pTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (SUCCEEDED(hr)) {
+			ASSERT(m_pConvertFn);
+			const BYTE* src = (srcPitch < 0) ? srcData + srcPitch * (1 - (int)m_srcLines) : srcData;
+			m_pConvertFn(m_srcLines, (BYTE*)mappedResource.pData, mappedResource.RowPitch, src, srcPitch);
+			m_pDeviceContext->Unmap(outBuf.pTexture, 0);
+		}
+	}
+
+	return hr;
 }
 
 HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch)
@@ -1992,11 +2068,82 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 	return hr;
 }
 
+HRESULT CDX11VideoProcessor::RenderSubs(CVideoBuffer& pInput, CVideoBuffer& pOutput)
+{
+	
+	CheckPointer(m_pDXGISwapChain1, E_FAIL);
+
+	HRESULT hr = S_OK;
+	uint64_t tick1 = GetPreciseTick();
+
+	HRESULT hrSubPic = E_FAIL;
+	if (m_pFilter->m_pSubCallBack && m_pShaderResourceSubPic) {
+		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
+		const CRect rDstVid(m_videoRect);
+		const auto rtStart = m_pFilter->m_rtStartTime + pInput.rtStart;
+
+		if (m_bSubPicWasRendered) {
+			m_bSubPicWasRendered = false;
+			m_pD3DDevEx->ColorFill(m_pSurface9SubPic, nullptr, m_pFilter->m_bSubInvAlpha ? D3DCOLOR_ARGB(0, 0, 0, 0) : D3DCOLOR_ARGB(255, 0, 0, 0));
+		}
+
+		if (CComQIPtr<ISubRenderCallback4> pSubCallBack4 = m_pFilter->m_pSubCallBack) {
+			hrSubPic = pSubCallBack4->RenderEx3(rtStart, 0, m_rtAvgTimePerFrame, rDstVid, rDstVid, rSrcPri);
+		}
+		else {
+			hrSubPic = m_pFilter->m_pSubCallBack->Render(rtStart, rDstVid.left, rDstVid.top, rDstVid.right, rDstVid.bottom, rSrcPri.Width(), rSrcPri.Height());
+		}
+
+		if (S_OK == hrSubPic) {
+			m_bSubPicWasRendered = true;
+
+			// flush Direct3D9 for immediate update Direct3D11 texture
+			CComPtr<IDirect3DQuery9> pEventQuery;
+			m_pD3DDevEx->CreateQuery(D3DQUERYTYPE_EVENT, &pEventQuery);
+			if (pEventQuery) {
+				pEventQuery->Issue(D3DISSUE_END);
+				BOOL Data = FALSE;
+				while (S_FALSE == pEventQuery->GetData(&Data, sizeof(Data), D3DGETDATA_FLUSH));
+			}
+		}
+	}
+
+	uint64_t tick2 = GetPreciseTick();
+
+	if (!m_renderRect.IsRectEmpty()) {
+		
+		hr = TextureCopyRectThread(pInput.pShaderResource, TEX11GET(pOutput.pVideoTexture), m_srcRect, m_srcRect, m_pPS_Simple,nullptr,0,false);
+	}
+
+	if (S_OK == hrSubPic) {
+		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
+
+		D3D11_VIEWPORT VP;
+		VP.TopLeftX = 0;
+		VP.TopLeftY = 0;
+		VP.Width = rSrcPri.Width();
+		VP.Height = rSrcPri.Height();
+		VP.MinDepth = 0.0f;
+		VP.MaxDepth = 1.0f;
+		hrSubPic = AlphaBltSub(m_pShaderResourceSubPic, TEX11GET(pOutput.pVideoTexture), rSrcPri, VP);
+		ASSERT(S_OK == hrSubPic);
+	}
+
+	if (m_bShowStats) {
+		hr = DrawStats(TEX11GET(pOutput.pVideoTexture));
+	}
+
+
+	return hr;
+	
+}
+
 HRESULT CDX11VideoProcessor::Render(int field)
 {
 	CheckPointer(m_TexSrcVideo.pTexture, E_FAIL);
 	CheckPointer(m_pDXGISwapChain1, E_FAIL);
 
+	return S_OK;//temporary
 	if (field) {
 		m_FieldDrawn = field;
 	}
@@ -2191,6 +2338,30 @@ HRESULT CDX11VideoProcessor::Render(int field)
 		InitSwapChain();
 	}
 
+	return hr;
+}
+
+HRESULT CDX11VideoProcessor::PresentThread(CVideoBuffer& pSource)
+{
+	CComPtr<ID3D11Texture2D> pBackBuffer;
+	HRESULT hr = m_pDXGISwapChain1->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	if (!m_windowRect.IsRectEmpty()) {
+		// fill the BackBuffer with black
+		ID3D11RenderTargetView* pRenderTargetView;
+		if (S_OK == m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTargetView)) {
+			const FLOAT ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+			m_pDeviceContext->ClearRenderTargetView(pRenderTargetView, ClearColor);
+			pRenderTargetView->Release();
+		}
+	}
+
+	TextureCopyRectThread(pSource.pShaderResource, pBackBuffer, m_srcRect, m_windowRect, m_pPS_Simple, nullptr, 0, false);
+	hr = m_pDXGIOutput->WaitForVBlank();
+	DLogIf(FAILED(hr), L"WaitForVBlank failed with error {}", HR2Str(hr));
+
+	g_bPresent = true;
+	hr = m_pDXGISwapChain1->Present(1, 0);
+	g_bPresent = false;
 	return hr;
 }
 
@@ -2565,6 +2736,8 @@ HRESULT CDX11VideoProcessor::FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRen
 
 	return hr;
 }
+
+
 
 HRESULT CDX11VideoProcessor::ProcessThread(ID3D11Texture2D* pRenderTarget, ID3D11Texture2D* pSrcTexture, ID3D11ShaderResourceView* pShaderResource, const CRect& srcRect, const CRect& dstRect, const bool second)
 {

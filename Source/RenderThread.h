@@ -33,17 +33,19 @@
 #include <queue>
 #include <d3d11.h>
 #include "Helper.h"
+#include "DX9Helper.h"
 #include "DX11Helper.h"
-
+#include <variant>
 struct CVideoInputBuffer {
   Tex11Video_t   pVideoTexture;
   REFERENCE_TIME rtDuration;
   REFERENCE_TIME rtStart;
   REFERENCE_TIME rtStop;
+  
 };
 
 struct CVideoBuffer {
-  CComPtr<ID3D11Texture2D> pVideoTexture;
+  std::variant < CComPtr<ID3D11Texture2D>, Tex9Video_t> pVideoTexture;
   CComPtr<ID3D11ShaderResourceView> pShaderResource;
   REFERENCE_TIME rtDuration;
   REFERENCE_TIME rtStart;
@@ -55,6 +57,94 @@ enum RENDER_STATE {
   Paused = State_Paused,
   Started = State_Running,
   Shutdown = State_Running + 1
+};
+class CVideoBufferManager : public CCritSec
+{
+  friend class CRenderThread;
+public:
+  CVideoBufferManager() { };
+  ~CVideoBufferManager() { FreeBuffers(); };
+  //the alloc is called in each independant buffermanager
+  virtual HRESULT Alloc(int buffer, D3D11_TEXTURE2D_DESC texdesc) = 0;
+
+  HRESULT GetFreeBuffer(CVideoBuffer& buf)
+  {
+    //lock the bufferlist
+    CAutoLock lock(this);
+    //return no buffer if the list if empty
+    if (m_pBufferFreeList.size() == 0)
+      return E_FAIL;
+    buf = m_pBufferFreeList.front();
+    //if we pass S_OK here we will stop requesting buffers
+    //The renderer will put buffer in ready state right after this return when its processed
+    return S_OK;
+  }
+
+  HRESULT GetReadyBuffer(CVideoBuffer& buf)
+  {
+    //lock the bufferlist
+    CAutoLock lock(this);
+    if (m_pBufferReadyList.size() == 0)
+      return E_FAIL;
+    buf = m_pBufferReadyList.front();
+    m_pBufferReadyList.pop();
+    return S_OK;
+  }
+
+  void SetBufferReady(CVideoBuffer buf)
+  {
+    //lock the bufferlist
+    CAutoLock lock(this);
+    //this buffer was previously free
+    m_pBufferReadyList.push(buf);
+  
+  }
+
+  //this occur when the buffer was ready but the thread right after didnt have any buffer ready
+  //We still want to process it as soon as possible
+  void ReturnReadyBuffer(CVideoBuffer buf)
+  {
+    //lock the bufferlist
+    CAutoLock lock(this);
+    m_pBufferReadyList.push(buf);
+
+  }
+
+  void ReturnFreeBuffer(CVideoBuffer buf)
+  {
+    //lock the bufferlist
+    CAutoLock lock(this);
+    m_pBufferFreeList.push(buf);
+  }
+
+  void FreeBuffers()
+  {
+    CAutoLock lock(this);
+    if (m_pBufferFreeList.size() > 0) {
+      for (;;) {
+        CVideoBuffer buf = m_pBufferFreeList.front();
+        std::get<CComPtr<ID3D11Texture2D>>(buf.pVideoTexture).Release();
+        buf.pShaderResource.Release();
+        std::get<CComPtr<ID3D11Texture2D>>(buf.pVideoTexture) = nullptr;
+        buf.pShaderResource = nullptr;
+        m_pBufferFreeList.pop();
+      }
+    }
+    if (m_pBufferReadyList.size() > 0) {
+      for (;;) {
+        CVideoBuffer buf = m_pBufferReadyList.front();
+        std::get<CComPtr<ID3D11Texture2D>>(buf.pVideoTexture).Release();
+        buf.pShaderResource.Release();
+        std::get<CComPtr<ID3D11Texture2D>>(buf.pVideoTexture) = nullptr;
+        buf.pShaderResource = nullptr;
+        m_pBufferReadyList.pop();
+      }
+    }
+  }
+protected:
+  
+  std::queue<CVideoBuffer> m_pBufferFreeList;
+  std::queue<CVideoBuffer> m_pBufferReadyList;
 };
 
 class CVideoProcessor;
@@ -87,7 +177,9 @@ public:
   virtual void Resize(int size) = 0;
   virtual void ReleaseBuffers() = 0;
   virtual void Flush() = 0;
-  virtual HRESULT ProcessShader(CVideoBuffer& buf) = 0;
+  virtual HRESULT ProcessShader(CVideoBuffer& inBuf, CVideoBuffer& outBuf) = 0;
+  virtual HRESULT ProcessSubs(CVideoBuffer& inBuf, CVideoBuffer& outBuf) = 0;
+  virtual HRESULT ProcessPresents(CVideoBuffer& inBuf) = 0;
   //Called from present thread
   //virtual HRESULT ProcessPresentQueue() {};
   HRESULT ProcessSample(IMediaSample* pSample);
@@ -105,11 +197,6 @@ public:
   void                             VideoProcessThread();
   void                             VideoPresentThread();
 
-  HRESULT GetInputSample(CVideoBuffer& current);
-  void    ReturnInputSample(CVideoBuffer& buf);
-
-  HRESULT GetPresentSurface(CVideoBuffer* buf);
-  void ReleaseSurface(CVideoBuffer buf);
 protected:
 
 private:
@@ -126,14 +213,18 @@ private:
   int m_iQueueSize = 0;
 protected:
   void FreeVideoBuffer();
-  std::queue<CVideoBuffer> m_pInputRenderQueue;
+  CVideoBufferManager* m_pInputBuffers;
+  CVideoBufferManager* m_pProcessBuffers;
+  CVideoBufferManager* m_pPresentBuffers;
+
+  /*std::queue<CVideoBuffer> m_pInputRenderQueue;
   std::queue<CVideoBuffer> m_pReadyInputRenderQueue;
 
   std::queue<CVideoBuffer> m_pProcessRenderQueue;
   std::queue<CVideoBuffer> m_pReadyProcessRenderQueue;
 
   std::queue<CVideoBuffer> m_pPresentQueue;
-  std::queue<CVideoBuffer> m_pReadyPresentQueue;
+  std::queue<CVideoBuffer> m_pReadyPresentQueue;*/
   enum
   {
     CMD_EXIT,
@@ -146,77 +237,3 @@ protected:
   HRESULT ProcessRenderQueue();
   HRESULT ProcessPresentQueue();
 };
-#if 0
-class CVideoInputQueue
-{
-public:
-  CVideoInputQueue(CVideoProcessor* pInputProcessor);
-  virtual ~CVideoInputQueue();
-
-  HRESULT Init(int bufferCount, CRect srcRect, int srcPitch, FmtConvParams_t srcParams, CONSTANT_BUFFER_VAR bufferVar);
-  void Flush();
-  void ReleaseBuffers();
-  void Resize(int size);
-  //called from the processor which is coming from the input pin
-  HRESULT CopySample(IMediaSample* pSample, CRect dstRect);
-  //
-  HRESULT GetReadySample(CVideoBuffer* buf);
-  void    ReturnReadySample(CVideoBuffer buf);
-protected:
-  CVideoProcessor* m_pInputProcessor = nullptr;
-private:
-  CRenderThread* m_pRenderThread;
-
-  void InitHWBuffers(int size, int width, int height, DXGI_FORMAT fmt);
-  void InitSWBuffers();
-
-  
-
-  HRESULT CopySampleSW(const BYTE* srcData, const int srcPitch, size_t bufferlength, REFERENCE_TIME start, REFERENCE_TIME stop);
-  HRESULT CopySampleHW(GpuResource resource, REFERENCE_TIME start, REFERENCE_TIME stop, REFERENCE_TIME duration);
-
-  //D3D Resource
-  //We only need 2 they are only used to copy the resource coming from the filter
-  ColorBuffer m_pPlaneResource[2];//HW
-  Texture m_pPlaneTexture[2];//SW
-  //Contant buffer to ajust color used when merging plane
-  CONSTANT_BUFFER_VAR m_pBufferVar;
-
-  std::queue<CVideoBuffer> m_pInputBufferQueue;
-  std::queue<CVideoBuffer> m_pReadyBufferQueue;
-  //lock for when we play with the queues
-  CCritSec* m_pInputQueueLock;
-  int m_iQueueSize = 0;
-  
-  //input param
-  FmtConvParams_t m_srcParams = {};
-  int m_srcPitch;
-  CRect m_srcRect;
-  CRect m_dstRect;
-
-  bool m_bQueueInit = false;
-};
-
-class CVideoPresentQueue :
-  protected CAMThread
-{
-public:
-  CVideoPresentQueue(CRenderThread* pRenderThread);
-  virtual ~CVideoPresentQueue() {}
-
-  HRESULT ProcessPresentQueue();
-
-protected:
-  enum
-  {
-    CMD_EXIT,
-    CMD_FLUSH
-  };
-  DWORD ThreadProc();
-
-
-private:
-  CRenderThread* m_pRenderThread;
-};
-
-#endif

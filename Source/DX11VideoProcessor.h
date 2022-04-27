@@ -183,6 +183,7 @@ private:
 
 	void SetGraphSize() override;
 
+	HRESULT MemCopyToTexSrcVideoThread(const BYTE* srcData, const int srcPitch, Tex11Video_t& outBuf);
 	HRESULT MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch);
 
 	bool Preferred10BitOutput() {
@@ -206,6 +207,8 @@ public:
 
 	HRESULT ProcessSample(IMediaSample* pSample) override;
 	HRESULT CopySample(IMediaSample* pSample);
+
+	HRESULT RenderSubs(CVideoBuffer& pInput, CVideoBuffer& pOutput);
 	// Render: 1 - render first fied or progressive frame, 2 - render second fied, 0 or other - forced repeat of render.
 	HRESULT Render(int field) override;
 	HRESULT FillBlack() override;
@@ -246,12 +249,17 @@ private:
 	HRESULT ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const int rotation);
 	HRESULT FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect);
 	
+	HRESULT PresentThread(CVideoBuffer& pSource);
 	HRESULT ProcessThread(ID3D11Texture2D* pRenderTarget, ID3D11Texture2D* pSrcTexture, ID3D11ShaderResourceView* pShaderResource,const CRect& srcRect, const CRect& dstRect, const bool second);
 	HRESULT Process(ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
 
 	HRESULT AlphaBlt(ID3D11ShaderResourceView* pShaderResource, ID3D11Texture2D* pRenderTarget,
 					ID3D11Buffer* pVertexBuffer, D3D11_VIEWPORT* pViewPort, ID3D11SamplerState* pSampler);
 	HRESULT AlphaBltSub(ID3D11ShaderResourceView* pShaderResource, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, D3D11_VIEWPORT& viewport);
+	HRESULT TextureCopyRectThread(ID3D11ShaderResourceView* pShaderRes, ID3D11Texture2D* pRenderTarget,
+		const CRect& srcRect, const CRect& destRect,
+		ID3D11PixelShader* pPixelShader, ID3D11Buffer* pConstantBuffer,
+		const int iRotation, const bool bFlip);
 	HRESULT TextureCopyRect(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
 							const CRect& srcRect, const CRect& destRect,
 							ID3D11PixelShader* pPixelShader, ID3D11Buffer* pConstantBuffer,
