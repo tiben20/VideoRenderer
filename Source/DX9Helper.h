@@ -1,5 +1,5 @@
 /*
-* (C) 2019-2021 see Authors.txt
+* (C) 2019-2022 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -67,17 +67,22 @@ struct Tex9Video_t : Tex_t
 	Tex_t Plane2;
 	Tex_t Plane3;
 
-	HRESULT CreateEx(IDirect3DDevice9Ex* pDevice, const D3DFORMAT format, const DX9PlaneConfig* pPlanes, const UINT width, const UINT height, DWORD usage) {
+	HRESULT CreateEx(IDirect3DDevice9Ex* pDevice, const D3DFORMAT format, const DX9PlaneConfig* pPlanes, UINT width, const UINT height, DWORD usage) {
 		Release();
 
 		HRESULT hr;
 
 		if (pPlanes) {
+			if (format == D3DFMT_YUY2) {
+				width /= 2;
+			}
 			hr = Create(pDevice, pPlanes->FmtPlane1, width, height, usage);
-			if (S_OK == hr) {
+
+			if (S_OK == hr && pPlanes->FmtPlane2) {
 				const UINT chromaWidth  = width / pPlanes->div_chroma_w;
 				const UINT chromaHeight = height / pPlanes->div_chroma_h;
 				hr = Plane2.Create(pDevice, pPlanes->FmtPlane2, chromaWidth, chromaHeight, usage);
+				
 				if (S_OK == hr && pPlanes->FmtPlane3) {
 					hr = Plane3.Create(pDevice, pPlanes->FmtPlane3, chromaWidth, chromaHeight, usage);
 				}

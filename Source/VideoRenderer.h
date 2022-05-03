@@ -1,5 +1,5 @@
 /*
- * (C) 2018-2021 see Authors.txt
+ * (C) 2018-2022 see Authors.txt
  *
  * This file is part of MPC-BE.
  *
@@ -20,6 +20,9 @@
 
 #pragma once
 
+// EXPERIMENTAL!
+#define USE_DX11_SUBPIC 0
+
 #include <mfidl.h>
 #include <dxva2api.h>
 #include <thread>
@@ -31,6 +34,7 @@
 #include "Utils/BaseTrayIcon.h"
 
 #include "../Include/ISubRender.h"
+#include "../Include/ISubRender11.h"
 #include "../Include/ID3DFullscreenControl.h"
 #include "../Include/FilterInterfacesImpl.h"
 
@@ -42,6 +46,8 @@ const AMOVIESETUP_MEDIATYPE sudPinTypesIn[] = {
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_P216},
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_YUY2},
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_AYUV},
+	{&MEDIATYPE_Video, &MEDIASUBTYPE_Y210}, // experimental
+	{&MEDIATYPE_Video, &MEDIASUBTYPE_Y216}, // experimental
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_Y410},
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_Y416},
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_YV12},
@@ -78,6 +84,7 @@ class __declspec(uuid("71F080AA-8661-4093-B15E-4F6903E77D0A"))
 	, public ISpecifyPropertyPages
 	, public IVideoRenderer
 	, public ISubRender
+	, public ISubRender11
 	, public CExFilterConfigImpl
 	, public ID3DFullscreenControl
 {
@@ -114,6 +121,7 @@ private:
 	CMediaType m_inputMT;
 
 	ISubRenderCallback* m_pSubCallBack = nullptr;
+	ISubRender11Callback* m_pSub11CallBack = nullptr;
 
 	CRect m_windowRect, m_videoRect;
 
@@ -260,6 +268,9 @@ public:
 
 	// ISubRender
 	STDMETHODIMP SetCallback(ISubRenderCallback* cb);
+
+	// ISubRender11
+	STDMETHODIMP SetCallback11(ISubRender11Callback* cb);
 
 	// IExFilterConfig
 	STDMETHODIMP GetBool(LPCSTR field, bool* value) override;

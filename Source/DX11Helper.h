@@ -1,5 +1,5 @@
 /*
-* (C) 2019-2021 see Authors.txt
+* (C) 2019-2022 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -91,7 +91,7 @@ struct Tex11Video_t : Tex2D_t
 	CComPtr<ID3D11ShaderResourceView> pShaderResource2;
 	CComPtr<ID3D11ShaderResourceView> pShaderResource3;
 
-	HRESULT CreateEx(ID3D11Device* pDevice, const DXGI_FORMAT format, const DX11PlaneConfig_t* pPlanes, const UINT width, const UINT height, const Tex2DType type) {
+	HRESULT CreateEx(ID3D11Device* pDevice, const DXGI_FORMAT format, const DX11PlaneConfig_t* pPlanes, UINT width, const UINT height, const Tex2DType type) {
 		Release();
 		D3D11_TEXTURE2D_DESC texdesc = CreateTex2DDesc(format, width, height, type);
 
@@ -109,7 +109,7 @@ struct Tex11Video_t : Tex2D_t
 					// 1 texture, 2 SRV
 					shaderDesc.Format = pPlanes->FmtPlane1;
 					hr = pDevice->CreateShaderResourceView(pTexture, &shaderDesc, &pShaderResource);
-					if (S_OK == hr) {
+					if (S_OK == hr && pPlanes->FmtPlane2) {
 						shaderDesc.Format = pPlanes->FmtPlane2;
 						hr = pDevice->CreateShaderResourceView(pTexture, &shaderDesc, &pShaderResource2);
 					}
@@ -121,9 +121,13 @@ struct Tex11Video_t : Tex2D_t
 			}
 		}
 		else if (pPlanes) {
-			// 2 textures, 2 SRV
+			if (format == DXGI_FORMAT_YUY2) {
+				width /= 2;
+			}
 			hr = Create(pDevice, pPlanes->FmtPlane1, width, height, type);
-			if (S_OK == hr) {
+
+			if (S_OK == hr && pPlanes->FmtPlane2) {
+				// 2 textures, 2 SRV
 				const UINT chromaWidth = width / pPlanes->div_chroma_w;
 				const UINT chromaHeight = height / pPlanes->div_chroma_h;
 				texdesc = CreateTex2DDesc(pPlanes->FmtPlane2, chromaWidth, chromaHeight, type);

@@ -209,13 +209,13 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 			m_Sets.bVPScaling = !!dw;
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ChromaUpsampling, dw)) {
-			m_Sets.iChromaScaling = discard<int>(dw, CHROMA_Bilinear, CHROMA_Nearest, CHROMA_CatmullRom);
+			m_Sets.iChromaScaling = discard<int>(dw, CHROMA_Bilinear, 0, CHROMA_COUNT-1);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Upscaling, dw)) {
-			m_Sets.iUpscaling = discard<int>(dw, UPSCALE_CatmullRom, UPSCALE_Nearest, UPSCALE_Lanczos3);
+			m_Sets.iUpscaling = discard<int>(dw, UPSCALE_CatmullRom, 0, UPSCALE_COUNT-1);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling, dw)) {
-			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
+			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, 0, DOWNSCALE_COUNT-1);
 		}
 		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_InterpolateAt50pct, dw)) {
 			m_Sets.bInterpolateAt50pct = !!dw;
@@ -663,6 +663,9 @@ STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** 
 		QI(ISpecifyPropertyPages)
 		QI(IVideoRenderer)
 		QI(ISubRender)
+#if USE_DX11_SUBPIC
+		QI(ISubRender11)
+#endif
 		QI(IExFilterConfig)
 		(riid == __uuidof(ID3DFullscreenControl) && m_bEnableFullscreenControl) ? GetInterface((ID3DFullscreenControl*)this, ppv) :
 		__super::NonDelegatingQueryInterface(riid, ppv);
@@ -1251,6 +1254,14 @@ STDMETHODIMP CMpcVideoRenderer::SaveSettings()
 STDMETHODIMP CMpcVideoRenderer::SetCallback(ISubRenderCallback* cb)
 {
 	m_pSubCallBack = cb;
+
+	return S_OK;
+}
+
+// ISubRender11
+STDMETHODIMP CMpcVideoRenderer::SetCallback11(ISubRender11Callback* cb)
+{
+	m_pSub11CallBack = cb;
 
 	return S_OK;
 }
