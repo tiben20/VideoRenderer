@@ -1,9 +1,8 @@
 /*
 * (C) 2022 Ti-BEN
 *
-* This file is part of MPC-BE.
 *
-* MPC-BE is free software; you can redistribute it and/or modify
+* TBD12VideoRenderer is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 3 of the License, or
 * (at your option) any later version.
@@ -85,7 +84,7 @@ private:
 	std::vector<GraphLine>            m_Lines;
 
 public:
-	CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
+	CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX12VideoProcessor() override;
 
 //CVideoProcessor

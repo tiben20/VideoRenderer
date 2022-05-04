@@ -67,9 +67,9 @@ const AMOVIESETUP_MEDIATYPE sudPinTypesIn[] = {
 };
 
 class CVideoRendererInputPin;
-
-class __declspec(uuid("71F080AA-8661-4093-B15E-4F6903E77D0A"))
-	CMpcVideoRenderer
+//guid is new
+class __declspec(uuid("B58AEDA7-29E5-4FCD-AC26-491E697F5DC7"))
+	CTBD12VideoRenderer
 	: public CBaseVideoRenderer2
 	, public IKsPropertySet
 	, public IMFGetService
@@ -127,8 +127,8 @@ private:
 	HRESULT Init(const bool bCreateWindow);
 
 public:
-	CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr);
-	~CMpcVideoRenderer();
+	CTBD12VideoRenderer(LPUNKNOWN pUnk, HRESULT* phr);
+	~CTBD12VideoRenderer();
 
 	void NewSegment(REFERENCE_TIME startTime);
 	long CalcImageSize(CMediaType& mt, bool redefine_mt);

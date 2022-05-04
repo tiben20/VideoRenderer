@@ -25,7 +25,7 @@
 #include <mfidl.h>
 #include "../Include/ID3DVideoMemoryConfiguration.h"
 
-class CMpcVideoRenderer;
+class CTBD12VideoRenderer;
 class CCustomAllocator;
 
 class CVideoRendererInputPin
@@ -38,7 +38,7 @@ class CVideoRendererInputPin
 private:
 	friend class CCustomAllocator;
 
-	CMpcVideoRenderer* m_pBaseRenderer;
+	CTBD12VideoRenderer* m_pBaseRenderer;
 	bool m_bDXVA = false;
 	bool m_bD3D11 = false;
 	bool m_bD3D12 = false;
@@ -49,7 +49,7 @@ private:
 	CCritSec m_csReceive;
 
 public:
-	CVideoRendererInputPin(CBaseRenderer *pRenderer, HRESULT *phr, LPCWSTR Name, CMpcVideoRenderer* pBaseRenderer);
+	CVideoRendererInputPin(CBaseRenderer *pRenderer, HRESULT *phr, LPCWSTR Name, CTBD12VideoRenderer* pBaseRenderer);
 	~CVideoRendererInputPin();
 
 	bool FrameInVideoMem() { return m_bDXVA || m_bD3D11 || m_bD3D12; }

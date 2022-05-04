@@ -28,7 +28,7 @@
 // CVideoRendererInputPin
 //
 
-CVideoRendererInputPin::CVideoRendererInputPin(CBaseRenderer *pRenderer, HRESULT *phr, LPCWSTR Name, CMpcVideoRenderer* pBaseRenderer)
+CVideoRendererInputPin::CVideoRendererInputPin(CBaseRenderer *pRenderer, HRESULT *phr, LPCWSTR Name, CTBD12VideoRenderer* pBaseRenderer)
 	: CRendererInputPin(pRenderer, phr, Name)
 	, m_pBaseRenderer(pBaseRenderer)
 {

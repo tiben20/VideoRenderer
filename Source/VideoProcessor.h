@@ -30,7 +30,7 @@ enum : int {
 	VP_DX12 = 12
 };
 
-class CMpcVideoRenderer;
+class CTBD12VideoRenderer;
 
 class CVideoProcessor
 	: public IMFVideoProcessor
@@ -38,7 +38,7 @@ class CVideoProcessor
 {
 protected:
 	long m_nRefCount = 1;
-	CMpcVideoRenderer* m_pFilter = nullptr;
+	CTBD12VideoRenderer* m_pFilter = nullptr;
 
 	// Settings
 	bool m_bShowStats                      = false;
@@ -133,7 +133,7 @@ protected:
 	RECT m_GraphRect = {};
 	int m_Yaxis  = 0;
 
-	CVideoProcessor(CMpcVideoRenderer* pFilter) : m_pFilter(pFilter) {}
+	CVideoProcessor(CTBD12VideoRenderer* pFilter) : m_pFilter(pFilter) {}
 
 public:
 	virtual ~CVideoProcessor() = default;

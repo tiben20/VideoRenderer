@@ -163,8 +163,8 @@ struct Settings_t {
 		D3D12Settings.bLAVUseD3D12 = false;
 	}
 };
-
-interface __declspec(uuid("1AB00F10-5F55-42AC-B53F-38649F11BE3E"))
+//uuid changed still need change the interface settings not planning on the same way of using settings
+interface __declspec(uuid("B58AEDA7-29E5-4FCD-AC26-491E697F5DC7"))
 IVideoRenderer : public IUnknown {
 	STDMETHOD(GetVideoProcessorInfo) (std::wstring& str) PURE;
 	STDMETHOD_(bool, GetActive()) PURE;

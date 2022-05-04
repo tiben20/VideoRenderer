@@ -161,7 +161,7 @@ private:
 	void SetCallbackDevice(const bool bChangeDevice = false);
 
 public:
-	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
+	CDX11VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX11VideoProcessor() override;
 
 	int Type() override { return VP_DX11; }

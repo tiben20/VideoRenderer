@@ -1,14 +1,14 @@
 @ECHO OFF
 REM (C) 2018-2021 see Authors.txt
-REM
-REM This file is part of MPC-BE.
-REM
+REM 
+REM This file was part of MPC-BE and is now named TBD12 Video Renderer.
+REM 
 REM MPC-BE is free software; you can redistribute it and/or modify
 REM it under the terms of the GNU General Public License as published by
 REM the Free Software Foundation; either version 3 of the License, or
 REM (at your option) any later version.
 REM
-REM MPC-BE is distributed in the hope that it will be useful,
+REM TBD12 Video Renderer is distributed in the hope that it will be useful,
 REM but WITHOUT ANY WARRANTY; without even the implied warranty of
 REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 REM GNU General Public License for more details.
@@ -19,7 +19,7 @@ REM along with this program.  If not, see <http://www.gnu.org/licenses/>.
 SETLOCAL
 CD /D %~dp0
 
-SET "TITLE=MPC Video Renderer"
+SET "TITLE=TBD12 Video Renderer"
 SET "PROJECT=MpcVideoRenderer"
 
 SET "MSBUILD_SWITCHES=/nologo /consoleloggerparameters:Verbosity=minimal /maxcpucount /nodeReuse:true"

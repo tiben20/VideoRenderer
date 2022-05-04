@@ -42,12 +42,11 @@ const AMOVIESETUP_PIN sudpPins[] = {
 };
 
 const AMOVIESETUP_FILTER sudFilter[] = {
-	{&__uuidof(CMpcVideoRenderer), L"MPC Video Renderer", MERIT_DO_NOT_USE, std::size(sudpPins), sudpPins, CLSID_LegacyAmFilterCategory},
+	{&__uuidof(CTBD12VideoRenderer), L"TBD12 Video Renderer", MERIT_DO_NOT_USE, std::size(sudpPins), sudpPins, CLSID_LegacyAmFilterCategory},
 };
 
 CFactoryTemplate g_Templates[] = {
-	{sudFilter[0].strName, &__uuidof(CMpcVideoRenderer), CreateInstance<CMpcVideoRenderer>, nullptr, &sudFilter[0]},
-	{L"MainProp", &__uuidof(CVRMainPPage), CreateInstance<CVRMainPPage>, nullptr, nullptr},
+	{sudFilter[0].strName, &__uuidof(CTBD12VideoRenderer), CreateInstance<CTBD12VideoRenderer>, nullptr, &sudFilter[0]},
 	{L"D3D12Prop", &__uuidof(CD3D12SettingsPPage), CreateInstance<CD3D12SettingsPPage>, nullptr, nullptr},
 	{L"InfoProp", &__uuidof(CVRInfoPPage), CreateInstance<CVRInfoPPage>, nullptr, nullptr}
 };
@@ -82,7 +81,7 @@ BOOL WINAPI DllMain(HINSTANCE hDllHandle, DWORD dwReason, LPVOID pReserved)
 void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
 	HRESULT hr = S_OK;
-	CUnknown *pInstance = CreateInstance<CMpcVideoRenderer>(nullptr, &hr);
+	CUnknown *pInstance = CreateInstance<CTBD12VideoRenderer>(nullptr, &hr);
 	IBaseFilter *pFilter = nullptr;
 	pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
 	if (pFilter) {

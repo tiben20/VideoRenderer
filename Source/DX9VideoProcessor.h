@@ -111,7 +111,7 @@ private:
 	void ResizeInternal();
 
 public:
-	CDX9VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
+	CDX9VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX9VideoProcessor() override;
 
 	int Type() override { return VP_DX9; }

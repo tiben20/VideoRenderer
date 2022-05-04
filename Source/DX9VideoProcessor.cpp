@@ -266,7 +266,7 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 
 // CDX9VideoProcessor
 
-CDX9VideoProcessor::CDX9VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
+CDX9VideoProcessor::CDX9VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
 	: CVideoProcessor(pFilter)
 {
 	m_bShowStats           = config.bShowStats;
@@ -376,19 +376,19 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 	if (!pOrigSystemParametersInfoA) {
 		pOrigSystemParametersInfoA = SystemParametersInfoA;
 		auto ret = HookFunc(&pOrigSystemParametersInfoA, pNewSystemParametersInfoA);
-		DLogIf(!ret, L"CMpcVideoRenderer::InitInternal() : hook for SystemParametersInfoA() fail");
+		DLogIf(!ret, L"CTBD12VideoRenderer::InitInternal() : hook for SystemParametersInfoA() fail");
 
 		pOrigSetWindowLongA = SetWindowLongA;
 		ret = HookFunc(&pOrigSetWindowLongA, pNewSetWindowLongA);
-		DLogIf(!ret, L"CMpcVideoRenderer::InitInternal() : hook for SetWindowLongA() fail");
+		DLogIf(!ret, L"CTBD12VideoRenderer::InitInternal() : hook for SetWindowLongA() fail");
 
 		pOrigSetWindowPos = SetWindowPos;
 		ret = HookFunc(&pOrigSetWindowPos, pNewSetWindowPos);
-		DLogIf(!ret, L"CMpcVideoRenderer::InitInternal() : hook for SetWindowPos() fail");
+		DLogIf(!ret, L"CTBD12VideoRenderer::InitInternal() : hook for SetWindowPos() fail");
 
 		pOrigShowWindow = ShowWindow;
 		ret = HookFunc(&pOrigShowWindow, pNewShowWindow);
-		DLogIf(!ret, L"CMpcVideoRenderer::InitInternal() : hook for ShowWindow() fail");
+		DLogIf(!ret, L"CTBD12VideoRenderer::InitInternal() : hook for ShowWindow() fail");
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}

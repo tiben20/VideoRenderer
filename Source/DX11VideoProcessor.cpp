@@ -393,7 +393,7 @@ HRESULT CDX11VideoProcessor::TextureResizeShader(
 // CDX11VideoProcessor
 
 
-CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
+CDX11VideoProcessor::CDX11VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
 	: CVideoProcessor(pFilter)
 {
 	m_bShowStats                      = config.bShowStats;

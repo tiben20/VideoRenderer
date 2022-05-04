@@ -1,9 +1,9 @@
 /*
 * (C) 2022 Ti-BEN
 *
-* This file is part of MPC-BE.
+* This file is part of TBD12VideoRenderer.
 *
-* MPC-BE is free software; you can redistribute it and/or modify
+* TBD12VideoRenderer is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 3 of the License, or
 * (at your option) any later version.
@@ -141,7 +141,7 @@ static const wchar_t* s_DownscalingName[7] = {
 
 using namespace D3D12Engine;
 
-CDX12VideoProcessor::CDX12VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
+CDX12VideoProcessor::CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
 	

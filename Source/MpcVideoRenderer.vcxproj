@@ -22,7 +22,7 @@
     <ProjectGuid>{C9CEECB2-947C-4902-BEF9-B98DCAF14B1C}</ProjectGuid>
     <RootNamespace>MpcVideoRenderer</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <ProjectName>MpcVideoRenderer</ProjectName>
+    <ProjectName>TBD12VideoRenderer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(SolutionDir)\platform.props" />
