@@ -42,6 +42,7 @@ void CommandAllocatorPool::Create(ID3D12Device * pDevice)
 
 void CommandAllocatorPool::Shutdown()
 {
+  std::lock_guard<std::mutex> LockGuard(m_AllocatorMutex);
     for (size_t i = 0; i < m_AllocatorPool.size(); ++i)
         m_AllocatorPool[i]->Release();
 
@@ -50,7 +51,8 @@ void CommandAllocatorPool::Shutdown()
     while (m_ReadyAllocators.size())
     {
       pAllocator = m_ReadyAllocators.front().second;
-      pAllocator->Release();
+      if (pAllocator)
+        pAllocator->Release();
       m_ReadyAllocators.pop();
     }
     

@@ -641,6 +641,13 @@ namespace D3D12Engine
 
 	void D3D12Engine::PresentBackBuffer(GraphicsContext& Context)
 	{
+		if (!m_pVideoOutputResource.GetResource()) {
+			//in rare case the video is being reset during the rendering process so we just leave the render
+			DLog(L"D3D12Engine::PresentBackBuffer OutputResource is null most be in a reset");
+			return;
+		}
+
+
 		Context.TransitionResource(m_pVideoOutputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		Context.TransitionResource(SwapChainBufferColor[p_CurrentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET);
 		ImageScaling::RenderToBackBuffer(Context, SwapChainBufferColor[p_CurrentBuffer], m_pVideoOutputResource);
