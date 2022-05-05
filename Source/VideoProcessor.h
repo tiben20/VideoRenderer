@@ -44,12 +44,7 @@ protected:
 	bool m_bShowStats                      = false;
 	int  m_iResizeStats                    = 0;
 	int  m_iTexFormat                      = TEXFMT_AUTOINT;
-	VPEnableFormats_t m_VPFormats          = {true, true, true, true};
 	bool m_bDeintDouble                    = true;
-	bool m_bVPScaling                      = true;
-	int  m_iChromaScaling                  = CHROMA_Bilinear;
-	int  m_iUpscaling                      = UPSCALE_CatmullRom; // interpolation
-	int  m_iDownscaling                    = DOWNSCALE_Hamming;  // convolution
 	bool m_bInterpolateAt50pct             = true;
 	bool m_bUseDither                      = true;
 	int  m_iSwapEffect                     = SWAPEFFECT_Discard;

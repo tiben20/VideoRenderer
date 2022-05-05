@@ -25,8 +25,6 @@
 #include <thread>
 #include "renbase2.h"
 #include "IVideoRenderer.h"
-#include "DX9VideoProcessor.h"
-#include "DX11VideoProcessor.h"
 #include "DX12VideoProcessor.h"
 #include "Utils/BaseTrayIcon.h"
 
@@ -84,8 +82,6 @@ class __declspec(uuid("B58AEDA7-29E5-4FCD-AC26-491E697F5DC7"))
 private:
 	friend class CVideoRendererInputPin;
 	friend class CVideoProcessor;
-	friend class CDX9VideoProcessor;
-	friend class CDX11VideoProcessor;
 	friend class CDX12VideoProcessor;
 
 	// Options

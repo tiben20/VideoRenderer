@@ -31,37 +31,6 @@ inline LONG_PTR ComboBox_GetCurItemData(HWND hWnd, int nIDComboBox);
 
 void ComboBox_SelectByItemData(HWND hWnd, int nIDComboBox, LONG_PTR data);
 
-// CVRMainPPage
-
-class __declspec(uuid("DA46D181-07D6-441D-B314-019AEB10148A"))
-	CVRMainPPage : public CBasePropertyPage, public CWindow
-{
-	CComQIPtr<IVideoRenderer> m_pVideoRenderer;
-
-	Settings_t m_SetsPP;
-
-public:
-	CVRMainPPage(LPUNKNOWN lpunk, HRESULT* phr);
-	~CVRMainPPage();
-
-private:
-	void SetControls();
-	void EnableControls();
-
-	HRESULT OnConnect(IUnknown* pUnknown) override;
-	HRESULT OnDisconnect() override;
-	HRESULT OnActivate() override;
-	void SetDirty()
-	{
-		m_bDirty = TRUE;
-		if (m_pPageSite) {
-			m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
-		}
-	}
-	INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-	HRESULT OnApplyChanges() override;
-};
-
 // CVRInfoPPage
 
 class __declspec(uuid("D697132B-FCA4-4401-8869-D3B39D0750DB"))

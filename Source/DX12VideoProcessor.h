@@ -43,8 +43,6 @@
 
 class CVideoRendererInputPin;
 
-
-
 class CDX12VideoProcessor
 	: public CVideoProcessor
 	, public CDX9Device
@@ -113,7 +111,6 @@ private:
 	void ReleaseDevice();
 	void ReleaseVP();
 	bool HandleHDRToggle();
-	bool m_bForceD3D12 = false;
 	//TODO
 	struct HDRMetadata {
 		DXGI_HDR_METADATA_HDR10 hdr10 = {};

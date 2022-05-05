@@ -66,6 +66,8 @@ namespace D3D12Engine
 		return g_DescriptorAllocator[Type].Allocate(Count);
 	}
 
+	UINT GetAdapter(HWND hWnd, IDXGIFactory1* pDXGIFactory, IDXGIAdapter** ppDXGIAdapter);
+
 	HRESULT CreateDevice();
 	HRESULT InitSwapChain(CRect windowRect);
 	HRESULT ResetSwapChain(CRect windowrect, int presentSurfaceCount);

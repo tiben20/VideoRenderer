@@ -30,32 +30,6 @@ enum :int {
 };
 
 enum :int {
-	CHROMA_Nearest = 0,
-	CHROMA_Bilinear,
-	CHROMA_CatmullRom,
-	CHROMA_COUNT
-};
-
-enum :int {
-	UPSCALE_Nearest = 0,
-	UPSCALE_Mitchell,
-	UPSCALE_CatmullRom,
-	UPSCALE_Lanczos2,
-	UPSCALE_Lanczos3,
-	UPSCALE_COUNT
-};
-
-enum :int {
-	DOWNSCALE_Box = 0,
-	DOWNSCALE_Bilinear,
-	DOWNSCALE_Hamming,
-	DOWNSCALE_Bicubic,
-	DOWNSCALE_BicubicSharp,
-	DOWNSCALE_Lanczos,
-	DOWNSCALE_COUNT
-};
-
-enum :int {
 	SWAPEFFECT_Discard = 0,
 	SWAPEFFECT_Flip,
 	SWAPEFFECT_COUNT
@@ -67,32 +41,6 @@ enum :int {
 	HDRTD_Always = 2
 };
 
-struct VPEnableFormats_t {
-	bool bNV12;
-	bool bP01x;
-	bool bYUY2;
-	bool bOther;
-};
-
-
-struct fxrcnnxConfig_t {
-	int iStrength;//0 to 5
-	float fSharp; // 0 to 1.5
-	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
-};
-struct superxbrConfig_t{
-	int iStrength;//0 to 5
-	float fSharp; // 0 to 1.5
-	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
-};
-struct fxrcnnxxbrConfig_t {
-	int iXbrStrength;//0 to 5
-	float fXbrSharp; // 0 to 1.5
-	int iXbrFactor; //0,1,2,3 but in the player its 2 4 8 or 16
-	int iResStrength;//0 to 5
-	float fresSharp; // 0 to 1.5
-	int iResFactor; //0,1,2,3 but in the player its 2 4 8 or 16
-};
 struct D3D12Settings_t {
 	bool bUseD3D12;
 	bool bForceD3D12;
@@ -105,12 +53,7 @@ struct Settings_t {
 	int  iResizeStats;
 	int  iTexFormat;
 	D3D12Settings_t D3D12Settings;
-	VPEnableFormats_t VPFmts;
 	bool bDeintDouble;
-	bool bVPScaling;
-	int  iChromaScaling;
-	int  iUpscaling;
-	int  iDownscaling;
 	bool bInterpolateAt50pct;
 	bool bUseDither;
 	int  iSwapEffect;
@@ -136,15 +79,9 @@ struct Settings_t {
 		bShowStats                      = false;
 		iResizeStats                    = 0;
 		iTexFormat                      = TEXFMT_AUTOINT;
-		VPFmts.bNV12                    = true;
-		VPFmts.bP01x                    = true;
-		VPFmts.bYUY2                    = true;
-		VPFmts.bOther                   = true;
+
+
 		bDeintDouble                    = true;
-		bVPScaling                      = true;
-		iChromaScaling                  = CHROMA_Bilinear;
-		iUpscaling                      = UPSCALE_CatmullRom;
-		iDownscaling                    = DOWNSCALE_Hamming;
 		bInterpolateAt50pct             = true;
 		bUseDither                      = true;
 		iSwapEffect                     = SWAPEFFECT_Discard;

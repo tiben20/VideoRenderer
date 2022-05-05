@@ -31,8 +31,6 @@ class CCustomAllocator;
 class CVideoRendererInputPin
 	: public CRendererInputPin
 	, public IMFGetService
-	, public IDirectXVideoMemoryConfiguration
-	, public ID3D11DecoderConfiguration
 	, public ID3D12DecoderConfiguration
 {
 private:
@@ -40,7 +38,6 @@ private:
 
 	CTBD12VideoRenderer* m_pBaseRenderer;
 	bool m_bDXVA = false;
-	bool m_bD3D11 = false;
 	bool m_bD3D12 = false;
 
 	CCustomAllocator* m_pCustomAllocator = nullptr;
@@ -52,7 +49,7 @@ public:
 	CVideoRendererInputPin(CBaseRenderer *pRenderer, HRESULT *phr, LPCWSTR Name, CTBD12VideoRenderer* pBaseRenderer);
 	~CVideoRendererInputPin();
 
-	bool FrameInVideoMem() { return m_bDXVA || m_bD3D11 || m_bD3D12; }
+	bool FrameInVideoMem() { return m_bDXVA || m_bD3D12; }
 
 	// CUnknown
 	DECLARE_IUNKNOWN
@@ -68,14 +65,6 @@ public:
 
 	// IMFGetService
 	STDMETHODIMP GetService(REFGUID guidService, REFIID riid, LPVOID *ppvObject);
-
-	// IDirectXVideoMemoryConfiguration
-	STDMETHODIMP GetAvailableSurfaceTypeByIndex(DWORD dwTypeIndex, DXVA2_SurfaceType *pdwType);
-	STDMETHODIMP SetSurfaceType(DXVA2_SurfaceType dwType);
-
-	// ID3D11DecoderConfiguration
-	STDMETHODIMP ActivateD3D11Decoding(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, HANDLE hMutex, UINT nFlags);
-	UINT STDMETHODCALLTYPE GetD3D11AdapterIndex();
 
 	// ID3D12DecoderConfiguration
 	STDMETHODIMP ActivateD3D12Decoding(ID3D12Device* pDevice, HANDLE hMutex, UINT nFlags);

@@ -31,33 +31,8 @@
 #include "resource.h"
 #define WM_SWITCH_FULLSCREEN (WM_APP + 0x1000)
 
-#define OPT_REGKEY_VIDEORENDERER           L"Software\\MPC-BE Filters\\MPC Video Renderer"
-#define OPT_UseD3D11                       L"UseD3D11"
-#define OPT_UseD3D12                       L"UseD3D12"
-#define OPT_ForceD3D12                     L"ForceD3D12"
-#define OPT_ShowStatistics                 L"ShowStatistics"
-#define OPT_ResizeStatistics               L"ResizeStatistics"
-#define OPT_TextureFormat                  L"TextureFormat"
-#define OPT_VPEnableNV12                   L"VPEnableNV12"
-#define OPT_VPEnableP01x                   L"VPEnableP01x"
-#define OPT_VPEnableYUY2                   L"VPEnableYUY2"
-#define OPT_VPEnableOther                  L"VPEnableOther"
-#define OPT_DoubleFrateDeint               L"DoubleFramerateDeinterlace"
-#define OPT_VPScaling                      L"VPScaling"
-#define OPT_ChromaUpsampling               L"ChromaUpsampling"
-#define OPT_Upscaling                      L"Upscaling"
-#define OPT_Downscaling                    L"Downscaling"
-#define OPT_InterpolateAt50pct             L"InterpolateAt50pct"
-#define OPT_Dither                         L"Dither"
-#define OPT_SwapEffect                     L"SwapEffect"
-#define OPT_ExclusiveFullscreen            L"ExclusiveFullscreen"
-#define OPT_VBlankBeforePresent            L"VBlankBeforePresent"
-#define OPT_ReinitByDisplay                L"ReinitWhenChangingDisplay"
-#define OPT_HdrPassthrough                 L"HdrPassthrough"
-#define OPT_HdrToggleDisplay               L"HdrToggleDisplay"
-#define OPT_ConvertToSdr                   L"ConvertToSdr"
-#define OPT_UseD3DFullscreen               L"UseD3DFullscreen"
-#define OPT_LAVD3D12                       L"Software\\LAV\\Video\\HWAccel"
+#define OPT_REGKEY_VIDEORENDERER           L"Software\\TBD12Renderer"
+#define OPT_ConfigLocation                 L"roaming"
 
 static std::atomic_int g_nInstance = 0;
 static const wchar_t g_szClassName[] = L"VRWindow";
@@ -148,102 +123,16 @@ CTBD12VideoRenderer::CTBD12VideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	ASSERT(S_OK == *phr);
 
 	
-	m_pTrayIcon = new CBaseTrayIcon(this, L"MPCVideo Renderer", IDI_ICON1);
+	m_pTrayIcon = new CBaseTrayIcon(this, L"TBD12 Video Renderer", IDI_ICON1);
 	// read settings
 
 	CRegKey key;
 	
-	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_LAVD3D12, KEY_READ))
-	{
-		DWORD dw; 
-		if (ERROR_SUCCESS == key.QueryDWORDValue(L"HWAccel", dw)) {
-			m_Sets.D3D12Settings.bLAVUseD3D12 = (discard<int>(dw, 5, 0, 6) == 6);
-		}
-	}
+	
 
 	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER, KEY_READ)) {
 		DWORD dw;
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D11, dw)) {
-			m_Sets.bUseD3D11 = !!dw;
-		}
-	  if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ForceD3D12, dw)) {
-				m_Sets.D3D12Settings.bForceD3D12 = !!dw;
-	  }
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D12, dw)) {
-			m_Sets.D3D12Settings.bUseD3D12 = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ShowStatistics, dw)) {
-			m_Sets.bShowStats = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ResizeStatistics, dw)) {
-			m_Sets.iResizeStats = discard<int>(dw, 0, 0, 1);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_TextureFormat, dw)) {
-			switch (dw) {
-			case TEXFMT_AUTOINT:
-			case TEXFMT_8INT:
-			case TEXFMT_10INT:
-			case TEXFMT_16FLOAT:
-				m_Sets.iTexFormat = dw;
-				break;
-			default:
-				m_Sets.iTexFormat = TEXFMT_AUTOINT;
-			}
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableNV12, dw)) {
-			m_Sets.VPFmts.bNV12 = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableP01x, dw)) {
-			m_Sets.VPFmts.bP01x = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableYUY2, dw)) {
-			m_Sets.VPFmts.bYUY2 = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableOther, dw)) {
-			m_Sets.VPFmts.bOther = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_DoubleFrateDeint, dw)) {
-			m_Sets.bDeintDouble = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPScaling, dw)) {
-			m_Sets.bVPScaling = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ChromaUpsampling, dw)) {
-			m_Sets.iChromaScaling = discard<int>(dw, CHROMA_Bilinear, CHROMA_Nearest, CHROMA_CatmullRom);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Upscaling, dw)) {
-			m_Sets.iUpscaling = discard<int>(dw, UPSCALE_CatmullRom, UPSCALE_Nearest, UPSCALE_Lanczos3);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling, dw)) {
-			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, DOWNSCALE_Box, DOWNSCALE_Lanczos);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_InterpolateAt50pct, dw)) {
-			m_Sets.bInterpolateAt50pct = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Dither, dw)) {
-			m_Sets.bUseDither = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_SwapEffect, dw)) {
-			m_Sets.iSwapEffect = discard<int>(dw, SWAPEFFECT_Discard, SWAPEFFECT_Discard, SWAPEFFECT_Flip);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ExclusiveFullscreen, dw)) {
-			m_Sets.bExclusiveFS = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VBlankBeforePresent, dw)) {
-			m_Sets.bVBlankBeforePresent = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ReinitByDisplay, dw)) {
-			m_Sets.bReinitByDisplay = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_HdrPassthrough, dw)) {
-			m_Sets.bHdrPassthrough = !!dw;
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_HdrToggleDisplay, dw)) {
-			m_Sets.iHdrToggleDisplay = discard<int>(dw, HDRTD_Always, HDRTD_Off, HDRTD_Always);
-		}
-		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ConvertToSdr, dw)) {
-			m_Sets.bConvertToSdr = !!dw;
-		}
+	//TODO
 	}
 
 	if (!IsWindows10OrGreater()) {
@@ -252,40 +141,14 @@ CTBD12VideoRenderer::CTBD12VideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	}
 
 	HRESULT hr = S_FALSE;
-	//m_Sets.bUseD3D11 = true;
-	if (m_Sets.bUseD3D11 && !m_Sets.D3D12Settings.bLAVUseD3D12 && IsWindows7SP1OrGreater() && !m_Sets.D3D12Settings.bForceD3D12) {
-		m_VideoProcessor = new CDX11VideoProcessor(this, m_Sets, hr);
-		if (SUCCEEDED(hr)) {
-			hr = m_VideoProcessor->Init(m_hWnd);
-		}
-
-		if (FAILED(hr)) {
-			SAFE_DELETE(m_VideoProcessor);
-		}
-		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
+	m_VideoProcessor = new CDX12VideoProcessor(this, m_Sets, hr);
+	if (SUCCEEDED(hr)) {
+		hr = m_VideoProcessor->Init(m_hWnd);
 	}
 
-	if ((m_Sets.D3D12Settings.bUseD3D12 && IsWindows7SP1OrGreater() && !m_VideoProcessor) || m_Sets.D3D12Settings.bForceD3D12) {
-		m_VideoProcessor = new CDX12VideoProcessor(this, m_Sets, hr);
-		if (SUCCEEDED(hr)) {
-			hr = m_VideoProcessor->Init(m_hWnd);// m_hWnd);
-		}
-
-		if (FAILED(hr)) {
-			SAFE_DELETE(m_VideoProcessor);
-		}
-		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
+	if (FAILED(hr)) {
+		SAFE_DELETE(m_VideoProcessor);
 	}
-
-	if (!m_VideoProcessor) {
-		m_VideoProcessor = new CDX9VideoProcessor(this, m_Sets, hr);
-		if (SUCCEEDED(hr)) {
-			hr = m_VideoProcessor->Init(::GetForegroundWindow());
-		}
-
-		DLogIf(S_OK == hr, L"Direct3D9 initialization successfully!");
-	}
-
 	*phr = hr;
 
 	return;
@@ -1170,11 +1033,10 @@ STDMETHODIMP CTBD12VideoRenderer::GetPages(CAUUID* pPages)
 		return E_OUTOFMEMORY;
 	}
 
-	pPages->pElems[2] = __uuidof(CVRMainPPage);
-	if (pPages->cElems == 4) {
+	pPages->pElems[0] = __uuidof(CD3D12SettingsPPage);
+	if (pPages->cElems == 3) {
 		pPages->pElems[1] = __uuidof(CVRInfoPPage);
-		pPages->pElems[0] = __uuidof(CD3D12SettingsPPage);
-		pPages->pElems[3] = guidQualityPPage;
+		pPages->pElems[2] = guidQualityPPage;
 	}
 
 	return S_OK;
@@ -1218,30 +1080,8 @@ STDMETHODIMP CTBD12VideoRenderer::SaveSettings()
 {
 	CRegKey key;
 	if (ERROR_SUCCESS == key.Create(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER)) {
-		key.SetDWORDValue(OPT_UseD3D11,                       m_Sets.bUseD3D11);
-		key.SetDWORDValue(OPT_UseD3D12,                       m_Sets.D3D12Settings.bUseD3D12);
-		key.SetDWORDValue(OPT_ForceD3D12,                     m_Sets.D3D12Settings.bForceD3D12);
-		key.SetDWORDValue(OPT_ShowStatistics,                 m_Sets.bShowStats);
-		key.SetDWORDValue(OPT_ResizeStatistics,               m_Sets.iResizeStats);
-		key.SetDWORDValue(OPT_TextureFormat,                  m_Sets.iTexFormat);
-		key.SetDWORDValue(OPT_VPEnableNV12,                   m_Sets.VPFmts.bNV12);
-		key.SetDWORDValue(OPT_VPEnableP01x,                   m_Sets.VPFmts.bP01x);
-		key.SetDWORDValue(OPT_VPEnableYUY2,                   m_Sets.VPFmts.bYUY2);
-		key.SetDWORDValue(OPT_VPEnableOther,                  m_Sets.VPFmts.bOther);
-		key.SetDWORDValue(OPT_DoubleFrateDeint,               m_Sets.bDeintDouble);
-		key.SetDWORDValue(OPT_VPScaling,                      m_Sets.bVPScaling);
-		key.SetDWORDValue(OPT_ChromaUpsampling,               m_Sets.iChromaScaling);
-		key.SetDWORDValue(OPT_Upscaling,                      m_Sets.iUpscaling);
-		key.SetDWORDValue(OPT_Downscaling,                    m_Sets.iDownscaling);
-		key.SetDWORDValue(OPT_InterpolateAt50pct,             m_Sets.bInterpolateAt50pct);
-		key.SetDWORDValue(OPT_Dither,                         m_Sets.bUseDither);
-		key.SetDWORDValue(OPT_SwapEffect,                     m_Sets.iSwapEffect);
-		key.SetDWORDValue(OPT_ExclusiveFullscreen,            m_Sets.bExclusiveFS);
-		key.SetDWORDValue(OPT_VBlankBeforePresent,            m_Sets.bVBlankBeforePresent);
-		key.SetDWORDValue(OPT_ReinitByDisplay,                m_Sets.bReinitByDisplay);
-		key.SetDWORDValue(OPT_HdrPassthrough,                 m_Sets.bHdrPassthrough);
-		key.SetDWORDValue(OPT_HdrToggleDisplay,               m_Sets.iHdrToggleDisplay);
-		key.SetDWORDValue(OPT_ConvertToSdr,                   m_Sets.bConvertToSdr);
+		//TODO
+		//assert(0);
 	}
 
 	return S_OK;

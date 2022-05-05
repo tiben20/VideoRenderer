@@ -145,13 +145,11 @@ CDX12VideoProcessor::CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, const Set
   : CVideoProcessor(pFilter)
 {
 	
-	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
+	
 	m_bShowStats = config.bShowStats;
 	m_iResizeStats = config.iResizeStats;
 	m_iTexFormat = config.iTexFormat;
-	m_VPFormats = config.VPFmts;
 	m_bDeintDouble = config.bDeintDouble;
-	m_bVPScaling = config.bVPScaling;
 	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
 	m_bUseDither = config.bUseDither;
 	m_iSwapEffect = config.iSwapEffect;
@@ -182,7 +180,7 @@ CDX12VideoProcessor::CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, const Set
 
 	MH_EnableHook(MH_ALL_HOOKS);
 
-	
+	hr = ret ? S_OK : S_FALSE;
 }
 
 CDX12VideoProcessor::~CDX12VideoProcessor()
@@ -293,7 +291,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 		m_hWnd = hwnd;
 	D3D12Engine::g_hWnd = hwnd;
 
-	if (m_bForceD3D12 && !D3D12Engine::g_Device)
+	if (!D3D12Engine::g_Device)
 	{
 		D3D12Engine::CreateDevice();	
 	}
@@ -318,7 +316,7 @@ HRESULT CDX12VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice)
 	SetShaderConvertColorParams(m_srcExFmt, m_srcParams, m_DXVA2ProcAmpValues);
 	UpdateStatsStatic();
 	IDXGIAdapter* pDXGIAdapter = nullptr;
-	const UINT currentAdapter = GetAdapter(hwnd, D3D12Engine::GetDXGIFactory(), &pDXGIAdapter);
+	const UINT currentAdapter = D3D12Engine::GetAdapter(hwnd, D3D12Engine::GetDXGIFactory(), &pDXGIAdapter);
 	//TODO do this on the engine side
 	if (!m_bCallbackDeviceIsSet)
 		m_nCurrentAdapter = currentAdapter;
@@ -773,13 +771,6 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 	auto FmtParams = GetFmtConvParams(pmt);
 	m_srcParams = FmtParams;
 	bool disableD3D11VP = false;
-	switch (FmtParams.cformat) {
-	case CF_NV12: disableD3D11VP = !m_VPFormats.bNV12; break;
-	case CF_P010:
-	case CF_P016: disableD3D11VP = !m_VPFormats.bP01x;  break;
-	case CF_YUY2: disableD3D11VP = !m_VPFormats.bYUY2;  break;
-	default:      disableD3D11VP = !m_VPFormats.bOther; break;
-	}
 	
 
 	const BITMAPINFOHEADER* pBIH = nullptr;
@@ -1047,7 +1038,7 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	//TODO
 	//add config for internal scaler
 
-	m_bForceD3D12 = config.D3D12Settings.bForceD3D12;
+	
 	
 	// settings that do not require preparation
 	m_bShowStats = config.bShowStats;
@@ -1067,25 +1058,6 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 		changeTextures = true;
 	}
 
-	if (m_srcParams.cformat == CF_NV12) {
-		changeVP = config.VPFmts.bNV12 != m_VPFormats.bNV12;
-	}
-	else if (m_srcParams.cformat == CF_P010 || m_srcParams.cformat == CF_P016) {
-		changeVP = config.VPFmts.bP01x != m_VPFormats.bP01x;
-	}
-	else if (m_srcParams.cformat == CF_YUY2) {
-		changeVP = config.VPFmts.bYUY2 != m_VPFormats.bYUY2;
-	}
-	else {
-		changeVP = config.VPFmts.bOther != m_VPFormats.bOther;
-	}
-	m_VPFormats = config.VPFmts;
-
-	if (config.bVPScaling != m_bVPScaling) {
-		m_bVPScaling = config.bVPScaling;
-		changeTextures = true;
-		changeVP = true; // temporary solution
-	}
 	if (config.bUseDither != m_bUseDither) {
 		m_bUseDither = config.bUseDither;
 		changeNumTextures = D3D12Engine::GetInternalFormat() != DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -1709,11 +1681,11 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 {
 	if (m_srcParams.cformat)
 	{
-		m_strStatsHeader = fmt::format(L"MPC VR, D3D12 ");
+		m_strStatsHeader = fmt::format(L"TBD12 Video Renderer\n");
 		if (m_bSWRendering)
-			m_strStatsHeader += L"Sw to d3d12 Texture\n";
+			m_strStatsHeader += L"D3D12 Texture Software Decoding\n";
 		else
-			m_strStatsHeader += L"hw D3D12 texture input\n";
+			m_strStatsHeader += L"D3D12 Texture Hardware Decoding\n";
 		UpdateStatsInputFmt();
 
 		m_strStatsVProc = fmt::format(L"\nInternalFormat: {}", DXGIFormatToString(D3D12Engine::GetInternalFormat()));
@@ -1743,7 +1715,6 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 		m_strStatsHeader = L"Error";
 		m_strStatsVProc.clear();
 		m_strStatsInputFmt.clear();
-		//m_strStatsPostProc.clear();
 		m_strStatsHDR.clear();
 		m_strStatsPresent.clear();
 	}

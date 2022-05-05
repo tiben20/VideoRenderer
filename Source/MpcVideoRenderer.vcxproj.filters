@@ -13,441 +13,396 @@
       <UniqueIdentifier>{addff0d6-0d94-4e4c-b5ea-b7d5b330fd45}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
-    <Filter Include="D3DUtil">
-      <UniqueIdentifier>{0aaf154f-df6e-43da-b8e2-ef67cfea1a2e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{ba2bad6e-f01e-4ea9-9209-8005fcd5bc5e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\d3d12">
-      <UniqueIdentifier>{b2c4b62a-c972-4f01-8523-c24fedf0bfa0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\d3d12">
       <UniqueIdentifier>{40888c64-3335-40a1-a4e4-b792692e5e2a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper">
-      <UniqueIdentifier>{cebd8d4f-b749-41d1-82de-935cae5781e3}</UniqueIdentifier>
+    <Filter Include="Source Files\D3D9">
+      <UniqueIdentifier>{1060e3a2-49ca-4dba-82fc-d18a292cb60d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\math">
-      <UniqueIdentifier>{1c2f0646-17ab-455e-814d-a83d45ec3433}</UniqueIdentifier>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{b8bd00d1-deab-4872-beff-977171a96050}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\shaders">
-      <UniqueIdentifier>{429dd92c-a204-44e8-9898-46952279a0cf}</UniqueIdentifier>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{aaf093d6-d50c-4214-af22-14e9c59330dd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\Buffers">
+    <Filter Include="Header Files\D3D9">
+      <UniqueIdentifier>{91fba6ae-6bd4-4690-b5b5-3470d09d624d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\D3DUtil">
+      <UniqueIdentifier>{0aaf154f-df6e-43da-b8e2-ef67cfea1a2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Buffers">
       <UniqueIdentifier>{7e3ba952-b6c5-4642-8713-ba362ab6e30f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\CommandPipeline">
+    <Filter Include="Header Files\CommandPipeline">
       <UniqueIdentifier>{9779dac5-511a-43ef-80dd-8c3dc2d900fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\Rendering">
-      <UniqueIdentifier>{1c4279dd-c6a4-4cab-ba8c-d09c2ccb6277}</UniqueIdentifier>
+    <Filter Include="Header Files\shaders">
+      <UniqueIdentifier>{429dd92c-a204-44e8-9898-46952279a0cf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\Utility">
-      <UniqueIdentifier>{2c9ab5d2-efa7-48cb-8ca7-4557b0f734f4}</UniqueIdentifier>
+    <Filter Include="Header Files\shaders\hlsl">
+      <UniqueIdentifier>{05c12a86-6d94-4a18-8c83-04199a522212}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\Rendering\Scalers">
-      <UniqueIdentifier>{c047f2fa-466e-475f-b97c-eaa8b6cfb2ca}</UniqueIdentifier>
+    <Filter Include="Header Files\Include">
+      <UniqueIdentifier>{65ef58f5-16df-44bb-adbc-9462a84482d2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\d3d12\d3d12helper\Rendering\Shaders">
-      <UniqueIdentifier>{1907633d-08b4-43ec-844f-451c31d3b612}</UniqueIdentifier>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{b2c4b62a-c972-4f01-8523-c24fedf0bfa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Buffers">
+      <UniqueIdentifier>{928d8b45-9fe2-4f6c-a40b-f813e95c0445}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CommandPipeline">
+      <UniqueIdentifier>{47cb9348-16ec-4014-9d46-174e373c1737}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{3ba5492c-b13d-4446-9c70-b7231e8d4527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{46c9a068-7c3a-47a9-ab5b-0fb4cd561ab9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VideoRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PropPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX9VideoProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DX11VideoProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Times.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CustomAllocator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="csputils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="renbase2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Shaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX9Device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DX9Helper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DX11Helper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D11VP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DUtil\D3D9Font.cpp">
-      <Filter>D3DUtil</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DUtil\D3D11Geometry.cpp">
-      <Filter>D3DUtil</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DUtil\D3D11Font.cpp">
-      <Filter>D3DUtil</Filter>
-    </ClCompile>
-    <ClCompile Include="DisplayConfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DUtil\D3D9Geometry.cpp">
-      <Filter>D3DUtil</Filter>
-    </ClCompile>
     <ClCompile Include="VideoProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\StringUtil.cpp">
-      <Filter>Utils</Filter>
+    <ClCompile Include="DX9Device.cpp">
+      <Filter>Source Files\D3D9</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\Util.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\CPUInfo.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="MediaSampleSideData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\ColorBuffer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\CommandAllocatorPool.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\CommandContext.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\CommandListManager.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\CommandSignature.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\DescriptorHeap.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\LinearAllocator.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\PixelBuffer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\GpuBuffer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\UploadBuffer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\ReadbackBuffer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\ImageScaling.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\PipelineState.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\RootSignature.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\Texture.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\GraphicsCommon.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\Utility.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\FileUtility.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\SamplerManager.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\GeometryRenderer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\TextRenderer.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="DX12Capabilities.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="DX12VideoProcessor.cpp">
-      <Filter>Header Files\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoRendererInputPin.cpp">
-      <Filter>Utils</Filter>
+    <ClCompile Include="DX9Helper.cpp">
+      <Filter>Source Files\D3D9</Filter>
     </ClCompile>
     <ClCompile Include="Utils\BaseTrayIcon.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="csputils.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplayConfig.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="renbase2.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Times.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="MediaSampleSideData.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoRendererInputPin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\D3D12PropPage.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
+    <ClCompile Include="Utils\CPUInfo.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\Scaler.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
+    <ClCompile Include="Utils\StringUtil.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="d3d12util\OptionsFile.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="DXVA2VP.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Utils\Util.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="D3D12VP.cpp">
-      <Filter>Header Files\d3d12</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\ShadersLoader.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\ShadersCache.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="d3d12util\Color.cpp">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DX12Engine.cpp">
-      <Filter>Header Files\d3d12</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12VideoProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\Utility.cpp">
+      <Filter>Header Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\D3D12PropPage.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12Capabilities.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\FileUtility.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\OptionsFile.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\ShadersCache.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\ShadersLoader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\Scaler.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\GeometryRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\ImageScaling.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\TextRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\CommandAllocatorPool.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\CommandContext.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\CommandListManager.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\CommandSignature.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\DescriptorHeap.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\DynamicDescriptorHeap.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\GraphicsCommon.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\PipelineState.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\RootSignature.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\SamplerManager.cpp">
+      <Filter>Source Files\CommandPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\Color.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\ColorBuffer.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\GpuBuffer.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\LinearAllocator.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\ReadbackBuffer.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\UploadBuffer.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\PixelBuffer.cpp">
+      <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\Texture.cpp">
+      <Filter>Source Files\d3d12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VideoRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="PropPage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IVideoRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DX9VideoProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DX11VideoProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FrameStats.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Times.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoRendererInputPin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CustomAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="csputils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="renbase2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DX11Helper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Shaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX9Helper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DX9Device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D11VP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DXVA2VP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DUtil\D3D9Font.h">
-      <Filter>D3DUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DUtil\D3D9Geometry.h">
-      <Filter>D3DUtil</Filter>
-    </ClInclude>
     <ClInclude Include="D3DUtil\FontBitmap.h">
-      <Filter>D3DUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DUtil\D3D11Geometry.h">
-      <Filter>D3DUtil</Filter>
+      <Filter>Header Files\D3DUtil</Filter>
     </ClInclude>
     <ClInclude Include="D3DUtil\D3DCommon.h">
-      <Filter>D3DUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DUtil\D3D11Font.h">
-      <Filter>D3DUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="DisplayConfig.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\D3DUtil</Filter>
     </ClInclude>
     <ClInclude Include="VideoProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\StringUtil.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Util.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\CPUInfo.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="MediaSampleSideData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\gpu_memcpy_sse4.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="DX12VideoProcessor.h">
-      <Filter>Header Files\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\math\Common.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\ColorBuffer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\CommandAllocatorPool.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\CommandContext.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\CommandListManager.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\CommandSignature.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\DynamicDescriptorHeap.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\DescriptorHeap.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\LinearAllocator.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\PixelBuffer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\GpuBuffer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\UploadBuffer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\ReadbackBuffer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\ImageScaling.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\GpuResource.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\PipelineState.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\RootSignature.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\Texture.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\GraphicsCommon.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\Utility.h">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\FileUtility.h">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\Hash.h">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\SamplerManager.h">
-      <Filter>Header Files\d3d12\d3d12helper\CommandPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\GeometryRenderer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\TextRenderer.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="DX12Capabilities.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\d3dx12.h">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\BaseTrayIcon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\D3D12PropPage.h">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\Scaler.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Scalers</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\OptionsFile.h">
-      <Filter>Header Files\d3d12\d3d12helper\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D12VP.h">
-      <Filter>Header Files\d3d12</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\ShadersLoader.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="d3d12util\ShadersCache.h">
-      <Filter>Header Files\d3d12\d3d12helper\Rendering\Shaders</Filter>
+      <Filter>Header Files\CommandPipeline</Filter>
     </ClInclude>
     <ClInclude Include="d3d12util\Color.h">
-      <Filter>Header Files\d3d12\d3d12helper\Buffers</Filter>
+      <Filter>Header Files\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\BaseTrayIcon.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="csputils.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplayConfig.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="DX9Device.h">
+      <Filter>Header Files\D3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="PropPage.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="MediaSampleSideData.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameStats.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Times.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="renbase2.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoRendererInputPin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\CPUInfo.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\gpu_memcpy_sse4.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StringUtil.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Util.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12VP.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DX12Engine.h">
-      <Filter>Header Files\d3d12</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12VideoProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\ShadersCache.h">
+      <Filter>Header Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\ShadersLoader.h">
+      <Filter>Header Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\Scaler.h">
+      <Filter>Header Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\GeometryRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\ImageScaling.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\TextRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\d3dx12.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\D3D12PropPage.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Capabilities.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\FileUtility.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\OptionsFile.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\Utility.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\math\Common.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\Hash.h">
+      <Filter>Header Files\Include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -463,33 +418,33 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="d3d12util\math\Functions.inl">
-      <Filter>Header Files\d3d12\d3d12helper\math</Filter>
+      <Filter>Header Files\Include</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\Shaders\d3d12\VideoQuadPresentVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="..\Shaders\d3d12\ColorConvertNV12PS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Shaders\d3d12\ScreenQuadPresentVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\shaders\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="..\Shaders\d3d12\GeometryPS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\shaders\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="..\Shaders\d3d12\GeometryVS.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\shaders\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="..\Shaders\d3d11\ps_font.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Shaders\d3d11\vs_simple.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\shaders\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="..\Shaders\d3d11\ps_simple.hlsl">
-      <Filter>Header Files\d3d12\d3d12helper\shaders</Filter>
+      <Filter>Header Files\shaders\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\ScreenQuadPresentVS.hlsl">
+      <Filter>Header Files\shaders\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d12\VideoQuadPresentVS.hlsl">
+      <Filter>Header Files\shaders\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Shaders\d3d11\vs_simple.hlsl">
+      <Filter>Header Files\shaders\hlsl</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -499,7 +454,7 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="d3d12util\d3d12renderer.original">
-      <Filter>Header Files\d3d12\d3d12helper</Filter>
+      <Filter>Header Files\Include</Filter>
     </CopyFileToFolders>
   </ItemGroup>
 </Project>
