@@ -20,9 +20,6 @@
 
 #pragma once
 
-// EXPERIMENTAL!
-#define USE_DX11_SUBPIC 0
-
 #include <mfidl.h>
 #include <dxva2api.h>
 #include <thread>
@@ -32,7 +29,6 @@
 #include "Utils/BaseTrayIcon.h"
 
 #include "../Include/ISubRender.h"
-#include "../Include/ISubRender11.h"
 #include "../Include/ID3DFullscreenControl.h"
 #include "../Include/FilterInterfacesImpl.h"
 
@@ -82,7 +78,6 @@ class __declspec(uuid("B58AEDA7-29E5-4FCD-AC26-491E697F5DC7"))
 	, public ISpecifyPropertyPages
 	, public IVideoRenderer
 	, public ISubRender
-	, public ISubRender11
 	, public CExFilterConfigImpl
 	, public ID3DFullscreenControl
 {
@@ -117,7 +112,6 @@ private:
 	CMediaType m_inputMT;
 
 	ISubRenderCallback* m_pSubCallBack = nullptr;
-	ISubRender11Callback* m_pSub11CallBack = nullptr;
 
 	CRect m_windowRect, m_videoRect;
 
@@ -261,9 +255,6 @@ public:
 
 	// ISubRender
 	STDMETHODIMP SetCallback(ISubRenderCallback* cb);
-
-	// ISubRender11
-	STDMETHODIMP SetCallback11(ISubRender11Callback* cb);
 
 	// IExFilterConfig
 	STDMETHODIMP GetBool(LPCSTR field, bool* value) override;
