@@ -1,5 +1,5 @@
 /*
- * (C) 2018-2021 see Authors.txt
+ * (C) 2018-2022 see Authors.txt
  *
  * This file is part of MPC-BE.
  *
@@ -65,6 +65,339 @@ void ComboBox_SelectByItemData(HWND hWnd, int nIDComboBox, LONG_PTR data)
 	}
 }
 
+<<<<<<< HEAD
+=======
+
+// CVRMainPPage
+
+// https://msdn.microsoft.com/ru-ru/library/windows/desktop/dd375010(v=vs.85).aspx
+
+CVRMainPPage::CVRMainPPage(LPUNKNOWN lpunk, HRESULT* phr) :
+	CBasePropertyPage(L"MainProp", lpunk, IDD_MAINPROPPAGE, IDS_MAINPROPPAGE_TITLE)
+{
+	DLog(L"CVRMainPPage()");
+}
+
+CVRMainPPage::~CVRMainPPage()
+{
+	DLog(L"~CVRMainPPage()");
+}
+
+void CVRMainPPage::SetControls()
+{
+	CheckDlgButton(IDC_CHECK1, m_SetsPP.bUseD3D11                        ? BST_CHECKED : BST_UNCHECKED);
+
+	
+	CheckDlgButton(IDC_CHECK2, m_SetsPP.bShowStats                       ? BST_CHECKED : BST_UNCHECKED);
+
+	ComboBox_SelectByItemData(m_hWnd, IDC_COMBO1, m_SetsPP.iTexFormat);
+
+	CheckDlgButton(IDC_CHECK7, m_SetsPP.VPFmts.bNV12                     ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK8, m_SetsPP.VPFmts.bP01x                     ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK9, m_SetsPP.VPFmts.bYUY2                     ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK4, m_SetsPP.VPFmts.bOther                    ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK3, m_SetsPP.bDeintDouble                     ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK5, m_SetsPP.bVPScaling                       ? BST_CHECKED : BST_UNCHECKED);
+
+	CheckDlgButton(IDC_CHECK12, m_SetsPP.bHdrPassthrough                 ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK14, m_SetsPP.bConvertToSdr                   ? BST_CHECKED : BST_UNCHECKED);
+
+	SendDlgItemMessageW(IDC_COMBO7, CB_SETCURSEL, m_SetsPP.iHdrToggleDisplay, 0);
+
+	CheckDlgButton(IDC_CHECK6, m_SetsPP.bInterpolateAt50pct              ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK10, m_SetsPP.bUseDither                      ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK11, m_SetsPP.bExclusiveFS                    ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK15, m_SetsPP.bVBlankBeforePresent            ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(IDC_CHECK16, m_SetsPP.bReinitByDisplay                ? BST_CHECKED : BST_UNCHECKED);
+
+	SendDlgItemMessageW(IDC_COMBO6, CB_SETCURSEL, m_SetsPP.iResizeStats, 0);
+
+	SendDlgItemMessageW(IDC_COMBO5, CB_SETCURSEL, m_SetsPP.iChromaScaling, 0);
+	SendDlgItemMessageW(IDC_COMBO2, CB_SETCURSEL, m_SetsPP.iUpscaling, 0);
+	SendDlgItemMessageW(IDC_COMBO3, CB_SETCURSEL, m_SetsPP.iDownscaling, 0);
+
+
+	SendDlgItemMessageW(IDC_COMBO4, CB_SETCURSEL, m_SetsPP.iSwapEffect, 0);
+}
+
+void CVRMainPPage::EnableControls()
+{
+	if (!IsWindows8OrGreater()) { // Windows 7
+		const BOOL bEnable = !m_SetsPP.bUseD3D11;
+
+		GetDlgItem(IDC_STATIC1).EnableWindow(bEnable); // not working for GROUPBOX
+		GetDlgItem(IDC_STATIC2).EnableWindow(bEnable);
+		GetDlgItem(IDC_CHECK7).EnableWindow(bEnable);
+		GetDlgItem(IDC_CHECK8).EnableWindow(bEnable);
+		GetDlgItem(IDC_CHECK9).EnableWindow(bEnable);
+		GetDlgItem(IDC_CHECK4).EnableWindow(bEnable);
+		GetDlgItem(IDC_CHECK3).EnableWindow(bEnable);
+		GetDlgItem(IDC_CHECK5).EnableWindow(bEnable);
+		GetDlgItem(IDC_STATIC3).EnableWindow(bEnable);
+		GetDlgItem(IDC_COMBO4).EnableWindow(bEnable);
+	}
+}
+
+HRESULT CVRMainPPage::OnConnect(IUnknown *pUnk)
+{
+	if (pUnk == nullptr) return E_POINTER;
+
+	m_pVideoRenderer = pUnk;
+	if (!m_pVideoRenderer) {
+		return E_NOINTERFACE;
+	}
+
+	return S_OK;
+}
+
+HRESULT CVRMainPPage::OnDisconnect()
+{
+	if (m_pVideoRenderer == nullptr) {
+		return E_UNEXPECTED;
+	}
+
+	m_pVideoRenderer.Release();
+
+	return S_OK;
+}
+
+HRESULT CVRMainPPage::OnActivate()
+{
+	// set m_hWnd for CWindow
+	m_hWnd = m_hwnd;
+
+	m_pVideoRenderer->GetSettings(m_SetsPP);
+
+	if (!IsWindows7SP1OrGreater())
+	{
+		GetDlgItem(IDC_CHECK1).EnableWindow(FALSE);
+		m_SetsPP.bUseD3D11 = false;
+	}
+	if (!IsWindows10OrGreater())
+	{
+		GetDlgItem(IDC_CHECK12).EnableWindow(FALSE);
+		GetDlgItem(IDC_STATIC4).EnableWindow(FALSE);
+		GetDlgItem(IDC_STATIC5).EnableWindow(FALSE);
+		GetDlgItem(IDC_COMBO7).EnableWindow(FALSE);
+		
+	}
+
+	EnableControls();
+
+	SendDlgItemMessageW(IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Fixed font size");
+	SendDlgItemMessageW(IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Increase font by window");
+	//SendDlgItemMessageW(IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Increase by DPI"); // TODO
+
+	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"Auto 8/10-bit Integer",  0);
+	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"8-bit Integer",          8);
+	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"10-bit Integer",        10);
+	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"16-bit Floating Point", 16);
+
+	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"not used");
+	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"used for fullscreen");
+	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"always used");
+
+	SendDlgItemMessageW(IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
+	SendDlgItemMessageW(IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
+
+	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
+	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Mitchell-Netravali");
+	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
+	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Lanczos2");
+	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Lanczos3");
+	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Jinc2 experimental");
+
+	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Box");
+	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Hamming");
+	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
+	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
+	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
+
+
+
+	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Discard");
+	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Flip");
+
+	SetDlgItemTextW(IDC_EDIT2, GetNameAndVersion());
+
+	SetControls();
+
+	SetCursor(m_hWnd, IDC_ARROW);
+	SetCursor(m_hWnd, IDC_COMBO1, IDC_HAND);
+
+	return S_OK;
+}
+
+INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (uMsg == WM_COMMAND) {
+		LRESULT lValue;
+		const int nID = LOWORD(wParam);
+
+		if (HIWORD(wParam) == BN_CLICKED) {
+
+			if (nID == IDC_CHECK1) {
+				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
+				EnableControls();
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK2) {
+				m_SetsPP.bShowStats = IsDlgButtonChecked(IDC_CHECK2) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK3) {
+				m_SetsPP.bDeintDouble = IsDlgButtonChecked(IDC_CHECK3) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK5) {
+				m_SetsPP.bVPScaling = IsDlgButtonChecked(IDC_CHECK5) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK6) {
+				m_SetsPP.bInterpolateAt50pct = IsDlgButtonChecked(IDC_CHECK6) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK7) {
+				m_SetsPP.VPFmts.bNV12 = IsDlgButtonChecked(IDC_CHECK7) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK8) {
+				m_SetsPP.VPFmts.bP01x = IsDlgButtonChecked(IDC_CHECK8) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK9) {
+				m_SetsPP.VPFmts.bYUY2 = IsDlgButtonChecked(IDC_CHECK9) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK4) {
+				m_SetsPP.VPFmts.bOther = IsDlgButtonChecked(IDC_CHECK4) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK10) {
+				m_SetsPP.bUseDither = IsDlgButtonChecked(IDC_CHECK10) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK11) {
+				m_SetsPP.bExclusiveFS = IsDlgButtonChecked(IDC_CHECK11) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK15) {
+				m_SetsPP.bVBlankBeforePresent = IsDlgButtonChecked(IDC_CHECK15) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK16) {
+				m_SetsPP.bReinitByDisplay = IsDlgButtonChecked(IDC_CHECK16) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK12) {
+				m_SetsPP.bHdrPassthrough = IsDlgButtonChecked(IDC_CHECK12) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+			if (nID == IDC_CHECK14) {
+				m_SetsPP.bConvertToSdr = IsDlgButtonChecked(IDC_CHECK14) == BST_CHECKED;
+				SetDirty();
+				return (LRESULT)1;
+			}
+
+			if (nID == IDC_BUTTON1) {
+				m_SetsPP.SetDefault();
+				SetControls();
+				EnableControls();
+				SetDirty();
+				return (LRESULT)1;
+			}
+		}
+
+		if (HIWORD(wParam) == CBN_SELCHANGE) {
+			if (nID == IDC_COMBO6) {
+				lValue = SendDlgItemMessageW(IDC_COMBO6, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iResizeStats) {
+					m_SetsPP.iResizeStats = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO1) {
+				lValue = ComboBox_GetCurItemData(m_hWnd, IDC_COMBO1);
+				if (lValue != m_SetsPP.iTexFormat) {
+					m_SetsPP.iTexFormat = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO7) {
+				lValue = SendDlgItemMessageW(IDC_COMBO7, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iHdrToggleDisplay) {
+					m_SetsPP.iHdrToggleDisplay = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO5) {
+				lValue = SendDlgItemMessageW(IDC_COMBO5, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iChromaScaling) {
+					m_SetsPP.iChromaScaling = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO2) {
+				lValue = SendDlgItemMessageW(IDC_COMBO2, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iUpscaling) {
+					m_SetsPP.iUpscaling = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+			if (nID == IDC_COMBO3) {
+				lValue = SendDlgItemMessageW(IDC_COMBO3, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iDownscaling) {
+					m_SetsPP.iDownscaling = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+	
+			if (nID == IDC_COMBO4) {
+				lValue = SendDlgItemMessageW(IDC_COMBO4, CB_GETCURSEL, 0, 0);
+				if (lValue != m_SetsPP.iSwapEffect) {
+					m_SetsPP.iSwapEffect = lValue;
+					SetDirty();
+					return (LRESULT)1;
+				}
+			}
+		}
+	}
+
+	// Let the parent class handle the message.
+	return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+}
+
+HRESULT CVRMainPPage::OnApplyChanges()
+{
+	m_pVideoRenderer->SetSettings(m_SetsPP);
+	m_pVideoRenderer->SaveSettings();
+
+	return S_OK;
+}
+
+>>>>>>> c522203edeede19ced5535534e2eaf02d5f34fc9
 // CVRInfoPPage
 
 CVRInfoPPage::CVRInfoPPage(LPUNKNOWN lpunk, HRESULT* phr) :

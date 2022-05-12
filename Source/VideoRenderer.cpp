@@ -126,6 +126,109 @@ CTBD12VideoRenderer::CTBD12VideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	m_pTrayIcon = new CBaseTrayIcon(this, L"TBD12 Video Renderer", IDI_ICON1);
 	// read settings
 
+<<<<<<< HEAD
+=======
+	CRegKey key;
+	
+	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_LAVD3D12, KEY_READ))
+	{
+		DWORD dw; 
+		if (ERROR_SUCCESS == key.QueryDWORDValue(L"HWAccel", dw)) {
+			m_Sets.D3D12Settings.bLAVUseD3D12 = (discard<int>(dw, 5, 0, 6) == 6);
+		}
+	}
+
+	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER, KEY_READ)) {
+		DWORD dw;
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D11, dw)) {
+			m_Sets.bUseD3D11 = !!dw;
+		}
+	  if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ForceD3D12, dw)) {
+				m_Sets.D3D12Settings.bForceD3D12 = !!dw;
+	  }
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_UseD3D12, dw)) {
+			m_Sets.D3D12Settings.bUseD3D12 = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ShowStatistics, dw)) {
+			m_Sets.bShowStats = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ResizeStatistics, dw)) {
+			m_Sets.iResizeStats = discard<int>(dw, 0, 0, 1);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_TextureFormat, dw)) {
+			switch (dw) {
+			case TEXFMT_AUTOINT:
+			case TEXFMT_8INT:
+			case TEXFMT_10INT:
+			case TEXFMT_16FLOAT:
+				m_Sets.iTexFormat = dw;
+				break;
+			default:
+				m_Sets.iTexFormat = TEXFMT_AUTOINT;
+			}
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableNV12, dw)) {
+			m_Sets.VPFmts.bNV12 = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableP01x, dw)) {
+			m_Sets.VPFmts.bP01x = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableYUY2, dw)) {
+			m_Sets.VPFmts.bYUY2 = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPEnableOther, dw)) {
+			m_Sets.VPFmts.bOther = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_DoubleFrateDeint, dw)) {
+			m_Sets.bDeintDouble = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VPScaling, dw)) {
+			m_Sets.bVPScaling = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ChromaUpsampling, dw)) {
+			m_Sets.iChromaScaling = discard<int>(dw, CHROMA_Bilinear, 0, CHROMA_COUNT-1);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Upscaling, dw)) {
+			m_Sets.iUpscaling = discard<int>(dw, UPSCALE_CatmullRom, 0, UPSCALE_COUNT-1);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Downscaling, dw)) {
+			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, 0, DOWNSCALE_COUNT-1);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_InterpolateAt50pct, dw)) {
+			m_Sets.bInterpolateAt50pct = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_Dither, dw)) {
+			m_Sets.bUseDither = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_SwapEffect, dw)) {
+			m_Sets.iSwapEffect = discard<int>(dw, SWAPEFFECT_Discard, SWAPEFFECT_Discard, SWAPEFFECT_Flip);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ExclusiveFullscreen, dw)) {
+			m_Sets.bExclusiveFS = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_VBlankBeforePresent, dw)) {
+			m_Sets.bVBlankBeforePresent = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ReinitByDisplay, dw)) {
+			m_Sets.bReinitByDisplay = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_HdrPassthrough, dw)) {
+			m_Sets.bHdrPassthrough = !!dw;
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_HdrToggleDisplay, dw)) {
+			m_Sets.iHdrToggleDisplay = discard<int>(dw, HDRTD_Always, HDRTD_Off, HDRTD_Always);
+		}
+		if (ERROR_SUCCESS == key.QueryDWORDValue(OPT_ConvertToSdr, dw)) {
+			m_Sets.bConvertToSdr = !!dw;
+		}
+	}
+
+	if (!IsWindows10OrGreater()) {
+		m_Sets.bHdrPassthrough = false;
+		m_Sets.iHdrToggleDisplay = HDRTD_Off;
+	}
+
+>>>>>>> c522203edeede19ced5535534e2eaf02d5f34fc9
 	HRESULT hr = S_FALSE;
 	m_VideoProcessor = new CDX12VideoProcessor(this, hr);
 	if (SUCCEEDED(hr)) {
@@ -507,6 +610,9 @@ STDMETHODIMP CTBD12VideoRenderer::NonDelegatingQueryInterface(REFIID riid, void*
 		QI(ISpecifyPropertyPages)
 		QI(IVideoRenderer)
 		QI(ISubRender)
+#if USE_DX11_SUBPIC
+		QI(ISubRender11)
+#endif
 		QI(IExFilterConfig)
 		(riid == __uuidof(ID3DFullscreenControl) && m_bEnableFullscreenControl) ? GetInterface((ID3DFullscreenControl*)this, ppv) :
 		__super::NonDelegatingQueryInterface(riid, ppv);
@@ -1051,6 +1157,14 @@ STDMETHODIMP CTBD12VideoRenderer::SaveSettings()
 STDMETHODIMP CTBD12VideoRenderer::SetCallback(ISubRenderCallback* cb)
 {
 	m_pSubCallBack = cb;
+
+	return S_OK;
+}
+
+// ISubRender11
+STDMETHODIMP CMpcVideoRenderer::SetCallback11(ISubRender11Callback* cb)
+{
+	m_pSub11CallBack = cb;
 
 	return S_OK;
 }

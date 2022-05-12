@@ -1,5 +1,5 @@
 /*
- * (C) 2018-2021 see Authors.txt
+ * (C) 2018-2022 see Authors.txt
  *
  * This file is part of MPC-BE.
  *
@@ -22,6 +22,81 @@
 
 #include <dxva2api.h>
 
+<<<<<<< HEAD
+=======
+enum :int {
+	TEXFMT_AUTOINT = 0,
+	TEXFMT_8INT = 8,
+	TEXFMT_10INT = 10,
+	TEXFMT_16FLOAT = 16,
+};
+
+enum :int {
+	CHROMA_Nearest = 0,
+	CHROMA_Bilinear,
+	CHROMA_CatmullRom,
+	CHROMA_COUNT
+};
+
+enum :int {
+	UPSCALE_Nearest = 0,
+	UPSCALE_Mitchell,
+	UPSCALE_CatmullRom,
+	UPSCALE_Lanczos2,
+	UPSCALE_Lanczos3,
+	UPSCALE_Jinc2,
+	UPSCALE_COUNT
+};
+
+enum :int {
+	DOWNSCALE_Box = 0,
+	DOWNSCALE_Bilinear,
+	DOWNSCALE_Hamming,
+	DOWNSCALE_Bicubic,
+	DOWNSCALE_BicubicSharp,
+	DOWNSCALE_Lanczos,
+	DOWNSCALE_COUNT
+};
+
+enum :int {
+	SWAPEFFECT_Discard = 0,
+	SWAPEFFECT_Flip,
+	SWAPEFFECT_COUNT
+};
+
+enum :int {
+	HDRTD_Off = 0,
+	HDRTD_Fullscreen = 1,
+	HDRTD_Always = 2
+};
+
+struct VPEnableFormats_t {
+	bool bNV12;
+	bool bP01x;
+	bool bYUY2;
+	bool bOther;
+};
+
+
+struct fxrcnnxConfig_t {
+	int iStrength;//0 to 5
+	float fSharp; // 0 to 1.5
+	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
+};
+struct superxbrConfig_t{
+	int iStrength;//0 to 5
+	float fSharp; // 0 to 1.5
+	int iFactor; //0,1,2,3 but in the player its 2 4 8 or 16
+};
+struct fxrcnnxxbrConfig_t {
+	int iXbrStrength;//0 to 5
+	float fXbrSharp; // 0 to 1.5
+	int iXbrFactor; //0,1,2,3 but in the player its 2 4 8 or 16
+	int iResStrength;//0 to 5
+	float fresSharp; // 0 to 1.5
+	int iResFactor; //0,1,2,3 but in the player its 2 4 8 or 16
+};
+>>>>>>> c522203edeede19ced5535534e2eaf02d5f34fc9
 struct D3D12Settings_t {
 	bool bUseD3D12;
 	bool bForceD3D12;

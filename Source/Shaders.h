@@ -1,5 +1,5 @@
 /*
-* (C) 2019-2020 see Authors.txt
+* (C) 2019-2022 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -31,3 +31,17 @@ enum :int {
 HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName, ID3DInclude* d3dinc);
 
 HRESULT CompileShader(const std::string& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppCode);
+<<<<<<< HEAD
+=======
+
+HRESULT GetShaderConvertColor(
+	const bool bDX11,
+	const UINT width,
+	const long texW, long texH,
+	const RECT rect,
+	const FmtConvParams_t& fmtParams,
+	const DXVA2_ExtendedFormat exFmt,
+	const int chromaScaling,
+	const int convertType,
+	ID3DBlob** ppCode);
+>>>>>>> c522203edeede19ced5535534e2eaf02d5f34fc9

@@ -1,5 +1,5 @@
 /*
-* (C) 2018-2021 see Authors.txt
+* (C) 2018-2022 see Authors.txt
 *
 * This file is part of MPC-BE.
 *
@@ -219,6 +219,8 @@ static ColorFormat_t fourcc_to_cformat(const DWORD fourcc)
 	case FCC('YUY2'): cformat = CF_YUY2; break;
 	case FCC('P210'): cformat = CF_P210; break;
 	case FCC('P216'): cformat = CF_P216; break;
+	case FCC('Y210'): cformat = CF_Y210; break;
+	case FCC('Y216'): cformat = CF_Y216; break;
 	case FCC('AYUV'): cformat = CF_AYUV; break;
 	case FCC('Y410'): cformat = CF_Y410; break;
 	case FCC('Y416'): cformat = CF_Y416; break;
@@ -278,6 +280,8 @@ static DX9PlaneConfig DX9Planes420P16 = { D3DFMT_L16, D3DFMT_L16,    D3DFMT_L16,
 static DX9PlaneConfig DX9Planes422P16 = { D3DFMT_L16, D3DFMT_L16,    D3DFMT_L16,     2, 1 };
 static DX9PlaneConfig DX9Planes444P16 = { D3DFMT_L16, D3DFMT_L16,    D3DFMT_L16,     1, 1 };
 
+static DX9PlaneConfig DX9Plane_ARGB8 = { D3DFMT_A8R8G8B8, D3DFMT_UNKNOWN, D3DFMT_UNKNOWN, 1, 1 }; // YUY2
+
 static DX11PlaneConfig_t DX11PlanesNV12   = { DXGI_FORMAT_R8_UNORM,  DXGI_FORMAT_R8G8_UNORM,   DXGI_FORMAT_UNKNOWN,   2, 2 };
 static DX11PlaneConfig_t DX11PlanesP01x   = { DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R16G16_UNORM, DXGI_FORMAT_UNKNOWN,   2, 2 };
 static DX11PlaneConfig_t DX11PlanesP21x   = { DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R16G16_UNORM, DXGI_FORMAT_UNKNOWN,   2, 1 };
@@ -288,18 +292,24 @@ static DX11PlaneConfig_t DX11Planes420P16 = { DXGI_FORMAT_R16_UNORM, DXGI_FORMAT
 static DX11PlaneConfig_t DX11Planes422P16 = { DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R16_UNORM,    DXGI_FORMAT_R16_UNORM, 2, 1 };
 static DX11PlaneConfig_t DX11Planes444P16 = { DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R16_UNORM,    DXGI_FORMAT_R16_UNORM, 1, 1 };
 
+static DX11PlaneConfig_t DX11Plane_RGBA8   = { DXGI_FORMAT_R8G8B8A8_UNORM,     DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 1, 1 }; // YUY2, AYUV
+static DX11PlaneConfig_t DX11Plane_RGB10A2 = { DXGI_FORMAT_R10G10B10A2_UNORM,  DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 1, 1 }; // Y410
+static DX11PlaneConfig_t DX11Plane_RGBA16  = { DXGI_FORMAT_R16G16B16A16_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 1, 1 }; // Y210, Y216, Y416
+
 static const FmtConvParams_t s_FmtConvMapping[] = {
 	// cformat    | str         | DXVA2Format    | D3DFormat(DX9)     |pDX9Planes| VP11Format                | DX11Format                |  pDX11Planes  |Packsize|PitchCoeff| CSType|Subsampling|CDepth| Func           |FuncSSSE3
 	{CF_NONE,      nullptr,      D3DFMT_UNKNOWN,  D3DFMT_UNKNOWN,         nullptr, DXGI_FORMAT_UNKNOWN,        DXGI_FORMAT_UNKNOWN,               nullptr,       0, 0,        CS_YUV,    0,       0,     nullptr,                  nullptr},
 	{CF_NV12,      L"NV12",      D3DFMT_NV12,     D3DFMT_NV12,     &DX9PlanesNV12, DXGI_FORMAT_NV12,           DXGI_FORMAT_NV12,          &DX11PlanesNV12,       1, 3,        CS_YUV,  420,       8,     &CopyFrameAsIs,           nullptr},
 	{CF_P010,      L"P010",      D3DFMT_P010,     D3DFMT_P010,     &DX9PlanesP01x, DXGI_FORMAT_P010,           DXGI_FORMAT_P010,          &DX11PlanesP01x,       2, 3,        CS_YUV,  420,       16,    &CopyFrameAsIs,           nullptr},
 	{CF_P016,      L"P016",      D3DFMT_P016,     D3DFMT_P016,     &DX9PlanesP01x, DXGI_FORMAT_P016,           DXGI_FORMAT_P016,          &DX11PlanesP01x,       2, 3,        CS_YUV,  420,       16,    &CopyFrameAsIs,           nullptr},
-	{CF_YUY2,      L"YUY2",      D3DFMT_YUY2,     D3DFMT_A8R8G8B8,        nullptr, DXGI_FORMAT_YUY2,           DXGI_FORMAT_R8G8B8A8_UNORM,        nullptr,       2, 2,        CS_YUV,  422,       8,     &CopyFrameAsIs,           nullptr},
+	{CF_YUY2,      L"YUY2",      D3DFMT_YUY2,     D3DFMT_YUY2,    &DX9Plane_ARGB8, DXGI_FORMAT_YUY2,           DXGI_FORMAT_YUY2,         &DX11Plane_RGBA8,       2, 2,        CS_YUV,  422,       8,     &CopyFrameAsIs,           nullptr},
 	{CF_P210,      L"P210",      D3DFMT_P210,     D3DFMT_P210,     &DX9PlanesP21x, DXGI_FORMAT_UNKNOWN,        DXGI_FORMAT_PLANAR,        &DX11PlanesP21x,       2, 4,        CS_YUV,  422,       16,    &CopyFrameAsIs,           nullptr},
 	{CF_P216,      L"P216",      D3DFMT_P216,     D3DFMT_P216,     &DX9PlanesP21x, DXGI_FORMAT_UNKNOWN,        DXGI_FORMAT_PLANAR,        &DX11PlanesP21x,       2, 4,        CS_YUV,  422,       16,    &CopyFrameAsIs,           nullptr},
-	{CF_AYUV,      L"AYUV",      D3DFMT_UNKNOWN,  D3DFMT_X8R8G8B8,        nullptr, DXGI_FORMAT_AYUV,           DXGI_FORMAT_B8G8R8X8_UNORM,        nullptr,       4, 2,        CS_YUV,  444,       8,     &CopyFrameAsIs,           nullptr},
-	{CF_Y410,      L"Y410",      D3DFMT_Y410,     D3DFMT_A2B10G10R10,     nullptr, DXGI_FORMAT_Y410,           DXGI_FORMAT_R10G10B10A2_UNORM,     nullptr,       4, 2,        CS_YUV,  444,       10,    &CopyFrameAsIs,           nullptr},
-	{CF_Y416,      L"Y416",      D3DFMT_Y416,     D3DFMT_A16B16G16R16,    nullptr, DXGI_FORMAT_Y416,           DXGI_FORMAT_R16G16B16A16_UNORM,    nullptr,       8, 2,        CS_YUV,  444,       16,    &CopyFrameAsIs,           nullptr},
+	{CF_Y210,      L"Y210",      D3DFMT_UNKNOWN,  D3DFMT_UNKNOWN,         nullptr, DXGI_FORMAT_Y210,           DXGI_FORMAT_Y210,        &DX11Plane_RGBA16,       4, 2,        CS_YUV,  422,       10,    &CopyFrameAsIs,           nullptr},
+	{CF_Y216,      L"Y216",      D3DFMT_UNKNOWN,  D3DFMT_UNKNOWN,         nullptr, DXGI_FORMAT_Y216,           DXGI_FORMAT_Y216,        &DX11Plane_RGBA16,       4, 2,        CS_YUV,  422,       16,    &CopyFrameAsIs,           nullptr},
+	{CF_AYUV,      L"AYUV",      D3DFMT_UNKNOWN,  D3DFMT_X8R8G8B8,        nullptr, DXGI_FORMAT_AYUV,           DXGI_FORMAT_AYUV,         &DX11Plane_RGBA8,       4, 2,        CS_YUV,  444,       8,     &CopyFrameAsIs,           nullptr},
+	{CF_Y410,      L"Y410",      D3DFMT_Y410,     D3DFMT_A2B10G10R10,     nullptr, DXGI_FORMAT_Y410,           DXGI_FORMAT_Y410,       &DX11Plane_RGB10A2,       4, 2,        CS_YUV,  444,       10,    &CopyFrameAsIs,           nullptr},
+	{CF_Y416,      L"Y416",      D3DFMT_Y416,     D3DFMT_A16B16G16R16,    nullptr, DXGI_FORMAT_Y416,           DXGI_FORMAT_Y416,        &DX11Plane_RGBA16,       8, 2,        CS_YUV,  444,       16,    &CopyFrameAsIs,           nullptr},
 
 	{CF_YV12,      L"YV12",      D3DFMT_YV12,     D3DFMT_YV12,     &DX9Planes420P, DXGI_FORMAT_UNKNOWN,        DXGI_FORMAT_PLANAR,        &DX11Planes420P,       1, 3,        CS_YUV,  420,       8,     &CopyFrameYV12,           nullptr},
 	{CF_YV16,      L"YV16",      D3DFMT_UNKNOWN,  D3DFMT_PLANAR,   &DX9Planes422P, DXGI_FORMAT_UNKNOWN,        DXGI_FORMAT_PLANAR,        &DX11Planes422P,       1, 4,        CS_YUV,  422,       8,     &CopyFrameAsIs,           nullptr},
@@ -388,12 +398,15 @@ void CopyGpuFrame_SSE41(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE*
 
 void CopyFrameRGB24(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src, int src_pitch)
 {
-	UINT line_pixels = abs(src_pitch) / 3;
+	UINT line_pixels  = abs(src_pitch) / 3;
+	UINT line_pixels4 = line_pixels & ~(4u - 1);
 
 	for (UINT y = 0; y < lines; ++y) {
 		uint32_t* src32 = (uint32_t*)src;
 		uint32_t* dst32 = (uint32_t*)dst;
-		for (UINT i = 0; i < line_pixels; i += 4) {
+
+		UINT i = 0;
+		for (; i < line_pixels4; i += 4) {
 			uint32_t sa = *src32++;
 			uint32_t sb = *src32++;
 			uint32_t sc = *src32++;
@@ -404,6 +417,18 @@ void CopyFrameRGB24(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src
 			*dst32++ = sc >> 8;
 		}
 
+		if (i < line_pixels) {
+			if (line_pixels & 1) {
+				*dst32 = *src32;
+			} else {
+				uint32_t sa = *src32++;
+				uint32_t sb = *src32;
+
+				*dst32++ = sa;
+				*dst32 = (sa >> 24) | (sb << 8);
+			}
+		}
+
 		src += src_pitch;
 		dst += dst_pitch;
 	}
@@ -411,7 +436,8 @@ void CopyFrameRGB24(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src
 
 void CopyRGB24_SSSE3(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src, int src_pitch)
 {
-	UINT line_pixels = abs(src_pitch) / 3;
+	UINT line_pixels   = abs(src_pitch) / 3;
+	UINT line_pixels4  = line_pixels & ~(4u - 1);
 	UINT line_pixels16 = line_pixels & ~(16u - 1);
 	__m128i mask = _mm_setr_epi8(0, 1, 2, -1, 3, 4, 5, -1, 6, 7, 8, -1, 9, 10, 11, -1);
 
@@ -437,7 +463,7 @@ void CopyRGB24_SSSE3(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* sr
 
 		uint32_t* src32 = (uint32_t*)src128;
 		uint32_t* dst32 = (uint32_t*)dst128;
-		for (; i < line_pixels; i += 4) {
+		for (; i < line_pixels4; i += 4) {
 			uint32_t sa = *src32++;
 			uint32_t sb = *src32++;
 			uint32_t sc = *src32++;
@@ -448,6 +474,18 @@ void CopyRGB24_SSSE3(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* sr
 			*dst32++ = sc >> 8;
 		}
 
+		if (i < line_pixels) {
+			if (line_pixels & 1) {
+				*dst32 = *src32;
+			} else {
+				uint32_t sa = *src32++;
+				uint32_t sb = *src32;
+
+				*dst32++ = sa;
+				*dst32 = (sa >> 24) | (sb << 8);
+			}
+		}
+
 		src += src_pitch;
 		dst += dst_pitch;
 	}
@@ -455,12 +493,13 @@ void CopyRGB24_SSSE3(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* sr
 
 void CopyFrameRGB48(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src, int src_pitch)
 {
-	UINT line_pixels = abs(src_pitch) / 6;
+	UINT line_pixels  = abs(src_pitch) / 6;
+	UINT line_pixels4 = line_pixels & ~(4u - 1);
 
 	for (UINT y = 0; y < lines; ++y) {
 		uint64_t* src64 = (uint64_t*)src;
 		uint64_t* dst64 = (uint64_t*)dst;
-		for (UINT i = 0; i < line_pixels; i += 4) {
+		for (UINT i = 0; i < line_pixels4; i += 4) {
 			uint64_t sa = src64[0];
 			uint64_t sb = src64[1];
 			uint64_t sc = src64[2];
@@ -480,13 +519,15 @@ void CopyFrameRGB48(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src
 
 void CopyRGB48_SSSE3(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src, int src_pitch)
 {
-	UINT line_pixels = abs(src_pitch) / 6;
+	UINT line_pixels  = abs(src_pitch) / 6;
+	UINT line_pixels8 = line_pixels & ~(8u - 1);
+
 	__m128i mask = _mm_setr_epi8(0, 1, 2, 3, 4, 5, -1, -1, 6, 7, 8, 9, 10, 11, -1, -1);
 
 	for (UINT y = 0; y < lines; ++y) {
 		__m128i *src128 = (__m128i*)src;
 		__m128i *dst128 = (__m128i*)dst;
-		for (UINT i = 0; i < line_pixels; i += 8) {
+		for (UINT i = 0; i < line_pixels8; i += 8) {
 			__m128i sa = _mm_load_si128(src128);
 			__m128i sb = _mm_load_si128(src128 + 1);
 			__m128i sc = _mm_load_si128(src128 + 2);
@@ -511,12 +552,15 @@ void CopyRGB48_SSSE3(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* sr
 
 void CopyFrameBGR48(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src, int src_pitch)
 {
-	UINT line_pixels = abs(src_pitch) / 6;
+	UINT line_pixels  = abs(src_pitch) / 6;
+	UINT line_pixels4 = line_pixels & ~(4u - 1);
 
 	for (UINT y = 0; y < lines; ++y) {
 		uint64_t* src64 = (uint64_t*)src;
 		uint64_t* dst64 = (uint64_t*)dst;
-		for (UINT i = 0; i < line_pixels; i += 4) {
+
+		UINT i = 0;
+		for (; i < line_pixels4; i += 4) {
 			uint64_t sa = *src64++;
 			uint64_t sb = *src64++;
 			uint64_t sc = *src64++;
@@ -525,6 +569,22 @@ void CopyFrameBGR48(const UINT lines, BYTE* dst, UINT dst_pitch, const BYTE* src
 			*dst64++ = ((sa & 0xffff000000000000) >> 16) | ((sb & 0xffff) << 16) | ((sb & 0xffff0000) >> 16);
 			*dst64++ = (sb & 0xffff00000000) | ((sb & 0xffff000000000000) >> 32) | (sc & 0xffff);
 			*dst64++ = ((sc & 0xffff0000) << 16) | ((sc & 0xffff00000000) >> 16) | ((sc & 0xffff000000000000) >> 48);
+		}
+
+		if (UINT remainder = line_pixels - i) {
+			uint64_t sa = *src64++;
+			*dst64++ = ((sa & 0xffff) << 32) | (sa & 0xffff0000) | ((sa & 0xffff00000000) >> 32);
+
+			if (remainder==2) {
+				uint64_t sb = *(uint32_t*)src64;
+				*dst64 = ((sa & 0xffff000000000000) >> 16) | ((sb & 0xffff) << 16) | ((sb & 0xffff0000) >> 16);
+			}
+			else if (remainder == 3) {
+				uint64_t sb = *src64++;
+				uint64_t sc = *(uint32_t*)src64;
+				*dst64++ = ((sa & 0xffff000000000000) >> 16) | ((sb & 0xffff) << 16) | ((sb & 0xffff0000) >> 16);
+				*dst64 = (sb & 0xffff00000000) | ((sb & 0xffff000000000000) >> 32) | (sc & 0xffff);
+			}
 		}
 
 		src += src_pitch;
