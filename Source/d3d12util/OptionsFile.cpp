@@ -45,6 +45,7 @@ void CScalerOption::AddFloat(const char* name, std::string value)
 
 CD3D12Options::CD3D12Options()
 {
+
   //switch to _dupenv_s
   m_pFilePath = getenv("APPDATA");
   

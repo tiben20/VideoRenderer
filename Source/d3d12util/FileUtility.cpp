@@ -108,6 +108,24 @@ namespace Utility
     return true;
   }
 
+  bool ReadTextFile(const char* fileName, std::string& result) {
+    FILE* hFile;
+    if (fopen_s(&hFile, fileName, "rt") || !hFile) {
+      return false;
+    }
+    int fd = _fileno(hFile);
+    long size = _filelength(fd);
+
+    result.clear();
+    result.resize(static_cast<size_t>(size) + 1, 0);
+
+    size_t readed = fread(result.data(), 1, size, hFile);
+    result.resize(readed);
+
+    fclose(hFile);
+    return true;
+  }
+
   bool ReadTextFile(const wchar_t* fileName, std::string& result) {
     FILE* hFile;
     if (_wfopen_s(&hFile, fileName, L"rt") || !hFile) {

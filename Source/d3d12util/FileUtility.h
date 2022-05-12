@@ -43,6 +43,7 @@ namespace Utility
     // Same as previous except that it does not block but instead returns a task.
     task<ByteArray> ReadFileAsync(const wstring& fileName);
 
+    bool ReadTextFile(const char* fileName, std::string& result);
     bool ReadTextFile(const wchar_t* fileName, std::string& result);
     
     struct HandleCloser { void operator()(HANDLE h) noexcept { assert(h != INVALID_HANDLE_VALUE); if (h) CloseHandle(h); } };

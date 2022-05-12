@@ -64,12 +64,12 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{46c9a068-7c3a-47a9-ab5b-0fb4cd561ab9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Settings">
+      <UniqueIdentifier>{20bf13a7-7b1e-454a-9516-7c95bdcbd33e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VideoRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CustomAllocator.cpp">
@@ -221,6 +221,12 @@
     </ClCompile>
     <ClCompile Include="d3d12util\Texture.cpp">
       <Filter>Source Files\d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="PropPage.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="d3d12util\Settings.cpp">
+      <Filter>Header Files\Settings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -392,9 +398,6 @@
     <ClInclude Include="d3d12util\FileUtility.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="d3d12util\OptionsFile.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="d3d12util\Utility.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
@@ -403,6 +406,12 @@
     </ClInclude>
     <ClInclude Include="d3d12util\Hash.h">
       <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\OptionsFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d3d12util\Settings.h">
+      <Filter>Header Files\Settings</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

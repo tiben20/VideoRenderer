@@ -38,13 +38,14 @@ namespace D3D12Engine
 	//using namespace ImageScaling;
 
 	ID3D12Device* g_Device = nullptr;
-	CD3D12Options* g_Options;
+	CD3D12Options* g_Options = nullptr;
 	CommandListManager g_CommandManager;
 	ContextManager g_ContextManager;
 	CD3D12DynamicScaler* m_pCurrentUpScaler = nullptr;
 	CD3D12DynamicScaler* m_pCurrentDownScaler = nullptr;
 	CD3D12DynamicScaler* m_pCurrentChromaScaler = nullptr;
 	CD3D12DynamicScaler* m_pCurrentImageDoubler = nullptr;
+	
 	std::vector<CD3D12DynamicScaler*> m_pCurrentPostScalers;
 	RootSignature g_RootScalers;
 	HWND g_hWnd = nullptr;
@@ -386,7 +387,7 @@ namespace D3D12Engine
 			//the handlehdrtoggle is not writen yet
 #if TODO
 			auto ret = HandleHDRToggle();
-			if (!ret && (m_bHdrPassthrough && m_bHdrPassthroughSupport && SourceIsHDR() && !m_pDXGISwapChain4)) 
+			if (!ret && (GetSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_PASSTHROUGH) && m_bHdrPassthroughSupport && SourceIsHDR() && !m_pDXGISwapChain4)) 
 				ret = true;
 			if (ret) {
 				//ReleaseSwapChain();

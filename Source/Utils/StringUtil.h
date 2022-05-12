@@ -117,6 +117,53 @@ inline const std::wstring A2WStr(const std::string_view& sv)
 	return std::wstring(sv.begin(), sv.end());
 }
 
+inline bool isBool(std::string str, bool* res)
+{
+	if (str._Equal("true")) {
+		*res = (bool)true;
+		return true;
+	}
+	if (str._Equal("false")) {
+		*res = (bool)false;
+		return true;
+	}
+  return false;
+
+}
+
+inline bool isDouble(std::string str,double *res)
+{
+	try {
+		*res = (double)stod(str);
+		return true;
+	}
+	catch (...) {
+		return false;
+	}
+}
+
+inline bool isFloat(std::string str, float *res)
+{
+	try {
+		*res = (float)stof(str);
+		return true;
+	}
+	catch (...) {
+		return false;
+	}
+}
+
+inline bool isInt(std::string str, int *res)
+{
+	try {
+		*res = (int)stoi(str);
+		return true;
+	}
+	catch (...) {
+		return false;
+	}
+}
+
 //
 // converting strings of different formats
 //

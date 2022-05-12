@@ -82,7 +82,7 @@ private:
 	std::vector<GraphLine>            m_Lines;
 
 public:
-	CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
+	CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, HRESULT& hr);
 	~CDX12VideoProcessor() override;
 
 //CVideoProcessor
@@ -106,11 +106,11 @@ public:
 		m_srcPitch = m_srcWidth * m_srcParams.Packsize;
 		m_srcLines = m_srcHeight * m_srcParams.PitchCoeff / 2;
 	}
-	
 private:
 	void ReleaseDevice();
 	void ReleaseVP();
 	bool HandleHDRToggle();
+	
 	//TODO
 	struct HDRMetadata {
 		DXGI_HDR_METADATA_HDR10 hdr10 = {};

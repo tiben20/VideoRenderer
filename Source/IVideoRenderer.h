@@ -22,25 +22,6 @@
 
 #include <dxva2api.h>
 
-enum :int {
-	TEXFMT_AUTOINT = 0,
-	TEXFMT_8INT = 8,
-	TEXFMT_10INT = 10,
-	TEXFMT_16FLOAT = 16,
-};
-
-enum :int {
-	SWAPEFFECT_Discard = 0,
-	SWAPEFFECT_Flip,
-	SWAPEFFECT_COUNT
-};
-
-enum :int {
-	HDRTD_Off = 0,
-	HDRTD_Fullscreen = 1,
-	HDRTD_Always = 2
-};
-
 struct D3D12Settings_t {
 	bool bUseD3D12;
 	bool bForceD3D12;
@@ -78,23 +59,17 @@ struct Settings_t {
 		}
 		bShowStats                      = false;
 		iResizeStats                    = 0;
-		iTexFormat                      = TEXFMT_AUTOINT;
+		
 
 
 		bDeintDouble                    = true;
 		bInterpolateAt50pct             = true;
 		bUseDither                      = true;
-		iSwapEffect                     = SWAPEFFECT_Discard;
+		
 		bExclusiveFS                    = false;
 		bVBlankBeforePresent            = false;
 		bReinitByDisplay                = false;
-		if (IsWindows10OrGreater()) {
-			bHdrPassthrough             = true;
-			iHdrToggleDisplay           = HDRTD_Always;
-		} else {
-			bHdrPassthrough             = false;
-			iHdrToggleDisplay           = HDRTD_Off;
-		}
+
 		bConvertToSdr                   = true;
 		D3D12Settings.bForceD3D12 = false;
 		D3D12Settings.bLAVUseD3D12 = false;
@@ -106,8 +81,8 @@ IVideoRenderer : public IUnknown {
 	STDMETHOD(GetVideoProcessorInfo) (std::wstring& str) PURE;
 	STDMETHOD_(bool, GetActive()) PURE;
 
-	STDMETHOD_(void, GetSettings(Settings_t& setings)) PURE;
-	STDMETHOD_(void, SetSettings(const Settings_t& setings)) PURE;
+	//STDMETHOD_(void, GetSettings(Settings_t& setings)) PURE;
+	//STDMETHOD_(void, SetSettings(const Settings_t& setings)) PURE;
 
 	STDMETHOD(SaveSettings()) PURE;
 };

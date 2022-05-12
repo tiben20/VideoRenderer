@@ -41,17 +41,17 @@ protected:
 	CTBD12VideoRenderer* m_pFilter = nullptr;
 
 	// Settings
-	bool m_bShowStats                      = false;
+	CSettings* m_pSettings = nullptr;
+	//bool m_bShowStats                      = false;
 	int  m_iResizeStats                    = 0;
-	int  m_iTexFormat                      = TEXFMT_AUTOINT;
-	bool m_bDeintDouble                    = true;
+	
 	bool m_bInterpolateAt50pct             = true;
-	bool m_bUseDither                      = true;
-	int  m_iSwapEffect                     = SWAPEFFECT_Discard;
-	bool m_bVBlankBeforePresent            = false;
-	bool m_bHdrPassthrough                 = true;
-	int  m_iHdrToggleDisplay               = HDRTD_Always;
-	bool m_bConvertToSdr                   = true;
+	
+	
+	
+	
+	
+	
 
 	bool m_bVPScalingUseShaders = false;
 
@@ -166,7 +166,8 @@ public:
 	HRESULT GetAspectRatio(long *plAspectX, long *plAspectY);
 
 	// Settings
-	void SetShowStats(bool value) { m_bShowStats   = value; }
+	CSettings* GetInternalSettings();
+	void SetShowStats(bool value) { GetInternalSettings()->SetBool(CSettings::SETTING_RENDERER_SHOWSTATS, value);}
 	virtual void Configure(const Settings_t& config) = 0;
 
 	int GetRotation() { return m_iRotation; }

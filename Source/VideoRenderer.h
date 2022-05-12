@@ -85,7 +85,7 @@ private:
 	friend class CDX12VideoProcessor;
 
 	// Options
-	Settings_t m_Sets;
+	//Settings_t m_Sets;
 
 	FILTER_STATE m_filterState = State_Stopped;
 	bool m_bFlushing = false;
@@ -248,9 +248,6 @@ public:
 	// IVideoRenderer
 	STDMETHODIMP GetVideoProcessorInfo(std::wstring& str);
 	STDMETHODIMP_(bool) GetActive();
-
-	STDMETHODIMP_(void) GetSettings(Settings_t& setings);
-	STDMETHODIMP_(void) SetSettings(const Settings_t& setings);
 
 	STDMETHODIMP SaveSettings();
 

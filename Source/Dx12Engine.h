@@ -34,7 +34,9 @@
 #include "commandcontext.h"
 #include "dxgi.h"
 #include "OptionsFile.h"
+#include "D3D12Util/Settings.h"
 #include "D3D12Util/Scaler.h"
+
 class CommandListManager;
 class DescriptorAllocator;
 class ContextManager;
@@ -115,8 +117,4 @@ namespace D3D12Engine
 
 	/* Swapchain */
 	extern HWND g_hWnd;
-
-	void InitializeRenderingBuffers(uint32_t NativeWidth, uint32_t NativeHeight);
-
-	void DestroyRenderingBuffers();
 }

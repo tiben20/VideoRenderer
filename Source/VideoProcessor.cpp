@@ -26,6 +26,14 @@
 
 #include "VideoProcessor.h"
 
+CSettings* CVideoProcessor::GetInternalSettings()
+{
+	//will be called if renderer not open
+	if (!m_pSettings)
+		m_pSettings = new CSettings();
+	return m_pSettings;
+}
+
 HRESULT CVideoProcessor::GetVideoSize(long *pWidth, long *pHeight)
 {
 	CheckPointer(pWidth, E_POINTER);

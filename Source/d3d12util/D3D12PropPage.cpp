@@ -222,7 +222,7 @@ HRESULT CD3D12SettingsPPage::OnActivate()
 	rctlist.right = 200;
 	rctlist.bottom = 400;
 
-	m_pVideoRenderer->GetSettings(m_SetsPP);
+	//m_pVideoRenderer->GetSettings(m_SetsPP);
 
 	if (!D3D12Engine::g_Options)
 		D3D12Engine::g_Options = new CD3D12Options();
@@ -787,7 +787,7 @@ HRESULT CD3D12SettingsPPage::OnApplyChanges()
 	}
 	D3D12Engine::g_Options->SaveCurrentSettings();
 	
-	m_pVideoRenderer->SetSettings(m_SetsPP);
+	//m_pVideoRenderer->SetSettings(m_SetsPP);
 	m_pVideoRenderer->SaveSettings();
 	
 	return S_OK;

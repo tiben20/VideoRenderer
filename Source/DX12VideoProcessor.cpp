@@ -141,24 +141,10 @@ static const wchar_t* s_DownscalingName[7] = {
 
 using namespace D3D12Engine;
 
-CDX12VideoProcessor::CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
+CDX12VideoProcessor::CDX12VideoProcessor(CTBD12VideoRenderer* pFilter, HRESULT& hr)
   : CVideoProcessor(pFilter)
 {
-	
-	
-	m_bShowStats = config.bShowStats;
-	m_iResizeStats = config.iResizeStats;
-	m_iTexFormat = config.iTexFormat;
-	m_bDeintDouble = config.bDeintDouble;
-	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
-	m_bUseDither = config.bUseDither;
-	m_iSwapEffect = config.iSwapEffect;
-	m_bVBlankBeforePresent = config.bVBlankBeforePresent;
-	m_bHdrPassthrough = config.bHdrPassthrough;
-	m_iHdrToggleDisplay = config.iHdrToggleDisplay;
-	m_bConvertToSdr = config.bConvertToSdr;
-	
-
+	m_pSettings = new CSettings();
 	m_nCurrentAdapter = -1;
 	m_pDisplayMode = &m_DisplayMode;
 	if (FAILED(D3D12Engine::InitDXGIFactory()))
@@ -409,7 +395,8 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 					else {
 						m_SampleFormat = D3D12_VIDEO_FIELD_TYPE_INTERLACED_BOTTOM_FIELD_FIRST; // Bottom-field first
 					}
-					m_bDoubleFrames = m_bDeintDouble;
+					
+					m_bDoubleFrames = GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_DOUBLERATE);
 				}
 			}
 		}
@@ -420,7 +407,7 @@ HRESULT CDX12VideoProcessor::CopySample(IMediaSample* pSample)
 	bool updateStats = false;
 
 	m_hdr10 = {};
-	if (m_bHdrPassthrough && SourceIsHDR()) {
+	if (GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_PASSTHROUGH) && SourceIsHDR()) {
 		if (CComQIPtr<IMediaSideData> pMediaSideData = pSample) {
 			MediaSideDataHDR* hdr = nullptr;
 			size_t size = 0;
@@ -897,12 +884,12 @@ BOOL CDX12VideoProcessor::InitMediaType(const CMediaType* pmt)
 				|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_709
 				|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_240M;
 
-			if (m_srcExFmt.VideoTransferFunction == VIDEOTRANSFUNC_2084 && !(m_bHdrPassthroughSupport && m_bHdrPassthrough) && m_bConvertToSdr) {
+			if (m_srcExFmt.VideoTransferFunction == VIDEOTRANSFUNC_2084 && !(m_bHdrPassthroughSupport && GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_PASSTHROUGH)) && m_bConvertToSdr) {
 				EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_CONVERT_PQ_TO_SDR));
 				m_strCorrection = L"PQ to SDR";
 			}
 			else if (m_srcExFmt.VideoTransferFunction == VIDEOTRANSFUNC_HLG) {
-				if (m_bHdrPassthroughSupport && m_bHdrPassthrough) {
+				if (m_bHdrPassthroughSupport && GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_PASSTHROUGH)) {
 					EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, IDF_PSH11_CONVERT_HLG_TO_PQ));
 					m_strCorrection = L"HLG to PQ";
 				}
@@ -1021,6 +1008,8 @@ HRESULT CDX12VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 	return S_OK;
 }
 
+
+
 void CDX12VideoProcessor::Configure(const Settings_t& config)
 {
 	bool reloadPipeline = false;
@@ -1041,10 +1030,11 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 	
 	
 	// settings that do not require preparation
-	m_bShowStats = config.bShowStats;
-	m_bDeintDouble = config.bDeintDouble;
+	GetInternalSettings()->SetBool(CSettings::SETTING_RENDERER_SHOWSTATS, config.bShowStats);
+	//m_bShowStats = config.bShowStats;
+	
 	m_bInterpolateAt50pct = config.bInterpolateAt50pct;
-	m_bVBlankBeforePresent = config.bVBlankBeforePresent;
+	
 
 	// checking what needs to be changed
 
@@ -1053,61 +1043,21 @@ void CDX12VideoProcessor::Configure(const Settings_t& config)
 		changeResizeStats = true;
 	}
 
-	if (config.iTexFormat != m_iTexFormat) {
-		m_iTexFormat = config.iTexFormat;
-		changeTextures = true;
-	}
-
-	if (config.bUseDither != m_bUseDither) {
-		m_bUseDither = config.bUseDither;
-		changeNumTextures = D3D12Engine::GetInternalFormat() != DXGI_FORMAT_B8G8R8A8_UNORM;
-	}
-
-	if (config.iSwapEffect != m_iSwapEffect) {
-		m_iSwapEffect = config.iSwapEffect;
-		changeWindow = !m_pFilter->m_bIsFullscreen;
-	}
-
-	if (config.bHdrPassthrough != m_bHdrPassthrough) {
-		m_bHdrPassthrough = config.bHdrPassthrough;
-		changeHDR = true;
-	}
-
-	if (config.iHdrToggleDisplay != m_iHdrToggleDisplay) {
-		if (config.iHdrToggleDisplay == HDRTD_Off || m_iHdrToggleDisplay == HDRTD_Off) {
-			changeHDR = true;
-		}
-		m_iHdrToggleDisplay = config.iHdrToggleDisplay;
-	}
-#ifdef TODO
-	if (config.bConvertToSdr != m_bConvertToSdr) {
-		m_bConvertToSdr = config.bConvertToSdr;
-		if (SourceIsHDR()) {
-			if (m_D3D11VP.IsReady()) {
-				changeNumTextures = true;
-				changeVP = true; // temporary solution
-			}
-			else {
-				changeConvertShader = true;
-			}
-		}
-	}
-#endif
 	// apply new settings
 
 	if (changeWindow) {
 		ReleaseSwapChain();
 		EXECUTE_ASSERT(S_OK == m_pFilter->Init(true));
 
-		if (changeHDR && (SourceIsHDR()) || m_iHdrToggleDisplay) {
+		if (changeHDR && (SourceIsHDR()) || GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_TOGGLEDISPLAY)) {
 			InitMediaType(&m_pFilter->m_inputMT);
 		}
 		return;
 	}
 
 	if (changeHDR) {
-		if (SourceIsHDR() || m_iHdrToggleDisplay) {
-			if (m_iSwapEffect == SWAPEFFECT_Discard) {
+		if (SourceIsHDR() || GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_TOGGLEDISPLAY)) {
+			if (GetInternalSettings()->GetInt(CSettings::SETTING_RENDERER_SWAPEFFECT) == CSettings::RENDERER_SWAPMETHOD_DISCARD) {
 				ReleaseSwapChain();
 				m_pFilter->Init(true);
 			}
@@ -1351,7 +1301,7 @@ void CDX12VideoProcessor::DrawStats(GraphicsContext& Context, float x, float y, 
 	if (m_windowRect.IsRectEmpty())
 		return;
 
-	if (!m_bShowStats)
+	if (GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_SHOWSTATS) == false)
 	{
 		return;
 	}
@@ -1569,7 +1519,8 @@ HRESULT CDX12VideoProcessor::Render(int field)
 	pVideoContext.TransitionResource(D3D12Engine::GetCurrentBackBuffer(), D3D12_RESOURCE_STATE_PRESENT);
 	pVideoContext.Finish();
 	
-	if (m_bVBlankBeforePresent)
+	bool resblank = GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_WAITVBLANK);
+	if (resblank)
 		D3D12Engine::WaitForVBlank();
 
 	g_bPresent12 = true;
@@ -1692,13 +1643,13 @@ void CDX12VideoProcessor::UpdateStatsStatic()
 
 		if (SourceIsHDR()) {
 			m_strStatsHDR.assign(L"\nHDR processing: ");
-			if (D3D12Engine::HdrPassthroughSupport() && m_bHdrPassthrough) {
+			if (D3D12Engine::HdrPassthroughSupport() && GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_HDR_PASSTHROUGH)) {
 				m_strStatsHDR.append(L"Passthrough");
 				if (m_lastHdr10.bValid) {
 					m_strStatsHDR += fmt::format(L", {} nits", m_lastHdr10.hdr10.MaxMasteringLuminance / 10000);
 				}
 			}
-			else if (m_bConvertToSdr) {
+			else if (GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_CONVERTTOSDR)) {
 				m_strStatsHDR.append(L"Convert to SDR");
 			}
 			else {

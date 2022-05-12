@@ -126,22 +126,8 @@ CTBD12VideoRenderer::CTBD12VideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	m_pTrayIcon = new CBaseTrayIcon(this, L"TBD12 Video Renderer", IDI_ICON1);
 	// read settings
 
-	CRegKey key;
-	
-	
-
-	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER, KEY_READ)) {
-		DWORD dw;
-	//TODO
-	}
-
-	if (!IsWindows10OrGreater()) {
-		m_Sets.bHdrPassthrough = false;
-		m_Sets.iHdrToggleDisplay = HDRTD_Off;
-	}
-
 	HRESULT hr = S_FALSE;
-	m_VideoProcessor = new CDX12VideoProcessor(this, m_Sets, hr);
+	m_VideoProcessor = new CDX12VideoProcessor(this, hr);
 	if (SUCCEEDED(hr)) {
 		hr = m_VideoProcessor->Init(m_hWnd);
 	}
@@ -496,16 +482,11 @@ void CTBD12VideoRenderer::OnWindowMove()
 		const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 		if (hMon != m_hMon) {
 			//in d3d12 you dont need display reset
-			if (m_Sets.bReinitByDisplay && !(m_VideoProcessor->Type() == VP_DX12)) {
+			/*if (m_Sets.bReinitByDisplay && !(m_VideoProcessor->Type() == VP_DX12)) {
 				CAutoLock cRendererLock(&m_RendererLock);
 
 				Init(true);
-			}
-			else if (m_VideoProcessor->Type() == VP_DX11) {
-				CAutoLock cRendererLock(&m_RendererLock);
-
-				m_VideoProcessor->Reset();
-			}
+			}*/
 
 			m_hMon = hMon;
 			UpdateDisplayInfo();
@@ -975,8 +956,9 @@ STDMETHODIMP CTBD12VideoRenderer::SetWindowPosition(long Left, long Top, long Wi
 	m_windowRect = windowRect;
 
 	CAutoLock cRendererLock(&m_RendererLock);
-
-	if (!m_bIsD3DFullscreen && (m_Sets.bExclusiveFS || m_bIsFullscreen)) {
+	//in d3d12 there no such things as exclusive fullscreen it was replaced with full-screen optimisations
+#ifdef TODO
+	if (!m_bIsD3DFullscreen && (GetSettings()->GetBool(CSettings::SETTING_RENDERER_EXCLUSIVEFULLSCREEN) || m_bIsFullscreen)) {
 		const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 		MONITORINFO mi = { mi.cbSize = sizeof(mi) };
 		::GetMonitorInfoW(hMon, &mi);
@@ -998,7 +980,7 @@ STDMETHODIMP CTBD12VideoRenderer::SetWindowPosition(long Left, long Top, long Wi
 			}
 		}
 	}
-
+#endif
 	if (m_hWndWindow && !m_bIsFullscreen) {
 		SetWindowPos(m_hWndWindow, nullptr, Left, Top, Width, Height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW);
 		if (Left < 0) {
@@ -1054,28 +1036,6 @@ STDMETHODIMP_(bool) CTBD12VideoRenderer::GetActive()
 	return m_pInputPin && m_pInputPin->GetConnected();
 }
 
-STDMETHODIMP_(void) CTBD12VideoRenderer::GetSettings(Settings_t& setings)
-{
-	setings = m_Sets;
-}
-
-STDMETHODIMP_(void) CTBD12VideoRenderer::SetSettings(const Settings_t& setings)
-{
-	CAutoLock cRendererLock(&m_RendererLock);
-
-	m_Sets = setings;
-	m_VideoProcessor->Configure(m_Sets);
-
-	if (m_State == State_Paused) {
-		if (!m_bValidBuffer && m_pMediaSample) {
-			m_bInReceive = FALSE;
-
-			DoRenderSample(m_pMediaSample);
-		}
-		Redraw();
-	}
-}
-
 STDMETHODIMP CTBD12VideoRenderer::SaveSettings()
 {
 	CRegKey key;
@@ -1102,7 +1062,8 @@ STDMETHODIMP CTBD12VideoRenderer::GetBool(LPCSTR field, bool* value)
 	CheckPointer(value, E_POINTER);
 
 	if (!strcmp(field, "statsEnable")) {
-		*value = m_Sets.bShowStats;
+		
+		*value = m_VideoProcessor->GetInternalSettings()->GetBool(CSettings::SETTING_RENDERER_SHOWSTATS);
 		return S_OK;
 	}
 
@@ -1194,8 +1155,9 @@ STDMETHODIMP CTBD12VideoRenderer::SetBool(LPCSTR field, bool value)
 	}
 
 	if (!strcmp(field, "statsEnable")) {
-		m_Sets.bShowStats = value;
-		m_VideoProcessor->SetShowStats(m_Sets.bShowStats);
+		m_VideoProcessor->GetInternalSettings()->SetBool(CSettings::SETTING_RENDERER_SHOWSTATS, value);
+		//Don't need to do it twice
+		//m_VideoProcessor->SetShowStats(m_Sets.bShowStats);
 
 		SaveSettings();
 		if (m_filterState != State_Running) {

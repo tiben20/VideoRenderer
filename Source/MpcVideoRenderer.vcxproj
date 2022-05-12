@@ -47,6 +47,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)Source\d3d12util;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)_bin\lib\$(Configuration)_$(PlatformShortName)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)Source\d3d12util;$(IncludePath)</IncludePath>
@@ -56,8 +57,7 @@
       <ModuleDefinitionFile>MpcVideoRenderer.def</ModuleDefinitionFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <DelayLoadDLLs>dxgi.dll;d3d11.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>..\update_revision.cmd</Command>
@@ -91,6 +91,7 @@
     <ClCompile Include="d3d12util\RootSignature.cpp" />
     <ClCompile Include="d3d12util\SamplerManager.cpp" />
     <ClCompile Include="d3d12util\Scaler.cpp" />
+    <ClCompile Include="d3d12util\Settings.cpp" />
     <ClCompile Include="d3d12util\ShadersCache.cpp" />
     <ClCompile Include="d3d12util\ShadersLoader.cpp" />
     <ClCompile Include="d3d12util\TextRenderer.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="d3d12util\RootSignature.h" />
     <ClInclude Include="d3d12util\SamplerManager.h" />
     <ClInclude Include="d3d12util\Scaler.h" />
+    <ClInclude Include="d3d12util\Settings.h" />
     <ClInclude Include="d3d12util\ShadersCache.h" />
     <ClInclude Include="d3d12util\ShadersLoader.h" />
     <ClInclude Include="d3d12util\TextRenderer.h" />

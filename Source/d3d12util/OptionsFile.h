@@ -29,7 +29,7 @@
 #include "ppltasks.h"
 #include <map>
 #include "Utility.h"
-
+#include "../external/tinyxml2/tinyxml2.h"
 
 
 class CScalerOption
