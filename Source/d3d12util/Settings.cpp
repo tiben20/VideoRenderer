@@ -47,6 +47,70 @@ CSettings& CSettings::GetInstance()
 bool CSettings::Initialize()
 {
   CAutoLock Lock(&m_critical);
+  
+  if (m_initialized)
+    return false;
+  m_pSettingsPath = getenv("APPDATA");
+  m_pSettingsPath.append("\\TBD12\\settings.xml");
+
+  if (!std::filesystem::exists(m_pSettingsPath.c_str()))
+  {
+    CreateSettingsFile();
+    DLog(L"creating file for settings");
+    //Already initialized dont need to load
+    return true;
+  }
+  return Load();
+}
+
+
+bool CSettings::Save()
+{
+  tinyxml2::XMLDocument* xmldoc;
+  xmldoc = new tinyxml2::XMLDocument();
+  
+  tinyxml2::XMLElement* root;
+  root = xmldoc->NewElement("settings");
+  
+  //root->SetValue("settings");
+  
+  tinyxml2::XMLElement* curelement;
+  for (SettingsIterator = m_pSettingsMap.begin(); SettingsIterator != m_pSettingsMap.end(); SettingsIterator++) {
+    curelement = xmldoc->NewElement("setting");
+    //curelement->SetValue("setting");
+    
+    curelement->SetAttribute("id", SettingsIterator->first.c_str());
+    if (SettingsIterator->second.index() == 0) {
+      //int
+      curelement->SetText(std::get<int>(SettingsIterator->second));
+    }
+    else if (SettingsIterator->second.index() == 1) {
+    //bool
+      curelement->SetText(std::get<bool>(SettingsIterator->second));
+    }
+    else if (SettingsIterator->second.index() == 2) {
+    //double
+      curelement->SetText(std::get<double>(SettingsIterator->second));
+    }
+    else if (SettingsIterator->second.index() == 3) {
+    //string
+      curelement->SetText(std::get<std::string>(SettingsIterator->second).c_str());
+    }
+    root->InsertEndChild(curelement);
+    //root->InsertFirstChild(curelement);
+  
+  
+  }
+  xmldoc->InsertFirstChild(root);
+  //curelement->SetAttribute("id", )
+
+  xmldoc->SaveFile(m_pSettingsPath.c_str());
+
+  return true;
+}
+
+bool CSettings::Load()
+{
   std::string settingstext;
   tinyxml2::XMLDocument* xmldoc;
   std::string attrvalue;
@@ -58,19 +122,9 @@ bool CSettings::Initialize()
   bool bvalue = false;
   double dvalue = 0.0;
   std::string svalue = "";
-  
+
   xmldoc = new tinyxml2::XMLDocument();
   XMLError res;
-  if (m_initialized)
-    return false;
-  m_pSettingsPath = getenv("APPDATA");
-  m_pSettingsPath.append("\\TBD12\\settings.xml");
-  if (!std::filesystem::exists(m_pSettingsPath.c_str()))
-  {
-    CreateSettingsFile();
-    DLog(L"creating file for settings");
-
-  }
   if (Utility::ReadTextFile(m_pSettingsPath.c_str(), settingstext))
   {
     res = xmldoc->Parse(settingstext.c_str());
@@ -81,24 +135,24 @@ bool CSettings::Initialize()
       if (attrvalue._Equal("settings"))
       {
         xmlelement = root->FirstChildElement();
-        anotherone:
+      anotherone:
         xmlattr = xmlelement->FindAttribute("id");
         strSettingId = xmlattr->Value();
         strSettingValue = xmlelement->GetText();
         str_tolower(strSettingId);
         str_tolower(strSettingValue);
-        
+
         if (isBool(strSettingValue, &bvalue))
         {
           m_pSettingsMap.insert({ strSettingId,bvalue });
           goto nextsetting;
         }
-        if (isInt(strSettingValue,&ivalue))
+        if (isInt(strSettingValue, &ivalue))
         {
           m_pSettingsMap.insert({ strSettingId,ivalue });
           goto nextsetting;
         }
-        if (isDouble(strSettingValue,&dvalue))
+        if (isDouble(strSettingValue, &dvalue))
         {
           m_pSettingsMap.insert({ strSettingId,dvalue });
           goto nextsetting;
@@ -108,51 +162,40 @@ bool CSettings::Initialize()
         xmlelement = xmlelement->NextSiblingElement();
         if (xmlelement)
           goto anotherone;
-      
+
       }
 
 
     }
 
   }
-  
-  
-  return false;
+  else
+  {
+    DLog(L"error loading reintialising and saving");
+    SetDefault();
+    return Save();
+  }
+  return true;
 }
 
-bool CSettings::Load()
+void CSettings::SetDefault()
 {
-  return false;
-}
+  SetBool(SETTING_RENDERER_DOUBLERATE, false);
+  SetString(SETTING_RENDERER_UPSCALER,"bicubic");
+  SetString(SETTING_RENDERER_DOWNSCALER, "bicubic");
+  SetString(SETTING_RENDERER_CHROMAUPSAMPLER, "bicubic");
+  SetInt(SETTING_RENDERER_SWAPEFFECT, RENDERER_SWAPMETHOD_FLIP);
+  SetBool(SETTING_RENDERER_EXCLUSIVEFULLSCREEN, false);
+  SetBool(SETTING_RENDERER_WAITVBLANK, true);
+  SetBool(SETTING_RENDERER_SHOWSTATS, false);
+  SetBool(SETTING_RENDERER_USEDITHER, false);
+  SetBool(SETTING_RENDERER_HDR_PASSTHROUGH, false);
+  SetBool(SETTING_RENDERER_HDR_TOGGLEDISPLAY, false);
+  SetBool(SETTING_RENDERER_CONVERTTOSDR, false);
+  SetInt(SETTING_RENDERER_TEXTURE_FORMAT, RENDERER_TEXFMT_AUTOINT);
+  SetBool(SETTING_RENDERER_RESIZESTATS, false);
+  SetBool(SETTING_RENDERER_INTERPORLATEAT50PCT, false);
 
-bool CSettings::Save()
-{
-  return false;
-}
-
-bool CSettings::Load(const std::string& file)
-{
-  return false;
-}
-
-bool CSettings::Load(const tinyxml2::XMLElement* root)
-{
-  return false;
-}
-
-bool CSettings::Save(const std::string& file)
-{
-  return false;
-}
-
-bool CSettings::Save(tinyxml2::XMLNode* root) const
-{
-  return false;
-}
-
-bool CSettings::LoadSetting(const tinyxml2::XMLNode* node, const std::string& settingId)
-{
-  return false;
 }
 
 bool CSettings::GetBool(const std::string& id) const
@@ -175,28 +218,41 @@ bool CSettings::GetBool(const std::string& id) const
 
 void CSettings::SetBool(const std::string& id, bool value)
 {
+  CAutoLock Lock(&m_critical);
   //std::map<std::string, std::variant<int, bool, double, std::string>>::const_iterator it;
   SettingsIterator = m_pSettingsMap.find(id);
   if (SettingsIterator == m_pSettingsMap.end())
   {
-    DLog(L"didn't find the settings");
     m_pSettingsMap.insert({id,value});
     return;
   }
   if ((*SettingsIterator).second.index() == 1) {
     (*SettingsIterator).second = value;
     return;
-    //std::get<bool>((*SettingsIterator).second) = value;
   }
   else
-  {
     DLog(L"settings is not a bool");
-  }
 }
 
 bool CSettings::ToggleBool(const std::string& id)
 {
-  return false;
+  CAutoLock Lock(&m_critical);
+  bool curvalue = false;
+  SettingsIterator = m_pSettingsMap.find(id);
+  if (SettingsIterator == m_pSettingsMap.end())
+  {
+    DLog(L"didn't find the settings toggle to true");
+    m_pSettingsMap.insert({ id,true });
+    return true;
+  }
+  if ((*SettingsIterator).second.index() == 1) {
+    curvalue = std::get<bool>((*SettingsIterator).second);
+    (*SettingsIterator).second = !curvalue;
+    return curvalue;
+  }
+  else
+    DLog(L"settings is not a bool");
+  return curvalue;
 }
 
 int CSettings::GetInt(const std::string& id) const
@@ -217,9 +273,21 @@ int CSettings::GetInt(const std::string& id) const
   }
 }
 
-bool CSettings::SetInt(const std::string& id, int value)
+void CSettings::SetInt(const std::string& id, int value)
 {
-  return false;
+  CAutoLock Lock(&m_critical);
+  SettingsIterator = m_pSettingsMap.find(id);
+  if (SettingsIterator == m_pSettingsMap.end())
+  {
+    m_pSettingsMap.insert({ id,value });
+    return;
+  }
+  if ((*SettingsIterator).second.index() == 0) {
+    (*SettingsIterator).second = value;
+    return;
+  }
+  else
+    DLog(L"settings is not a bool");
 }
 
 double CSettings::GetNumber(const std::string& id) const
@@ -240,9 +308,21 @@ double CSettings::GetNumber(const std::string& id) const
   }
 }
 
-bool CSettings::SetNumber(const std::string& id, double value)
+void CSettings::SetNumber(const std::string& id, double value)
 {
-  return false;
+  CAutoLock Lock(&m_critical);
+  SettingsIterator = m_pSettingsMap.find(id);
+  if (SettingsIterator == m_pSettingsMap.end())
+  {
+    m_pSettingsMap.insert({ id,value });
+    return;
+  }
+  if ((*SettingsIterator).second.index() == 2) {
+    (*SettingsIterator).second = value;
+    return;
+  }
+  else
+    DLog(L"settings is not a bool");
 }
 
 std::string CSettings::GetString(const std::string& id) const
@@ -259,13 +339,25 @@ std::string CSettings::GetString(const std::string& id) const
   else
   {
     DLog(L"settings is not a string");
-    return false;
+    return "";
   }
 }
 
-bool CSettings::SetString(const std::string& id, const std::string& value)
+void CSettings::SetString(const std::string& id, const std::string& value)
 {
-  return false;
+  CAutoLock Lock(&m_critical);
+  SettingsIterator = m_pSettingsMap.find(id);
+  if (SettingsIterator == m_pSettingsMap.end())
+  {
+    m_pSettingsMap.insert({ id,value });
+    return;
+  }
+  if ((*SettingsIterator).second.index() == 3) {
+    (*SettingsIterator).second = value;
+    return;
+  }
+  else
+    DLog(L"settings is not a bool");
 }
 
 bool CSettings::Load(const tinyxml2::XMLElement* root, bool& updated)
@@ -285,12 +377,14 @@ bool CSettings::Initialize(const std::string& file)
 
 bool CSettings::Reset()
 {
-  return false;
+  SetDefault();
+  return true;
 }
 
 
 
 bool CSettings::CreateSettingsFile()
 {
-  return false;
+  SetDefault();
+  return Save();
 }

@@ -67,11 +67,6 @@ public:
   static const int RENDERER_TEXFMT_10INT = 2;
   static const int RENDERER_TEXFMT_16FLOAT = 3;
 
-  // values for SETTING_VIDEOLIBRARY_ARTWORK_LEVEL
-  static const int RENDERER_HDRTD_OFF = 0;
-  static const int RENDERER_HDRTD_FULLSCREEN = 1;
-  static const int RENDERER_HDRTD_ALWAYS = 2;
-
   static CSettings& GetInstance();
 
   
@@ -81,45 +76,8 @@ public:
   bool Load();
   bool Save();
 
-  /*!
-   \brief Loads setting values from the given (XML) file.
-
-   \param file Path to an XML file containing setting values
-   \return True if the setting values were successfully loaded, false otherwise
-   */
-  bool Load(const std::string& file);
-  /*!
-  \brief Loads setting values from the given XML element.
-
-  \param root XML element containing setting values
-  \return True if the setting values were successfully loaded, false otherwise
-  */
-  bool Load(const tinyxml2::XMLElement* root);
- 
-  /*!
-   \brief Saves the setting values to the given (XML) file.
-
-   \param file Path to an XML file
-   \return True if the setting values were successfully saved, false otherwise
-   */
-  bool Save(const std::string& file);
-  /*!
-   \brief Saves the setting values to the given XML node.
-
-   \param root XML node
-   \return True if the setting values were successfully saved, false otherwise
-   */
-  bool Save(tinyxml2::XMLNode* root) const;
-
-  /*!
-   \brief Loads the setting being represented by the given XML node with the
-   given identifier.
-
-   \param node XML node representing the setting to load
-   \param settingId Setting identifier
-   \return True if the setting was successfully loaded from the given XML node, false otherwise
-   */
-  bool LoadSetting(const tinyxml2::XMLNode* node, const std::string& settingId);
+  //init and set default
+  void SetDefault();
 
   // overwrite (not override) from CSettingsBase
   bool GetBool(const std::string& id) const;
@@ -128,13 +86,13 @@ public:
   bool ToggleBool(const std::string& id);
 
   int GetInt(const std::string& id) const;
-  bool SetInt(const std::string& id, int value);
+  void SetInt(const std::string& id, int value);
 
   double GetNumber(const std::string& id) const;
-  bool SetNumber(const std::string& id, double value);
+  void SetNumber(const std::string& id, double value);
 
   std::string GetString(const std::string& id) const;
-  bool SetString(const std::string& id, const std::string& value);
+  void SetString(const std::string& id, const std::string& value);
 
   bool CreateSettingsFile();
 protected:

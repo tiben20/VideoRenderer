@@ -29,8 +29,6 @@
 
 HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName, ID3DInclude* d3dinc)
 {
-	//ASSERT(*ppShaderBlob == nullptr);
-
 	static HMODULE s_hD3dcompilerDll = LoadLibraryW(L"d3dcompiler_47.dll");
 	static pD3DCompile s_fnD3DCompile = nullptr;
 
