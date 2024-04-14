@@ -81,15 +81,15 @@ protected:
 	DWORD m_srcAspectRatioX = 0;
 	DWORD m_srcAspectRatioY = 0;
 	bool  m_srcAnamorphic   = false;
-	CRect m_srcRect;
+	Com::SmartRect m_srcRect;
 	DXVA2_ExtendedFormat m_decExFmt = {};
 	DXVA2_ExtendedFormat m_srcExFmt = {};
 	bool  m_bInterlaced = false;
 	REFERENCE_TIME m_rtAvgTimePerFrame = 0;
-
-	CRect m_videoRect;
-	CRect m_windowRect;
-	CRect m_renderRect;
+	
+	Com::SmartRect m_videoRect;
+	Com::SmartRect m_windowRect;
+	Com::SmartRect m_renderRect;
 
 	int  m_iRotation   = 0;
 	bool m_bFlip       = false;
@@ -181,10 +181,10 @@ public:
 
 	ColorFormat_t GetColorFormat() { return m_srcParams.cformat; }
 
-	void GetSourceRect(CRect& sourceRect) { sourceRect = m_srcRect; }
-	void GetVideoRect(CRect& videoRect) { videoRect = m_videoRect; }
-	virtual void SetVideoRect(const CRect& videoRect) = 0;
-	virtual HRESULT SetWindowRect(const CRect& windowRect) = 0;
+	void GetSourceRect(Com::SmartRect& sourceRect) { sourceRect = m_srcRect; }
+	void GetVideoRect(Com::SmartRect& videoRect) { videoRect = m_videoRect; }
+	virtual void SetVideoRect(const Com::SmartRect& videoRect) = 0;
+	virtual HRESULT SetWindowRect(const Com::SmartRect& windowRect) = 0;
 
 	HRESULT GetVideoSize(long *pWidth, long *pHeight);
 	HRESULT GetAspectRatio(long *plAspectX, long *plAspectY);

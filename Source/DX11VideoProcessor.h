@@ -43,25 +43,25 @@ private:
 	friend class CVideoRendererInputPin;
 
 	// Direct3D 11
-	CComPtr<ID3D11Device1>        m_pDevice;
-	CComPtr<ID3D11DeviceContext1> m_pDeviceContext;
-	CComPtr<ID3D11SamplerState>   m_pSamplerPoint;
-	CComPtr<ID3D11SamplerState>   m_pSamplerLinear;
-	CComPtr<ID3D11SamplerState>   m_pSamplerDither;
-	CComPtr<ID3D11BlendState>     m_pAlphaBlendState;
-	CComPtr<ID3D11VertexShader>   m_pVS_Simple;
-	CComPtr<ID3D11PixelShader>    m_pPS_Simple;
-	CComPtr<ID3D11PixelShader>    m_pPS_BitmapToFrame;
-	CComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
-	CComPtr<ID3D11Buffer>         m_pVertexBuffer;
-	CComPtr<ID3D11Buffer>         m_pResizeShaderConstantBuffer;
-	CComPtr<ID3D11Buffer>         m_pHalfOUtoInterlaceConstantBuffer;
-	CComPtr<ID3D11Buffer>         m_pFinalPassConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Device1>        m_pDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerPoint;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerLinear;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerDither;
+	Microsoft::WRL::ComPtr<ID3D11BlendState>     m_pAlphaBlendState;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>   m_pVS_Simple;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_Simple;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_BitmapToFrame;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pVertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pResizeShaderConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pHalfOUtoInterlaceConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pFinalPassConstantBuffer;
 
 	DXGI_SWAP_EFFECT              m_UsedSwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 #if TEST_SHADER
-	CComPtr<ID3D11PixelShader>    m_pPS_TEST;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_TEST;
 #endif
 
 	Tex11Video_t m_TexSrcVideo; // for copy of frame
@@ -79,12 +79,12 @@ private:
 
 	// D3D11 Video Processor
 	CD3D11VP m_D3D11VP;
-	CComPtr<ID3D11PixelShader> m_pPSCorrection;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSCorrection;
 	const wchar_t* m_strCorrection = nullptr;
 
 	// D3D11 Shader Video Processor
-	CComPtr<ID3D11PixelShader> m_pPSConvertColor;
-	CComPtr<ID3D11PixelShader> m_pPSConvertColorDeint;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSConvertColor;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSConvertColorDeint;
 	struct {
 		bool bEnable = false;
 		ID3D11Buffer* pVertexBuffer = nullptr;
@@ -96,23 +96,23 @@ private:
 		}
 	} m_PSConvColorData;
 
-	CComPtr<ID3D11Buffer> m_pDoviCurvesConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pDoviCurvesConstantBuffer;
 
-	CComPtr<ID3D11PixelShader> m_pShaderUpscaleX;
-	CComPtr<ID3D11PixelShader> m_pShaderUpscaleY;
-	CComPtr<ID3D11PixelShader> m_pShaderDownscaleX;
-	CComPtr<ID3D11PixelShader> m_pShaderDownscaleY;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderUpscaleX;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderUpscaleY;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderDownscaleX;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderDownscaleY;
 
 	std::vector<ExternalPixelShader11_t> m_pPreScaleShaders;
 	std::vector<ExternalPixelShader11_t> m_pPostScaleShaders;
-	CComPtr<ID3D11Buffer> m_pPostScaleConstants;
-	CComPtr<ID3D11PixelShader> m_pPSHalfOUtoInterlace;
-	CComPtr<ID3D11PixelShader> m_pPSFinalPass;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pPostScaleConstants;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSHalfOUtoInterlace;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSFinalPass;
 
-	CComPtr<IDXGIFactory2>   m_pDXGIFactory2;
-	CComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
-	CComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
-	CComPtr<IDXGIOutput>    m_pDXGIOutput;
+	Microsoft::WRL::ComPtr<IDXGIFactory2>   m_pDXGIFactory2;
+	Microsoft::WRL::ComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
+	Microsoft::WRL::ComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
+	Microsoft::WRL::ComPtr<IDXGIOutput>    m_pDXGIOutput;
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
 	// Input parameters
@@ -130,13 +130,13 @@ private:
 
 	D3D11_VIDEO_FRAME_FORMAT m_SampleFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
 
-	CComPtr<IDXGIFactory1> m_pDXGIFactory1;
+	Microsoft::WRL::ComPtr<IDXGIFactory1> m_pDXGIFactory1;
 
 	bool m_bSubPicWasRendered = false;
 
 	// AlphaBitmap
 	Tex2D_t m_TexAlphaBitmap;
-	CComPtr<ID3D11Buffer> m_pAlphaBitmapVertex;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pAlphaBitmapVertex;
 
 	// Statistics
 	CD3D11Rectangle m_StatsBackground;
@@ -236,8 +236,8 @@ public:
 	HRESULT Render(int field, const REFERENCE_TIME frameStartTime) override;
 	HRESULT FillBlack() override;
 
-	void SetVideoRect(const CRect& videoRect)      override;
-	HRESULT SetWindowRect(const CRect& windowRect) override;
+	void SetVideoRect(const Com::SmartRect& videoRect)      override;
+	HRESULT SetWindowRect(const Com::SmartRect& windowRect) override;
 	HRESULT Reset() override;
 	bool IsInit() const override { return m_bHdrDisplaySwitching; }
 
@@ -267,24 +267,24 @@ private:
 	HRESULT UpdateConvertColorShader();
 	void UpdateBitmapShader();
 
-	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
+	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 	HRESULT ConvertColorPass(ID3D11Texture2D* pRenderTarget);
-	HRESULT ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const int rotation);
-	HRESULT FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect);
+	HRESULT ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const int rotation);
+	HRESULT FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect);
 
 	void DrawSubtitles(ID3D11Texture2D* pRenderTarget);
-	HRESULT Process(ID3D11Texture2D* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
+	HRESULT Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 
 	HRESULT AlphaBlt(ID3D11ShaderResourceView* pShaderResource, ID3D11Texture2D* pRenderTarget,
 					 ID3D11Buffer* pVertexBuffer, D3D11_VIEWPORT* pViewPort,
 					 ID3D11SamplerState* pSampler);
 	HRESULT TextureCopyRect(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
-							const CRect& srcRect, const CRect& destRect,
+							const Com::SmartRect& srcRect, const Com::SmartRect& destRect,
 							ID3D11PixelShader* pPixelShader, ID3D11Buffer* pConstantBuffer,
 							const int iRotation, const bool bFlip);
 
 	HRESULT TextureResizeShader(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
-								const CRect& srcRect, const CRect& destRect,
+								const Com::SmartRect& srcRect, const Com::SmartRect& destRect,
 								ID3D11PixelShader* pPixelShader,
 								const int iRotation, const bool bFlip);
 

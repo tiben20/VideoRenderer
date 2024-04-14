@@ -116,13 +116,13 @@ private:
 	ISubRenderCallback* m_pSubCallBack = nullptr;
 	ISubRender11Callback* m_pSub11CallBack = nullptr;
 
-	CRect m_windowRect, m_videoRect;
+	Com::SmartRect m_windowRect, m_videoRect;
 
 	bool m_bForceRedrawing = true;
 
 	bool m_bEnableFullscreenControl = false;
 
-	CSize m_videoSize, m_videoAspectRatio;
+	Com::SmartSize m_videoSize, m_videoAspectRatio;
 
 	HRESULT Init(const bool bCreateWindow);
 

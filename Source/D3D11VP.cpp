@@ -93,7 +93,7 @@ HRESULT CD3D11VP::InitVideoDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pC
 
 #ifdef _DEBUG
 	D3D11_VIDEO_PROCESSOR_CONTENT_DESC ContentDesc = { D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE, {}, 1920, 1080, {}, 1920, 1080, D3D11_VIDEO_USAGE_PLAYBACK_NORMAL };
-	CComPtr<ID3D11VideoProcessorEnumerator> pVideoProcEnum;
+	Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> pVideoProcEnum;
 	if (S_OK == m_pVideoDevice->CreateVideoProcessorEnumerator(&ContentDesc, &pVideoProcEnum)) {
 		std::wstring input = L"Supported input DXGI formats (for 1080p):";
 		std::wstring output = L"Supported output DXGI formats (for 1080p):";
@@ -124,9 +124,9 @@ void CD3D11VP::ReleaseVideoDevice()
 {
 	ReleaseVideoProcessor();
 
-	m_pVideoContext1.Release();
-	m_pVideoContext.Release();
-	m_pVideoDevice.Release();
+	m_pVideoContext1=nullptr;
+	m_pVideoContext = nullptr;
+	m_pVideoDevice = nullptr;
 	m_VendorId = 0;
 
 	m_bConvSupportedG2084 = FALSE;
@@ -332,7 +332,7 @@ HRESULT CD3D11VP::InitVideoProcessor(
 		}
 	}
 
-	hr = m_pVideoDevice->CreateVideoProcessor(m_pVideoProcessorEnum, m_RateConvIndex, &m_pVideoProcessor);
+	hr = m_pVideoDevice->CreateVideoProcessor(m_pVideoProcessorEnum.Get(), m_RateConvIndex, &m_pVideoProcessor);
 	if (FAILED(hr)) {
 		DLog(L"CD3D11VP::InitVideoProcessor() : CreateVideoProcessor() failed with error {}", HR2Str(hr));
 		return hr;
@@ -361,12 +361,12 @@ HRESULT CD3D11VP::InitVideoProcessor(
 	}
 
 	// Output rate (repeat frames)
-	m_pVideoContext->VideoProcessorSetStreamOutputRate(m_pVideoProcessor, 0, D3D11_VIDEO_PROCESSOR_OUTPUT_RATE_NORMAL, TRUE, nullptr);
+	m_pVideoContext->VideoProcessorSetStreamOutputRate(m_pVideoProcessor.Get(), 0, D3D11_VIDEO_PROCESSOR_OUTPUT_RATE_NORMAL, TRUE, nullptr);
 	// disable automatic video quality by driver
-	m_pVideoContext->VideoProcessorSetStreamAutoProcessingMode(m_pVideoProcessor, 0, FALSE);
+	m_pVideoContext->VideoProcessorSetStreamAutoProcessingMode(m_pVideoProcessor.Get(), 0, FALSE);
 	// Output background color (black)
 	static const D3D11_VIDEO_COLOR backgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_pVideoContext->VideoProcessorSetOutputBackgroundColor(m_pVideoProcessor, FALSE, &backgroundColor);
+	m_pVideoContext->VideoProcessorSetOutputBackgroundColor(m_pVideoProcessor.Get(), FALSE, &backgroundColor);
 
 	if (m_pVideoProcessorEnum1) {
 		SetColorSpaceNew(cstype_input, cstype_output);
@@ -375,8 +375,8 @@ HRESULT CD3D11VP::InitVideoProcessor(
 	}
 
 	// other
-	m_pVideoContext->VideoProcessorSetOutputTargetRect(m_pVideoProcessor, FALSE, nullptr);
-	m_pVideoContext->VideoProcessorSetStreamRotation(m_pVideoProcessor, 0, m_Rotation ? TRUE : FALSE, m_Rotation);
+	m_pVideoContext->VideoProcessorSetOutputTargetRect(m_pVideoProcessor.Get(), FALSE, nullptr);
+	m_pVideoContext->VideoProcessorSetStreamRotation(m_pVideoProcessor.Get(), 0, m_Rotation ? TRUE : FALSE, m_Rotation);
 
 	m_srcFormat   = inputFmt;
 	m_srcWidth    = width;
@@ -392,10 +392,10 @@ void CD3D11VP::ReleaseVideoProcessor()
 {
 	m_VideoTextures.Clear();
 
-	m_pVideoProcessor.Release();
+	m_pVideoProcessor=nullptr;
 
-	m_pVideoProcessorEnum1.Release();
-	m_pVideoProcessorEnum.Release();
+	m_pVideoProcessorEnum1 = nullptr;
+		m_pVideoProcessorEnum = nullptr;
 
 	m_VPCaps = {};
 	m_RateConvIndex = 0;
@@ -425,7 +425,7 @@ HRESULT CD3D11VP::InitInputTextures(ID3D11Device* pDevice)
 		if (S_OK == hr) {
 			D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC inputViewDesc = {};
 			inputViewDesc.ViewDimension = D3D11_VPIV_DIMENSION_TEXTURE2D;
-			hr = m_pVideoDevice->CreateVideoProcessorInputView(*ppTexture, m_pVideoProcessorEnum, &inputViewDesc, m_VideoTextures.GetInputView(i));
+			hr = m_pVideoDevice->CreateVideoProcessorInputView(*ppTexture, m_pVideoProcessorEnum.Get(), &inputViewDesc, m_VideoTextures.GetInputView(i));
 		}
 	}
 
@@ -477,8 +477,8 @@ HRESULT CD3D11VP::SetRectangles(const RECT* pSrcRect, const RECT* pDstRect)
 {
 	CheckPointer(m_pVideoContext, E_ABORT);
 
-	m_pVideoContext->VideoProcessorSetStreamSourceRect(m_pVideoProcessor, 0, pSrcRect ? TRUE : FALSE, pSrcRect);
-	m_pVideoContext->VideoProcessorSetStreamDestRect(m_pVideoProcessor, 0, pDstRect ? TRUE : FALSE, pDstRect);
+	m_pVideoContext->VideoProcessorSetStreamSourceRect(m_pVideoProcessor.Get(), 0, pSrcRect ? TRUE : FALSE, pSrcRect);
+	m_pVideoContext->VideoProcessorSetStreamDestRect(m_pVideoProcessor.Get(), 0, pDstRect ? TRUE : FALSE, pDstRect);
 
 	return S_OK;
 }
@@ -488,7 +488,7 @@ void CD3D11VP::SetRotation(D3D11_VIDEO_PROCESSOR_ROTATION rotation)
 	m_Rotation = rotation;
 
 	if (m_pVideoContext) {
-		m_pVideoContext->VideoProcessorSetStreamRotation(m_pVideoProcessor, 0, m_Rotation ? TRUE : FALSE, m_Rotation);
+		m_pVideoContext->VideoProcessorSetStreamRotation(m_pVideoProcessor.Get(), 0, m_Rotation ? TRUE : FALSE, m_Rotation);
 	}
 }
 
@@ -638,8 +638,8 @@ void CD3D11VP::SetColorSpaceNew(DXGI_COLOR_SPACE_TYPE cstype_input, DXGI_COLOR_S
 {
 	ASSERT(m_pVideoContext1 && m_pVideoProcessor);
 
-	m_pVideoContext1->VideoProcessorSetStreamColorSpace1(m_pVideoProcessor, 0, cstype_input);
-	m_pVideoContext1->VideoProcessorSetOutputColorSpace1(m_pVideoProcessor, cstype_output);
+	m_pVideoContext1->VideoProcessorSetStreamColorSpace1(m_pVideoProcessor.Get(), 0, cstype_input);
+	m_pVideoContext1->VideoProcessorSetOutputColorSpace1(m_pVideoProcessor.Get(), cstype_output);
 }
 
 void CD3D11VP::SetColorSpaceOld(const DXVA2_ExtendedFormat exFmt)
@@ -659,8 +659,8 @@ void CD3D11VP::SetColorSpaceOld(const DXVA2_ExtendedFormat exFmt)
 			? D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_0_255
 			: D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_16_235;
 	}
-	m_pVideoContext->VideoProcessorSetStreamColorSpace(m_pVideoProcessor, 0, &colorSpace);
-	m_pVideoContext->VideoProcessorSetOutputColorSpace(m_pVideoProcessor, &colorSpace);
+	m_pVideoContext->VideoProcessorSetStreamColorSpace(m_pVideoProcessor.Get(), 0, &colorSpace);
+	m_pVideoContext->VideoProcessorSetOutputColorSpace(m_pVideoProcessor.Get(), &colorSpace);
 }
 
 HRESULT CD3D11VP::SetSuperResNvidia(const bool enable)
@@ -686,7 +686,7 @@ HRESULT CD3D11VP::SetSuperResNvidia(const bool enable)
 	};
 
 	HRESULT hr = m_pVideoContext->VideoProcessorSetStreamExtension(
-		m_pVideoProcessor, 0, &kNvidiaPPEInterfaceGUID,
+		m_pVideoProcessor.Get(), 0, &kNvidiaPPEInterfaceGUID,
 		sizeof(stream_extension_info), &stream_extension_info);
 
 	if (hr == S_OK && !enable) {
@@ -732,21 +732,21 @@ HRESULT CD3D11VP::SetSuperResIntel(const bool enable)
 
 	ext.function = kIntelVpeFnVersion;
 	param = kIntelVpeVersion3;
-	HRESULT hr = m_pVideoContext->VideoProcessorSetOutputExtension(m_pVideoProcessor, &GUID_INTEL_VPE_INTERFACE, sizeof(ext), &ext);
+	HRESULT hr = m_pVideoContext->VideoProcessorSetOutputExtension(m_pVideoProcessor.Get(), &GUID_INTEL_VPE_INTERFACE, sizeof(ext), &ext);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
 	ext.function = kIntelVpeFnMode;
 	param = enable ? kIntelVpeModePreproc : kIntelVpeModeNone;
-	hr = m_pVideoContext->VideoProcessorSetOutputExtension(m_pVideoProcessor, &GUID_INTEL_VPE_INTERFACE, sizeof(ext), &ext);
+	hr = m_pVideoContext->VideoProcessorSetOutputExtension(m_pVideoProcessor.Get(), &GUID_INTEL_VPE_INTERFACE, sizeof(ext), &ext);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
 	ext.function = kIntelVpeFnScaling;
 	param = enable ? kIntelVpeScalingSuperResolution : kIntelVpeScalingDefault;
-	hr = m_pVideoContext->VideoProcessorSetStreamExtension(m_pVideoProcessor, 0, &GUID_INTEL_VPE_INTERFACE, sizeof(ext), &ext);
+	hr = m_pVideoContext->VideoProcessorSetStreamExtension(m_pVideoProcessor.Get(), 0, &GUID_INTEL_VPE_INTERFACE, sizeof(ext), &ext);
 
 	if (hr == S_OK && !enable) {
 		hr = S_FALSE;
@@ -821,7 +821,7 @@ HRESULT CD3D11VP::SetRTXVideoHDRNvidia(const bool enable)
 	};
 
 	HRESULT hr = m_pVideoContext->VideoProcessorSetStreamExtension(
-		m_pVideoProcessor, 0, &kNvidiaTrueHDRInterfaceGUID,
+		m_pVideoProcessor.Get(), 0, &kNvidiaTrueHDRInterfaceGUID,
 		sizeof(stream_extension_info), &stream_extension_info);
 
 	if (hr == S_OK && !enable) {
@@ -850,14 +850,14 @@ HRESULT CD3D11VP::Process(ID3D11Texture2D* pRenderTarget, const D3D11_VIDEO_FRAM
 	ASSERT(m_pVideoContext);
 
 	if (!second) {
-		m_pVideoContext->VideoProcessorSetStreamFrameFormat(m_pVideoProcessor, 0, sampleFormat);
+		m_pVideoContext->VideoProcessorSetStreamFrameFormat(m_pVideoProcessor.Get(), 0, sampleFormat);
 
 		if (m_bUpdateFilters) {
 			for (UINT i = 0; i < std::size(m_VPFilters); i++) {
 				auto& filter = m_VPFilters[i];
 				if (filter.support) {
 					BOOL bEnable = (filter.value != filter.range.Default);
-					m_pVideoContext->VideoProcessorSetStreamFilter(m_pVideoProcessor, 0, (D3D11_VIDEO_PROCESSOR_FILTER)i, bEnable, filter.value);
+					m_pVideoContext->VideoProcessorSetStreamFilter(m_pVideoProcessor.Get(), 0, (D3D11_VIDEO_PROCESSOR_FILTER)i, bEnable, filter.value);
 				}
 			}
 			m_bUpdateFilters = false;
@@ -866,8 +866,8 @@ HRESULT CD3D11VP::Process(ID3D11Texture2D* pRenderTarget, const D3D11_VIDEO_FRAM
 
 	D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC OutputViewDesc = {};
 	OutputViewDesc.ViewDimension = D3D11_VPOV_DIMENSION_TEXTURE2D;
-	CComPtr<ID3D11VideoProcessorOutputView> pOutputView;
-	HRESULT hr = m_pVideoDevice->CreateVideoProcessorOutputView(pRenderTarget, m_pVideoProcessorEnum, &OutputViewDesc, &pOutputView);
+	Microsoft::WRL::ComPtr<ID3D11VideoProcessorOutputView> pOutputView;
+	HRESULT hr = m_pVideoDevice->CreateVideoProcessorOutputView(pRenderTarget, m_pVideoProcessorEnum.Get(), &OutputViewDesc, &pOutputView);
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::ProcessD3D11() : CreateVideoProcessorOutputView() failed with error {}", HR2Str(hr));
 		return hr;
@@ -896,7 +896,7 @@ HRESULT CD3D11VP::Process(ID3D11Texture2D* pRenderTarget, const D3D11_VIDEO_FRAM
 			StreamData.ppPastSurfaces = m_VideoTextures.GetInputView(idx);
 		}
 	}
-	hr = m_pVideoContext->VideoProcessorBlt(m_pVideoProcessor, pOutputView, StreamData.InputFrameOrField, 1, &StreamData);
+	hr = m_pVideoContext->VideoProcessorBlt(m_pVideoProcessor.Get(), pOutputView.Get(), StreamData.InputFrameOrField, 1, &StreamData);
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::ProcessD3D11() : VideoProcessorBlt() failed with error {}", HR2Str(hr));
 	}

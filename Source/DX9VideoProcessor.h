@@ -34,9 +34,9 @@ class CDX9VideoProcessor
 {
 private:
 	// Direct3D 9
-	CComPtr<IDirect3D9Ex>            m_pD3DEx;
-	CComPtr<IDirect3DDevice9Ex>      m_pD3DDevEx;
-	CComPtr<IDirect3DDeviceManager9> m_pD3DDeviceManager;
+	Microsoft::WRL::ComPtr<IDirect3D9Ex>            m_pD3DEx;
+	Microsoft::WRL::ComPtr<IDirect3DDevice9Ex>      m_pD3DDevEx;
+	Microsoft::WRL::ComPtr<IDirect3DDeviceManager9> m_pD3DDeviceManager;
 	UINT m_nResetTocken = 0;
 
 	D3DDISPLAYMODEEX m_DisplayMode = { sizeof(D3DDISPLAYMODEEX) };
@@ -64,10 +64,10 @@ private:
 	CTexRing m_TexsPostScale;
 	Tex_t m_TexDither;
 
-	CComPtr<IDirect3DPixelShader9> m_pPSCorrection;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pPSCorrection;
 	const wchar_t* m_strCorrection = nullptr;
-	CComPtr<IDirect3DPixelShader9> m_pPSConvertColor;
-	CComPtr<IDirect3DPixelShader9> m_pPSConvertColorDeint;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pPSConvertColor;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pPSConvertColorDeint;
 	struct {
 		bool bEnable = false;
 		struct ConvColorVertex_t {
@@ -79,15 +79,15 @@ private:
 
 	PS_DOVI_POLY_CURVE m_DoviReshapePolyCurves[3];
 
-	CComPtr<IDirect3DPixelShader9> m_pShaderUpscaleX;
-	CComPtr<IDirect3DPixelShader9> m_pShaderUpscaleY;
-	CComPtr<IDirect3DPixelShader9> m_pShaderDownscaleX;
-	CComPtr<IDirect3DPixelShader9> m_pShaderDownscaleY;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pShaderUpscaleX;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pShaderUpscaleY;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pShaderDownscaleX;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pShaderDownscaleY;
 
 	std::vector<ExternalPixelShader9_t> m_pPreScaleShaders;
 	std::vector<ExternalPixelShader9_t> m_pPostScaleShaders;
-	CComPtr<IDirect3DPixelShader9> m_pPSHalfOUtoInterlace;
-	CComPtr<IDirect3DPixelShader9> m_pPSFinalPass;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pPSHalfOUtoInterlace;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> m_pPSFinalPass;
 
 	// AlphaBitmap
 	Tex_t m_TexAlphaBitmap;
@@ -156,11 +156,11 @@ public:
 	HRESULT Render(int field, const REFERENCE_TIME frameStartTime) override;
 	HRESULT FillBlack() override;
 
-	void SetVideoRect(const CRect& videoRect)      override;
-	HRESULT SetWindowRect(const CRect& windowRect) override;
+	void SetVideoRect(const Com::SmartRect& videoRect)      override;
+	HRESULT SetWindowRect(const Com::SmartRect& windowRect) override;
 	HRESULT Reset() override;
 
-	IDirect3DDeviceManager9* GetDeviceManager9() override { return m_pD3DDeviceManager; }
+	IDirect3DDeviceManager9* GetDeviceManager9() override { return m_pD3DDeviceManager.Get(); }
 	HRESULT GetCurentImage(long *pDIBImage) override;
 	HRESULT GetDisplayedImage(BYTE **ppDib, unsigned *pSize) override;
 	HRESULT GetVPInfo(std::wstring& str) override;
@@ -186,18 +186,18 @@ private:
 	void UpdateDownscalingShaders();
 	HRESULT UpdateConvertColorShader();
 
-	HRESULT DxvaVPPass(IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
+	HRESULT DxvaVPPass(IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 	HRESULT ConvertColorPass(IDirect3DSurface9* pRenderTarget);
-	HRESULT ResizeShaderPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect);
-	HRESULT FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect);
+	HRESULT ResizeShaderPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect);
+	HRESULT FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect);
 
 	void DrawSubtitles(IDirect3DSurface9* pRenderTarget);
-	HRESULT Process(IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second);
+	HRESULT Process(IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 
 	HRESULT TextureCopy(IDirect3DTexture9* pTexture);
-	HRESULT TextureCopyRect(IDirect3DTexture9* pTexture, const CRect& srcRect, const CRect& dstRect,
+	HRESULT TextureCopyRect(IDirect3DTexture9* pTexture, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect,
 		D3DTEXTUREFILTERTYPE filter, const int iRotation, const bool bFlip);
-	HRESULT TextureResizeShader(IDirect3DTexture9* pTexture, const CRect& srcRect, const CRect& dstRect,
+	HRESULT TextureResizeShader(IDirect3DTexture9* pTexture, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect,
 		IDirect3DPixelShader9* pShader, const int iRotation, const bool bFlip);
 
 	void UpdateStatsPresent();

@@ -920,10 +920,10 @@ HRESULT SaveToImage(BYTE* src, const UINT pitch, const UINT width, const UINT he
 		return E_INVALIDARG;
 	}
 
-	CComPtr<IWICImagingFactory> pWICFactory;
-	CComPtr<IWICBitmapEncoder> pEncoder;
-	CComPtr<IWICBitmapFrameEncode> pFrame;
-	CComPtr<IWICStream> pStream;
+	Microsoft::WRL::ComPtr<IWICImagingFactory> pWICFactory;
+	Microsoft::WRL::ComPtr<IWICBitmapEncoder> pEncoder;
+	Microsoft::WRL::ComPtr<IWICBitmapFrameEncode> pFrame;
+	Microsoft::WRL::ComPtr<IWICStream> pStream;
 
 	HRESULT hr = CoCreateInstance(
 		CLSID_WICImagingFactory1, // we use CLSID_WICImagingFactory1 to support Windows 7 without Platform Update
@@ -943,7 +943,7 @@ HRESULT SaveToImage(BYTE* src, const UINT pitch, const UINT width, const UINT he
 		hr = pWICFactory->CreateEncoder(wicFormat, nullptr, &pEncoder);
 	}
 	if (SUCCEEDED(hr)) {
-		hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
+		hr = pEncoder->Initialize(pStream.Get(), WICBitmapEncoderNoCache);
 	}
 	if (SUCCEEDED(hr)) {
 		hr = pEncoder->CreateNewFrame(&pFrame, nullptr);

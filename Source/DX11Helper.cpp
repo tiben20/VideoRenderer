@@ -126,7 +126,7 @@ HRESULT DumpTexture2D(ID3D11DeviceContext* pDeviceContext, ID3D11Texture2D* pTex
 	}
 
 	HRESULT hr = S_OK;
-	CComPtr<ID3D11Texture2D> pTexture2DShared;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexture2DShared;
 
 	if (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) {
 		pTexture2DShared = pTexture2D;
@@ -139,12 +139,12 @@ HRESULT DumpTexture2D(ID3D11DeviceContext* pDeviceContext, ID3D11Texture2D* pTex
 		pDevice->Release();
 
 		//pDeviceContext->CopyResource(pTexture2DShared, pTexture2D);
-		pDeviceContext->CopySubresourceRegion(pTexture2DShared, 0, 0, 0, 0, pTexture2D, 0, nullptr);
+		pDeviceContext->CopySubresourceRegion(pTexture2DShared.Get(), 0, 0, 0, 0, pTexture2D, 0, nullptr);
 	}
 
 	if (SUCCEEDED(hr)) {
 		D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-		hr = pDeviceContext->Map(pTexture2DShared, 0, D3D11_MAP_READ, 0, &mappedResource);
+		hr = pDeviceContext->Map(pTexture2DShared.Get(), 0, D3D11_MAP_READ, 0, &mappedResource);
 
 		if (SUCCEEDED(hr)) {
 			UINT width = desc.Width;
@@ -164,7 +164,7 @@ HRESULT DumpTexture2D(ID3D11DeviceContext* pDeviceContext, ID3D11Texture2D* pTex
 
 			hr = SaveToBMP((BYTE*)mappedResource.pData, mappedResource.RowPitch, width, height, bitdepth, filename);
 
-			pDeviceContext->Unmap(pTexture2DShared, 0);
+			pDeviceContext->Unmap(pTexture2DShared.Get(), 0);
 		}
 	}
 

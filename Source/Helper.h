@@ -26,6 +26,7 @@
 #include "Utils/StringUtil.h"
 #include "csputils.h"
 #include "../Include/IMediaSideData.h"
+#include <dxgiformat.h>
 
 #define D3DFMT_YV12 (D3DFORMAT)FCC('YV12')
 #define D3DFMT_NV12 (D3DFORMAT)FCC('NV12')

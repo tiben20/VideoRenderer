@@ -109,7 +109,7 @@ public:
 		return &m_DXVA2Samples.back();
 	}
 
-	void SetRects(const CRect& SrcRect, const CRect& DstRect) {
+	void SetRects(const Com::SmartRect& SrcRect, const Com::SmartRect& DstRect) {
 		for (auto& dxva2sample : m_DXVA2Samples) {
 			dxva2sample.SrcRect = SrcRect;
 			dxva2sample.DstRect = DstRect;
@@ -138,9 +138,9 @@ public:
 class CDXVA2VP
 {
 private:
-	CComPtr<IDirectXVideoProcessorService> m_pDXVA2_VPService;
+	Microsoft::WRL::ComPtr<IDirectXVideoProcessorService> m_pDXVA2_VPService;
 	DWORD m_VendorId = 0;
-	CComPtr<IDirectXVideoProcessor> m_pDXVA2_VP;
+	Microsoft::WRL::ComPtr<IDirectXVideoProcessor> m_pDXVA2_VP;
 	GUID m_DXVA2VPGuid = GUID_NULL;
 	DXVA2_VideoProcessBltParams m_BltParams = {};
 	VideoSampleBuffer m_VideoSamples;
@@ -178,7 +178,7 @@ public:
 	void ClearInputSurfaces(const DXVA2_ExtendedFormat exFmt);
 	void CleanSamplesData();
 
-	void SetRectangles(const CRect& srcRect, const CRect& dstRect);
+	void SetRectangles(const Com::SmartRect& srcRect, const Com::SmartRect& dstRect);
 	void SetProcAmpValues(DXVA2_ProcAmpValues& PropValues);
 	void GetProcAmpRanges(DXVA2_ValueRange(&PropRanges)[4]);
 

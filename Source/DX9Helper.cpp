@@ -50,14 +50,14 @@ HRESULT Dump4ByteSurface(IDirect3DSurface9* pSurface, const wchar_t* filename)
 	HRESULT hr = pSurface->GetDesc(&desc);
 
 	if (SUCCEEDED(hr) && (desc.Format == D3DFMT_A8R8G8B8 || desc.Format == D3DFMT_X8R8G8B8 || desc.Format == D3DFMT_AYUV)) {
-		CComPtr<IDirect3DSurface9> pSurfaceShared;
+		Microsoft::WRL::ComPtr<IDirect3DSurface9> pSurfaceShared;
 
 		if (desc.Pool == D3DPOOL_DEFAULT) {
 			IDirect3DDevice9* pDevice;
 			pSurface->GetDevice(&pDevice);
 			hr = pDevice->CreateOffscreenPlainSurface(desc.Width, desc.Height, desc.Format, D3DPOOL_SYSTEMMEM, &pSurfaceShared, nullptr);
 			if (SUCCEEDED(hr)) {
-				hr = pDevice->GetRenderTargetData(pSurface, pSurfaceShared);
+				hr = pDevice->GetRenderTargetData(pSurface, pSurfaceShared.Get());
 			}
 			pDevice->Release();
 		} else {
@@ -109,14 +109,14 @@ HRESULT DumpDX9Surface(IDirect3DSurface9* pSurface, const wchar_t* filename)
 		return hr;
 	};
 
-	CComPtr<IDirect3DDevice9> pDevice;
+	Microsoft::WRL::ComPtr<IDirect3DDevice9> pDevice;
 	if (FAILED(hr = pSurface->GetDevice(&pDevice))) {
 		return hr;
 	};
 
-	CComPtr<IDirect3DSurface9> pTarget;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pTarget;
 	if (FAILED(hr = pDevice->CreateRenderTarget(desc.Width, desc.Height, D3DFMT_X8R8G8B8, D3DMULTISAMPLE_NONE, 0, TRUE, &pTarget, nullptr))
-		|| FAILED(hr = pDevice->StretchRect(pSurface, nullptr, pTarget, nullptr, D3DTEXF_NONE))) {
+		|| FAILED(hr = pDevice->StretchRect(pSurface, nullptr, pTarget.Get(), nullptr, D3DTEXF_NONE))) {
 		return hr;
 	}
 

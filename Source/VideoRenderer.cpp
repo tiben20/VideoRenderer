@@ -149,7 +149,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	ASSERT(S_OK == *phr);
 
 	// read settings
-
+#if 0
 	CRegKey key;
 	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER, KEY_READ)) {
 		DWORD dw;
@@ -244,7 +244,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 			m_Sets.bConvertToSdr = !!dw;
 		}
 	}
-
+#endif
 	if (!IsWindows10OrGreater()) {
 		m_Sets.bHdrPassthrough = false;
 		m_Sets.iHdrToggleDisplay = HDRTD_Disabled;
@@ -338,7 +338,7 @@ long CMpcVideoRenderer::CalcImageSize(CMediaType& mt, bool redefine_mt)
 	}
 
 	if (redefine_mt) {
-		CSize Size(pBIH->biWidth, pBIH->biHeight);
+		Com::SmartSize Size(pBIH->biWidth, pBIH->biHeight);
 
 		BOOL ret = m_VideoProcessor->GetAlignmentSize(mt, Size);
 
@@ -412,7 +412,7 @@ HRESULT CMpcVideoRenderer::SetMediaType(const CMediaType *pmt)
 	CAutoLock cVideoLock(&m_InterfaceLock);
 	CAutoLock cRendererLock(&m_RendererLock);
 
-	CSize aspect, framesize;
+	Com::SmartSize aspect, framesize;
 	m_VideoProcessor->GetAspectRatio(&aspect.cx, &aspect.cy);
 	m_VideoProcessor->GetVideoSize(&framesize.cx, &framesize.cy);
 
@@ -441,7 +441,7 @@ HRESULT CMpcVideoRenderer::SetMediaType(const CMediaType *pmt)
 		m_VideoProcessor->SetVideoRect(m_videoRect);
 	}
 
-	CSize aspectNew, framesizeNew;
+	Com::SmartSize aspectNew, framesizeNew;
 	m_VideoProcessor->GetAspectRatio(&aspectNew.cx, &aspectNew.cy);
 	m_VideoProcessor->GetVideoSize(&framesizeNew.cx, &framesizeNew.cy);
 
@@ -561,7 +561,7 @@ HRESULT CMpcVideoRenderer::Receive(IMediaSample* pSample)
 
 void CMpcVideoRenderer::UpdateDisplayInfo()
 {
-	const HMONITOR hMonPrimary = MonitorFromPoint(CPoint(0, 0), MONITOR_DEFAULTTOPRIMARY);
+	const HMONITOR hMonPrimary = MonitorFromPoint(Com::SmartPoint(0, 0), MONITOR_DEFAULTTOPRIMARY);
 
 	MONITORINFOEXW mi = { sizeof(mi) };
 	GetMonitorInfoW(m_hMon, (MONITORINFO*)&mi);
@@ -799,7 +799,7 @@ STDMETHODIMP CMpcVideoRenderer::GetSourcePosition(long *pLeft, long *pTop, long 
 	CheckPointer(pWidth,E_POINTER);
 	CheckPointer(pHeight,E_POINTER);
 
-	CRect rect;
+	Com::SmartRect rect;
 	{
 		CAutoLock cVideoLock(&m_InterfaceLock);
 
@@ -816,7 +816,7 @@ STDMETHODIMP CMpcVideoRenderer::GetSourcePosition(long *pLeft, long *pTop, long 
 
 STDMETHODIMP CMpcVideoRenderer::SetDestinationPosition(long Left, long Top, long Width, long Height)
 {
-	const CRect videoRect(Left, Top, Left + Width, Top + Height);
+	const Com::SmartRect videoRect(Left, Top, Left + Width, Top + Height);
 	if (videoRect.IsRectNull()) {
 		return S_OK;
 	}
@@ -843,7 +843,7 @@ STDMETHODIMP CMpcVideoRenderer::GetDestinationPosition(long *pLeft, long *pTop, 
 	CheckPointer(pWidth,E_POINTER);
 	CheckPointer(pHeight,E_POINTER);
 
-	CRect rect;
+	Com::SmartRect rect;
 	{
 		CAutoLock cVideoLock(&m_InterfaceLock);
 
@@ -872,7 +872,7 @@ STDMETHODIMP CMpcVideoRenderer::GetCurrentImage(long *pBufferSize, long *pDIBIma
 	CAutoLock cRendererLock(&m_RendererLock);
 	HRESULT hr;
 
-	CSize framesize;
+	Com::SmartSize framesize;
 	long aspectX, aspectY;
 	int iRotation;
 
@@ -1069,7 +1069,7 @@ STDMETHODIMP CMpcVideoRenderer::get_MessageDrain(OAHWND* Drain)
 
 STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Width, long Height)
 {
-	const CRect windowRect(Left, Top, Left + Width, Top + Height);
+	const Com::SmartRect windowRect(Left, Top, Left + Width, Top + Height);
 	if (windowRect == m_windowRect) {
 		return S_OK;
 	}
@@ -1082,7 +1082,7 @@ STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Widt
 		const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
 		MONITORINFO mi = { mi.cbSize = sizeof(mi) };
 		::GetMonitorInfoW(hMon, &mi);
-		const CRect rcMonitor(mi.rcMonitor);
+		const Com::SmartRect rcMonitor(mi.rcMonitor);
 
 		if (!m_bIsFullscreen && m_windowRect.Width() == rcMonitor.Width() && m_windowRect.Height() == rcMonitor.Height()) {
 			SwitchFullScreen();
@@ -1180,6 +1180,7 @@ STDMETHODIMP_(void) CMpcVideoRenderer::SetSettings(const Settings_t& setings)
 
 STDMETHODIMP CMpcVideoRenderer::SaveSettings()
 {
+#if 0
 	CRegKey key;
 	if (ERROR_SUCCESS == key.Create(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER)) {
 		key.SetDWORDValue(OPT_UseD3D11,            m_Sets.bUseD3D11);
@@ -1210,7 +1211,7 @@ STDMETHODIMP CMpcVideoRenderer::SaveSettings()
 		key.SetDWORDValue(OPT_HdrOsdBrightness,    m_Sets.iHdrOsdBrightness);
 		key.SetDWORDValue(OPT_ConvertToSdr,        m_Sets.bConvertToSdr);
 	}
-
+#endif
 	return S_OK;
 }
 

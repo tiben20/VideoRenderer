@@ -25,9 +25,9 @@
 // CVRMainPPage
 
 class __declspec(uuid("DA46D181-07D6-441D-B314-019AEB10148A"))
-	CVRMainPPage : public CBasePropertyPage, public CWindow
+	CVRMainPPage : public CBasePropertyPage
 {
-	CComQIPtr<IVideoRenderer> m_pVideoRenderer;
+	Com::SmartQIPtr<IVideoRenderer> m_pVideoRenderer;
 
 	Settings_t m_SetsPP;
 
@@ -56,10 +56,10 @@ private:
 // CVRInfoPPage
 
 class __declspec(uuid("D697132B-FCA4-4401-8869-D3B39D0750DB"))
-	CVRInfoPPage : public CBasePropertyPage, public CWindow
+	CVRInfoPPage : public CBasePropertyPage
 {
 	HFONT m_hMonoFont = nullptr;
-	CComQIPtr<IVideoRenderer> m_pVideoRenderer;
+	Com::SmartQIPtr<IVideoRenderer> m_pVideoRenderer;
 
 public:
 	CVRInfoPPage(LPUNKNOWN lpunk, HRESULT* phr);

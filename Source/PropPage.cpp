@@ -23,6 +23,7 @@
 #include "Helper.h"
 #include "DisplayConfig.h"
 #include "PropPage.h"
+#include <dwmapi.h>
 
 void SetCursor(HWND hWnd, LPCWSTR lpCursorName)
 {
@@ -31,34 +32,34 @@ void SetCursor(HWND hWnd, LPCWSTR lpCursorName)
 
 void SetCursor(HWND hWnd, UINT nID, LPCWSTR lpCursorName)
 {
-	SetCursor(::GetDlgItem(hWnd, nID), lpCursorName);
+	SetCursor(GetDlgItem(hWnd, nID), lpCursorName);
 }
 
 inline void ComboBox_AddStringData(HWND hWnd, int nIDComboBox, LPCWSTR str, LONG_PTR data)
 {
-	LRESULT lValue = SendDlgItemMessageW(hWnd, nIDComboBox, CB_ADDSTRING, 0, (LPARAM)str);
+	LRESULT lValue = SendDlgItemMessageW( hWnd, nIDComboBox, CB_ADDSTRING, 0, (LPARAM)str);
 	if (lValue != CB_ERR) {
-		SendDlgItemMessageW(hWnd, nIDComboBox, CB_SETITEMDATA, lValue, data);
+		SendDlgItemMessageW( hWnd, nIDComboBox, CB_SETITEMDATA, lValue, data);
 	}
 }
 
 inline LONG_PTR ComboBox_GetCurItemData(HWND hWnd, int nIDComboBox)
 {
-	LRESULT lValue = SendDlgItemMessageW(hWnd, nIDComboBox, CB_GETCURSEL, 0, 0);
+	LRESULT lValue = SendDlgItemMessageW( hWnd, nIDComboBox, CB_GETCURSEL, 0, 0);
 	if (lValue != CB_ERR) {
-		lValue = SendDlgItemMessageW(hWnd, nIDComboBox, CB_GETITEMDATA, lValue, 0);
+		lValue = SendDlgItemMessageW( hWnd, nIDComboBox, CB_GETITEMDATA, lValue, 0);
 	}
 	return lValue;
 }
 
 void ComboBox_SelectByItemData(HWND hWnd, int nIDComboBox, LONG_PTR data)
 {
-	LRESULT lCount = SendDlgItemMessageW(hWnd, nIDComboBox, CB_GETCOUNT, 0, 0);
+	LRESULT lCount = SendDlgItemMessageW( hWnd, nIDComboBox, CB_GETCOUNT, 0, 0);
 	if (lCount != CB_ERR) {
 		for (int idx = 0; idx < lCount; idx++) {
-			const LRESULT lValue = SendDlgItemMessageW(hWnd, nIDComboBox, CB_GETITEMDATA, idx, 0);
+			const LRESULT lValue = SendDlgItemMessageW( hWnd, nIDComboBox, CB_GETITEMDATA, idx, 0);
 			if (data == lValue) {
-				SendDlgItemMessageW(hWnd, nIDComboBox, CB_SETCURSEL, idx, 0);
+				SendDlgItemMessageW( hWnd, nIDComboBox, CB_SETCURSEL, idx, 0);
 				break;
 			}
 		}
@@ -83,69 +84,71 @@ CVRMainPPage::~CVRMainPPage()
 
 void CVRMainPPage::SetControls()
 {
-	CheckDlgButton(IDC_CHECK1, m_SetsPP.bUseD3D11             ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK2, m_SetsPP.bShowStats            ? BST_CHECKED : BST_UNCHECKED);
+	
+	CheckDlgButton(m_hwnd,IDC_CHECK1, m_SetsPP.bUseD3D11             ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK2, m_SetsPP.bShowStats            ? BST_CHECKED : BST_UNCHECKED);
 
-	ComboBox_SelectByItemData(m_hWnd, IDC_COMBO1, m_SetsPP.iTexFormat);
+	ComboBox_SelectByItemData(m_hwnd, IDC_COMBO1, m_SetsPP.iTexFormat);
 
-	CheckDlgButton(IDC_CHECK7, m_SetsPP.VPFmts.bNV12          ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK8, m_SetsPP.VPFmts.bP01x          ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK9, m_SetsPP.VPFmts.bYUY2          ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK4, m_SetsPP.VPFmts.bOther         ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK3, m_SetsPP.bDeintDouble          ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK5, m_SetsPP.bVPScaling            ? BST_CHECKED : BST_UNCHECKED);
-	SendDlgItemMessageW(IDC_COMBO8, CB_SETCURSEL, m_SetsPP.iVPSuperRes, 0);
-	CheckDlgButton(IDC_CHECK19, m_SetsPP.bVPRTXVideoHDR       ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK7, m_SetsPP.VPFmts.bNV12          ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK8, m_SetsPP.VPFmts.bP01x          ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK9, m_SetsPP.VPFmts.bYUY2          ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK4, m_SetsPP.VPFmts.bOther         ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK3, m_SetsPP.bDeintDouble          ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK5, m_SetsPP.bVPScaling            ? BST_CHECKED : BST_UNCHECKED);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_SETCURSEL, m_SetsPP.iVPSuperRes, 0);
+	CheckDlgButton(m_hwnd,IDC_CHECK19, m_SetsPP.bVPRTXVideoHDR       ? BST_CHECKED : BST_UNCHECKED);
 
-	CheckDlgButton(IDC_CHECK18, m_SetsPP.bHdrPreferDoVi       ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK12, m_SetsPP.bHdrPassthrough      ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK14, m_SetsPP.bConvertToSdr        ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK18, m_SetsPP.bHdrPreferDoVi       ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK12, m_SetsPP.bHdrPassthrough      ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK14, m_SetsPP.bConvertToSdr        ? BST_CHECKED : BST_UNCHECKED);
 
-	SendDlgItemMessageW(IDC_COMBO7, CB_SETCURSEL, m_SetsPP.iHdrToggleDisplay, 0);
-	SendDlgItemMessageW(IDC_SLIDER1, TBM_SETPOS, 1, m_SetsPP.iHdrOsdBrightness);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_SETCURSEL, m_SetsPP.iHdrToggleDisplay, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_SLIDER1, TBM_SETPOS, 1, m_SetsPP.iHdrOsdBrightness);
 
-	CheckDlgButton(IDC_CHECK6, m_SetsPP.bInterpolateAt50pct   ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK10, m_SetsPP.bUseDither           ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK17, m_SetsPP.bDeintBlend          ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK6, m_SetsPP.bInterpolateAt50pct   ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK10, m_SetsPP.bUseDither           ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK17, m_SetsPP.bDeintBlend          ? BST_CHECKED : BST_UNCHECKED);
 
-	CheckDlgButton(IDC_CHECK11, m_SetsPP.bExclusiveFS         ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK15, m_SetsPP.bVBlankBeforePresent ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(IDC_CHECK16, m_SetsPP.bReinitByDisplay     ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK11, m_SetsPP.bExclusiveFS         ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK15, m_SetsPP.bVBlankBeforePresent ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(m_hwnd,IDC_CHECK16, m_SetsPP.bReinitByDisplay     ? BST_CHECKED : BST_UNCHECKED);
 
-	SendDlgItemMessageW(IDC_COMBO6, CB_SETCURSEL, m_SetsPP.iResizeStats, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO6, CB_SETCURSEL, m_SetsPP.iResizeStats, 0);
 
-	SendDlgItemMessageW(IDC_COMBO5, CB_SETCURSEL, m_SetsPP.iChromaScaling, 0);
-	SendDlgItemMessageW(IDC_COMBO2, CB_SETCURSEL, m_SetsPP.iUpscaling, 0);
-	SendDlgItemMessageW(IDC_COMBO3, CB_SETCURSEL, m_SetsPP.iDownscaling, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO5, CB_SETCURSEL, m_SetsPP.iChromaScaling, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_SETCURSEL, m_SetsPP.iUpscaling, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_SETCURSEL, m_SetsPP.iDownscaling, 0);
 
-	SendDlgItemMessageW(IDC_COMBO4, CB_SETCURSEL, m_SetsPP.iSwapEffect, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO4, CB_SETCURSEL, m_SetsPP.iSwapEffect, 0);
 }
 
 void CVRMainPPage::EnableControls()
 {
 	if (!IsWindows8OrGreater()) { // Windows 7
 		const BOOL bEnable = !m_SetsPP.bUseD3D11;
-		GetDlgItem(IDC_STATIC1).EnableWindow(bEnable); // not working for GROUPBOX
-		GetDlgItem(IDC_STATIC2).EnableWindow(bEnable);
-		GetDlgItem(IDC_CHECK7).EnableWindow(bEnable);
-		GetDlgItem(IDC_CHECK8).EnableWindow(bEnable);
-		GetDlgItem(IDC_CHECK9).EnableWindow(bEnable);
-		GetDlgItem(IDC_CHECK4).EnableWindow(bEnable);
-		GetDlgItem(IDC_CHECK3).EnableWindow(bEnable);
-		GetDlgItem(IDC_CHECK5).EnableWindow(bEnable);
-		GetDlgItem(IDC_STATIC3).EnableWindow(bEnable);
-		GetDlgItem(IDC_COMBO4).EnableWindow(bEnable);
+		
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC1),bEnable); // not working for GROUPBOX
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC2),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK7),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK8),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK9),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK4),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK3),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK5),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC3),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_COMBO4),bEnable);
 	}
 	else if (IsWindows10OrGreater()) {
 		const BOOL bEnable = m_SetsPP.bUseD3D11;
-		GetDlgItem(IDC_CHECK12).EnableWindow(bEnable);
-		GetDlgItem(IDC_STATIC5).EnableWindow(bEnable);
-		GetDlgItem(IDC_COMBO7).EnableWindow(bEnable);
-		GetDlgItem(IDC_STATIC6).EnableWindow(bEnable);
-		GetDlgItem(IDC_SLIDER1).EnableWindow(bEnable);
-		GetDlgItem(IDC_STATIC7).EnableWindow(bEnable && m_SetsPP.bVPScaling);
-		GetDlgItem(IDC_COMBO8).EnableWindow(bEnable && m_SetsPP.bVPScaling);
-		GetDlgItem(IDC_CHECK19).EnableWindow(bEnable && m_SetsPP.bHdrPassthrough);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK12),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC5),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_COMBO7),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC6),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_SLIDER1),bEnable);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC7),bEnable && m_SetsPP.bVPScaling);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_COMBO8),bEnable && m_SetsPP.bVPScaling);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK19),bEnable && m_SetsPP.bHdrPassthrough);
 	}
 }
 
@@ -174,80 +177,77 @@ HRESULT CVRMainPPage::OnDisconnect()
 
 HRESULT CVRMainPPage::OnActivate()
 {
-	// set m_hWnd for CWindow
-	m_hWnd = m_hwnd;
-
 	m_pVideoRenderer->GetSettings(m_SetsPP);
 
 	if (!IsWindows7SP1OrGreater()) {
-		GetDlgItem(IDC_CHECK1).EnableWindow(FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK1),FALSE);
 		m_SetsPP.bUseD3D11 = false;
 	}
 	if (!IsWindows10OrGreater()) {
-		GetDlgItem(IDC_CHECK12).EnableWindow(FALSE);
-		GetDlgItem(IDC_STATIC4).EnableWindow(FALSE);
-		GetDlgItem(IDC_STATIC5).EnableWindow(FALSE);
-		GetDlgItem(IDC_COMBO7).EnableWindow(FALSE);
-		GetDlgItem(IDC_STATIC6).EnableWindow(FALSE);
-		GetDlgItem(IDC_SLIDER1).EnableWindow(FALSE);
-		GetDlgItem(IDC_STATIC7).EnableWindow(FALSE);
-		GetDlgItem(IDC_COMBO8).EnableWindow(FALSE);
-		GetDlgItem(IDC_CHECK19).EnableWindow(FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK12),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC4),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC5),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_COMBO7),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC6),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_SLIDER1),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC7),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_COMBO8),FALSE);
+		EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK19),FALSE);
 	}
 
 	EnableControls();
 
-	SendDlgItemMessageW(IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Fixed font size");
-	SendDlgItemMessageW(IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Increase font by window");
-	//SendDlgItemMessageW(IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Increase by DPI"); // TODO
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Fixed font size");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Increase font by window");
+	//SendDlgItemMessageW(m_hwnd, IDC_COMBO6, CB_ADDSTRING, 0, (LPARAM)L"Increase by DPI"); // TODO
 
-	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"Auto 8/10-bit Integer",  0);
-	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"8-bit Integer",          8);
-	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"10-bit Integer",        10);
-	ComboBox_AddStringData(m_hWnd, IDC_COMBO1, L"16-bit Floating Point", 16);
+	ComboBox_AddStringData(m_hwnd, IDC_COMBO1, L"Auto 8/10-bit Integer",  0);
+	ComboBox_AddStringData(m_hwnd, IDC_COMBO1, L"8-bit Integer",          8);
+	ComboBox_AddStringData(m_hwnd, IDC_COMBO1, L"10-bit Integer",        10);
+	ComboBox_AddStringData(m_hwnd, IDC_COMBO1, L"16-bit Floating Point", 16);
 
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Disable");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for SD");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for \x2264 720p");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for \x2264 1080p");
-	SendDlgItemMessageW(IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for \x2264 1440p");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"Disable");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for SD");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for \x2264 720p");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for \x2264 1080p");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_ADDSTRING, 0, (LPARAM)L"for \x2264 1440p");
 
-	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Do not change");
-	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on (fullscreen)");
-	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on");
-	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on/off (fullscreen)");
-	SendDlgItemMessageW(IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on/off");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Do not change");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on (fullscreen)");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on/off (fullscreen)");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_ADDSTRING, 0, (LPARAM)L"Allow turn on/off");
 
-	SendDlgItemMessageW(IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
-	SendDlgItemMessageW(IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
-	SendDlgItemMessageW(IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO5, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
 
-	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
-	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Mitchell-Netravali");
-	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
-	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Lanczos2");
-	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Lanczos3");
-	SendDlgItemMessageW(IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Jinc2m");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Nearest-neighbor");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Mitchell-Netravali");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Catmull-Rom");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Lanczos2");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Lanczos3");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_ADDSTRING, 0, (LPARAM)L"Jinc2m");
 
-	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Box");
-	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
-	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Hamming");
-	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
-	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
-	SendDlgItemMessageW(IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Box");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bilinear");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Hamming");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Bicubic sharp");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_ADDSTRING, 0, (LPARAM)L"Lanczos");
 
-	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Discard");
-	SendDlgItemMessageW(IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Flip");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Discard");
+	SendDlgItemMessageW(m_hwnd, IDC_COMBO4, CB_ADDSTRING, 0, (LPARAM)L"Flip");
 
-	SendDlgItemMessageW(IDC_SLIDER1, TBM_SETRANGE, 0, MAKELONG(0, 2));
-	SendDlgItemMessageW(IDC_SLIDER1, TBM_SETTICFREQ, 1, 0);
+	SendDlgItemMessageW(m_hwnd, IDC_SLIDER1, TBM_SETRANGE, 0, MAKELONG(0, 2));
+	SendDlgItemMessageW(m_hwnd, IDC_SLIDER1, TBM_SETTICFREQ, 1, 0);
 
-	SetDlgItemTextW(IDC_EDIT2, GetNameAndVersion());
+	SetDlgItemTextW(m_hwnd, IDC_EDIT2, GetNameAndVersion());
 
 	SetControls();
 
-	SetCursor(m_hWnd, IDC_ARROW);
-	SetCursor(m_hWnd, IDC_COMBO1, IDC_HAND);
+	SetCursor(m_hwnd, IDC_ARROW);
+	SetCursor(m_hwnd, IDC_COMBO1, IDC_HAND);
 
 	return S_OK;
 }
@@ -260,96 +260,96 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 		if (HIWORD(wParam) == BN_CLICKED) {
 			if (nID == IDC_CHECK1) {
-				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(IDC_CHECK1) == BST_CHECKED;
+				m_SetsPP.bUseD3D11 = IsDlgButtonChecked(m_hwnd, IDC_CHECK1) == BST_CHECKED;
 				EnableControls();
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK2) {
-				m_SetsPP.bShowStats = IsDlgButtonChecked(IDC_CHECK2) == BST_CHECKED;
+				m_SetsPP.bShowStats = IsDlgButtonChecked(m_hwnd, IDC_CHECK2) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK3) {
-				m_SetsPP.bDeintDouble = IsDlgButtonChecked(IDC_CHECK3) == BST_CHECKED;
+				m_SetsPP.bDeintDouble = IsDlgButtonChecked(m_hwnd, IDC_CHECK3) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK5) {
-				m_SetsPP.bVPScaling = IsDlgButtonChecked(IDC_CHECK5) == BST_CHECKED;
+				m_SetsPP.bVPScaling = IsDlgButtonChecked(m_hwnd, IDC_CHECK5) == BST_CHECKED;
 				SetDirty();
-				GetDlgItem(IDC_STATIC7).EnableWindow(m_SetsPP.bVPScaling && m_SetsPP.bUseD3D11 && IsWindows10OrGreater());
-				GetDlgItem(IDC_COMBO8).EnableWindow(m_SetsPP.bVPScaling && m_SetsPP.bUseD3D11 && IsWindows10OrGreater());
+				EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC7),m_SetsPP.bVPScaling && m_SetsPP.bUseD3D11 && IsWindows10OrGreater());
+				EnableWindow(GetDlgItem(m_hwnd, IDC_COMBO8),m_SetsPP.bVPScaling && m_SetsPP.bUseD3D11 && IsWindows10OrGreater());
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK6) {
-				m_SetsPP.bInterpolateAt50pct = IsDlgButtonChecked(IDC_CHECK6) == BST_CHECKED;
+				m_SetsPP.bInterpolateAt50pct = IsDlgButtonChecked(m_hwnd, IDC_CHECK6) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK7) {
-				m_SetsPP.VPFmts.bNV12 = IsDlgButtonChecked(IDC_CHECK7) == BST_CHECKED;
+				m_SetsPP.VPFmts.bNV12 = IsDlgButtonChecked(m_hwnd, IDC_CHECK7) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK8) {
-				m_SetsPP.VPFmts.bP01x = IsDlgButtonChecked(IDC_CHECK8) == BST_CHECKED;
+				m_SetsPP.VPFmts.bP01x = IsDlgButtonChecked(m_hwnd, IDC_CHECK8) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK9) {
-				m_SetsPP.VPFmts.bYUY2 = IsDlgButtonChecked(IDC_CHECK9) == BST_CHECKED;
+				m_SetsPP.VPFmts.bYUY2 = IsDlgButtonChecked(m_hwnd, IDC_CHECK9) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK4) {
-				m_SetsPP.VPFmts.bOther = IsDlgButtonChecked(IDC_CHECK4) == BST_CHECKED;
+				m_SetsPP.VPFmts.bOther = IsDlgButtonChecked(m_hwnd, IDC_CHECK4) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK10) {
-				m_SetsPP.bUseDither = IsDlgButtonChecked(IDC_CHECK10) == BST_CHECKED;
+				m_SetsPP.bUseDither = IsDlgButtonChecked(m_hwnd, IDC_CHECK10) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK17) {
-				m_SetsPP.bDeintBlend = IsDlgButtonChecked(IDC_CHECK17) == BST_CHECKED;
+				m_SetsPP.bDeintBlend = IsDlgButtonChecked(m_hwnd, IDC_CHECK17) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK11) {
-				m_SetsPP.bExclusiveFS = IsDlgButtonChecked(IDC_CHECK11) == BST_CHECKED;
+				m_SetsPP.bExclusiveFS = IsDlgButtonChecked(m_hwnd, IDC_CHECK11) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK15) {
-				m_SetsPP.bVBlankBeforePresent = IsDlgButtonChecked(IDC_CHECK15) == BST_CHECKED;
+				m_SetsPP.bVBlankBeforePresent = IsDlgButtonChecked(m_hwnd, IDC_CHECK15) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK16) {
-				m_SetsPP.bReinitByDisplay = IsDlgButtonChecked(IDC_CHECK16) == BST_CHECKED;
+				m_SetsPP.bReinitByDisplay = IsDlgButtonChecked(m_hwnd, IDC_CHECK16) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK18) {
-				m_SetsPP.bHdrPreferDoVi = IsDlgButtonChecked(IDC_CHECK18) == BST_CHECKED;
+				m_SetsPP.bHdrPreferDoVi = IsDlgButtonChecked(m_hwnd, IDC_CHECK18) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK12) {
-				m_SetsPP.bHdrPassthrough = IsDlgButtonChecked(IDC_CHECK12) == BST_CHECKED;
+				m_SetsPP.bHdrPassthrough = IsDlgButtonChecked(m_hwnd, IDC_CHECK12) == BST_CHECKED;
 				EnableControls();
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK14) {
-				m_SetsPP.bConvertToSdr = IsDlgButtonChecked(IDC_CHECK14) == BST_CHECKED;
+				m_SetsPP.bConvertToSdr = IsDlgButtonChecked(m_hwnd, IDC_CHECK14) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
 			if (nID == IDC_CHECK19) {
-				m_SetsPP.bVPRTXVideoHDR = IsDlgButtonChecked(IDC_CHECK19) == BST_CHECKED;
+				m_SetsPP.bVPRTXVideoHDR = IsDlgButtonChecked(m_hwnd, IDC_CHECK19) == BST_CHECKED;
 				SetDirty();
 				return (LRESULT)1;
 			}
@@ -365,7 +365,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 		if (HIWORD(wParam) == CBN_SELCHANGE) {
 			if (nID == IDC_COMBO6) {
-				lValue = SendDlgItemMessageW(IDC_COMBO6, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO6, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iResizeStats) {
 					m_SetsPP.iResizeStats = lValue;
 					SetDirty();
@@ -373,18 +373,18 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 			if (nID == IDC_COMBO1) {
-				lValue = ComboBox_GetCurItemData(m_hWnd, IDC_COMBO1);
+				lValue = ComboBox_GetCurItemData(m_hwnd, IDC_COMBO1);
 				if (lValue != m_SetsPP.iTexFormat) {
 					m_SetsPP.iTexFormat = lValue;
 					SetDirty();
 
-					GetDlgItem(IDC_CHECK19).EnableWindow(m_SetsPP.bUseD3D11 && m_SetsPP.bHdrPassthrough && m_SetsPP.iTexFormat != TEXFMT_8INT);
+					EnableWindow(GetDlgItem(m_hwnd, IDC_CHECK19),m_SetsPP.bUseD3D11 && m_SetsPP.bHdrPassthrough && m_SetsPP.iTexFormat != TEXFMT_8INT);
 
 					return (LRESULT)1;
 				}
 			}
 			if (nID == IDC_COMBO8) {
-				lValue = SendDlgItemMessageW(IDC_COMBO8, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO8, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iVPSuperRes) {
 					m_SetsPP.iVPSuperRes = lValue;
 					SetDirty();
@@ -392,7 +392,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 			if (nID == IDC_COMBO7) {
-				lValue = SendDlgItemMessageW(IDC_COMBO7, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO7, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iHdrToggleDisplay) {
 					m_SetsPP.iHdrToggleDisplay = lValue;
 					SetDirty();
@@ -400,7 +400,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 			if (nID == IDC_COMBO5) {
-				lValue = SendDlgItemMessageW(IDC_COMBO5, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO5, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iChromaScaling) {
 					m_SetsPP.iChromaScaling = lValue;
 					SetDirty();
@@ -408,7 +408,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 			if (nID == IDC_COMBO2) {
-				lValue = SendDlgItemMessageW(IDC_COMBO2, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO2, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iUpscaling) {
 					m_SetsPP.iUpscaling = lValue;
 					SetDirty();
@@ -416,7 +416,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 			if (nID == IDC_COMBO3) {
-				lValue = SendDlgItemMessageW(IDC_COMBO3, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO3, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iDownscaling) {
 					m_SetsPP.iDownscaling = lValue;
 					SetDirty();
@@ -424,7 +424,7 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 			if (nID == IDC_COMBO4) {
-				lValue = SendDlgItemMessageW(IDC_COMBO4, CB_GETCURSEL, 0, 0);
+				lValue = SendDlgItemMessageW(m_hwnd, IDC_COMBO4, CB_GETCURSEL, 0, 0);
 				if (lValue != m_SetsPP.iSwapEffect) {
 					m_SetsPP.iSwapEffect = lValue;
 					SetDirty();
@@ -434,8 +434,8 @@ INT_PTR CVRMainPPage::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 		}
 	}
 	else if (uMsg == WM_HSCROLL) {
-		if ((HWND)lParam == GetDlgItem(IDC_SLIDER1)) {
-			LRESULT lValue = SendDlgItemMessageW(IDC_SLIDER1, TBM_GETPOS, 0, 0);
+		if ((HWND)lParam == GetDlgItem(m_hwnd, IDC_SLIDER1)) {
+			LRESULT lValue = SendDlgItemMessageW(m_hwnd, IDC_SLIDER1, TBM_GETPOS, 0, 0);
 			if (lValue != m_SetsPP.iHdrOsdBrightness) {
 				m_SetsPP.iHdrOsdBrightness = lValue;
 				SetDirty();
@@ -526,25 +526,26 @@ static LRESULT CALLBACK ControlProc(HWND control, UINT message, WPARAM wParam, L
 
 HRESULT CVRInfoPPage::OnActivate()
 {
-	// set m_hWnd for CWindow
-	m_hWnd = m_hwnd;
+	// set m_hwnd for CWindow
+	m_hwnd = m_hwnd;
 
-	SetDlgItemTextW(IDC_EDIT2, GetNameAndVersion());
+	SetDlgItemTextW(m_hwnd, IDC_EDIT2, GetNameAndVersion());
 
 	// init monospace font
 	LOGFONTW lf = {};
-	HDC hdc = GetWindowDC();
+	HDC hdc = GetWindowDC(m_hwnd);
 	lf.lfHeight = -MulDiv(9, GetDeviceCaps(hdc, LOGPIXELSY), 72);
-	ReleaseDC(hdc);
+	ReleaseDC(m_hwnd, hdc);
 	lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
 	wcscpy_s(lf.lfFaceName, L"Consolas");
 	m_hMonoFont = CreateFontIndirectW(&lf);
 
-	GetDlgItem(IDC_EDIT1).SetFont(m_hMonoFont);
+	SendMessage(GetDlgItem(m_hwnd, IDC_EDIT1), WM_SETFONT, (WPARAM)m_hMonoFont, MAKELPARAM(TRUE, 0));
+
 	ASSERT(m_pVideoRenderer);
 
 	if (!m_pVideoRenderer->GetActive()) {
-		SetDlgItemTextW(IDC_EDIT1, L"filter is not active");
+		SetDlgItemTextW(m_hwnd, IDC_EDIT1, L"filter is not active");
 		return S_OK;
 	}
 
@@ -586,9 +587,9 @@ HRESULT CVRInfoPPage::OnActivate()
 	}
 #endif
 
-	SetDlgItemTextW(IDC_EDIT1, strInfo.c_str());
+	SetDlgItemTextW(m_hwnd, IDC_EDIT1, strInfo.c_str());
 
-	OldControlProc = (WNDPROC)::SetWindowLongPtrW(::GetDlgItem(m_hWnd, IDC_EDIT1), GWLP_WNDPROC, (LONG_PTR)ControlProc);
+	OldControlProc = (WNDPROC)::SetWindowLongPtrW(GetDlgItem(m_hwnd, IDC_EDIT1), GWLP_WNDPROC, (LONG_PTR)ControlProc);
 
 	return S_OK;
 }

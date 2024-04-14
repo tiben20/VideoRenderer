@@ -29,9 +29,10 @@
 #define D3D_DEBUG_INFO
 #endif
 
-#include <atlbase.h>
+/*#include <atlbase.h>
 #include <atlwin.h>
-#include <atltypes.h>
+#include <atltypes.h>*/
+#include "utils/atlredef.h"
 
 #include <dmodshow.h>
 #include <dvdmedia.h>

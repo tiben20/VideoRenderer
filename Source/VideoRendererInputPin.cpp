@@ -115,7 +115,7 @@ STDMETHODIMP CVideoRendererInputPin::ReceiveConnection(IPin* pConnector, const A
 
 		ALLOCATOR_PROPERTIES props, actual;
 
-		CComPtr<IMemAllocator> pMemAllocator;
+		Microsoft::WRL::ComPtr<IMemAllocator> pMemAllocator;
 		if (FAILED(GetAllocator(&pMemAllocator))
 				|| FAILED(pMemAllocator->Decommit())
 				|| FAILED(pMemAllocator->GetProperties(&props))) {

@@ -116,7 +116,7 @@ HRESULT AlphaBlt(IDirect3DDevice9* pD3DDev, const RECT* pSrc, const RECT* pDst, 
 	ASSERT(pSrc);
 	ASSERT(pDst);
 
-	CRect src(*pSrc), dst(*pDst);
+	Com::SmartRect src(*pSrc), dst(*pDst);
 
 	D3DSURFACE_DESC desc;
 	HRESULT hr = pTexture->GetLevelDesc(0, &desc);
@@ -301,7 +301,7 @@ CDX9VideoProcessor::CDX9VideoProcessor(CMpcVideoRenderer* pFilter, const Setting
 	if (!m_pD3DDeviceManager || FAILED(hr)) {
 		DLog(L"CDX9VideoProcessor::CDX9VideoProcessor() : failed to call DXVA2CreateDirect3DDeviceManager9()");
 		hr = E_FAIL;
-		m_pD3DEx.Release();
+		m_pD3DEx= nullptr;
 		return;
 	}
 
@@ -331,10 +331,10 @@ CDX9VideoProcessor::~CDX9VideoProcessor()
 
 	ReleaseDevice();
 
-	m_pD3DDeviceManager.Release();
+	m_pD3DDeviceManager= nullptr;
 	m_nResetTocken = 0;
 
-	m_pD3DEx.Release();
+	m_pD3DEx= nullptr;
 
 	MH_RemoveHook(SystemParametersInfoA);
 	MH_RemoveHook(SetWindowLongA);
@@ -396,7 +396,7 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 
 	bInitVP = true;
 
-	const UINT currentAdapter = GetAdapter(m_hWnd, m_pD3DEx);
+	const UINT currentAdapter = GetAdapter(m_hWnd, m_pD3DEx.Get());
 	bool bTryToReset = (currentAdapter == m_nCurrentAdapter) && m_pD3DDevEx;
 	if (!bTryToReset) {
 		ReleaseDevice();
@@ -514,13 +514,13 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 	}
 
 	if (S_OK == hr && !bTryToReset) {
-		hr = m_pD3DDeviceManager->ResetDevice(m_pD3DDevEx, m_nResetTocken);
+		hr = m_pD3DDeviceManager->ResetDevice(m_pD3DDevEx.Get(), m_nResetTocken);
 		if (FAILED(hr)) {
 			DLog(L"CDX9VideoProcessor::InitInternal() : ResetDevice() failed with error {}", HR2Str(hr));
 			return E_FAIL;
 		}
 
-		hr = m_DXVA2VP.InitVideoService(m_pD3DDevEx, m_VendorId);
+		hr = m_DXVA2VP.InitVideoService(m_pD3DDevEx.Get(), m_VendorId);
 		if (FAILED(hr)) {
 			DLog(L"CDX9VideoProcessor::InitInternal() : m_DXVA2VP.InitVideoService() failed with error {}", HR2Str(hr));
 			return E_FAIL;
@@ -533,21 +533,21 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 			}
 		}
 
-		HRESULT hr2 = m_Font3D.InitDeviceObjects(m_pD3DDevEx);
+		HRESULT hr2 = m_Font3D.InitDeviceObjects(m_pD3DDevEx.Get());
 		DLogIf(FAILED(hr2), L"m_Font3D.InitDeviceObjects() failed with error {}", HR2Str(hr2));
 		if (SUCCEEDED(hr2)) {
-			hr2 = m_StatsBackground.InitDeviceObjects(m_pD3DDevEx);
-			hr2 = m_Rect3D.InitDeviceObjects(m_pD3DDevEx);
-			hr2 = m_Underlay.InitDeviceObjects(m_pD3DDevEx);
-			hr2 = m_Lines.InitDeviceObjects(m_pD3DDevEx);
-			hr2 = m_SyncLine.InitDeviceObjects(m_pD3DDevEx);
+			hr2 = m_StatsBackground.InitDeviceObjects(m_pD3DDevEx.Get());
+			hr2 = m_Rect3D.InitDeviceObjects(m_pD3DDevEx.Get());
+			hr2 = m_Underlay.InitDeviceObjects(m_pD3DDevEx.Get());
+			hr2 = m_Lines.InitDeviceObjects(m_pD3DDevEx.Get());
+			hr2 = m_SyncLine.InitDeviceObjects(m_pD3DDevEx.Get());
 			DLogIf(FAILED(hr2), L"Geometric primitives InitDeviceObjects() failed with error {}", HR2Str(hr2));
 		}
 		ASSERT(S_OK == hr2);
 
 		SetStereo3dTransform(m_iStereo3dTransform);
 
-		HRESULT hr3 = m_TexDither.Create(m_pD3DDevEx, D3DFMT_A16B16G16R16F, dither_size, dither_size, D3DUSAGE_DYNAMIC);
+		HRESULT hr3 = m_TexDither.Create(m_pD3DDevEx.Get(), D3DFMT_A16B16G16R16F, dither_size, dither_size, D3DUSAGE_DYNAMIC);
 		if (S_OK == hr3) {
 			LPVOID data;
 			DWORD size;
@@ -573,7 +573,7 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 				}
 			}
 			if (S_OK == hr3) {
-				m_pPSFinalPass.Release();
+				m_pPSFinalPass= nullptr;
 				hr3 = CreatePShaderFromResource(&m_pPSFinalPass, IDF_PS_9_FINAL_PASS);
 			}
 
@@ -584,7 +584,7 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 	}
 
 	if (m_pFilter->m_pSubCallBack) {
-		m_pFilter->m_pSubCallBack->SetDevice(m_pD3DDevEx);
+		m_pFilter->m_pSubCallBack->SetDevice(m_pD3DDevEx.Get());
 	}
 
 	if (m_VendorId == PCIV_INTEL && CPUInfo::HaveSSE41()) {
@@ -660,7 +660,7 @@ HRESULT CDX9VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullpt
 
 bool CDX9VideoProcessor::Initialized()
 {
-	return (m_pD3DDevEx.p != nullptr);
+	return (m_pD3DDevEx.Get() != nullptr);
 }
 
 void CDX9VideoProcessor::ReleaseVP()
@@ -699,18 +699,18 @@ void CDX9VideoProcessor::ReleaseDevice()
 
 	ClearPreScaleShaders();
 	ClearPostScaleShaders();
-	m_pPSCorrection.Release();
-	m_pPSConvertColor.Release();
-	m_pPSConvertColorDeint.Release();
+	m_pPSCorrection= nullptr;
+	m_pPSConvertColor= nullptr;
+	m_pPSConvertColorDeint= nullptr;
 
-	m_pShaderUpscaleX.Release();
-	m_pShaderUpscaleY.Release();
-	m_pShaderDownscaleX.Release();
-	m_pShaderDownscaleY.Release();
+	m_pShaderUpscaleX= nullptr;
+	m_pShaderUpscaleY= nullptr;
+	m_pShaderDownscaleX= nullptr;
+	m_pShaderDownscaleY= nullptr;
 	m_strShaderX = nullptr;
 	m_strShaderY = nullptr;
-	m_pPSHalfOUtoInterlace.Release();
-	m_pPSFinalPass.Release();
+	m_pPSHalfOUtoInterlace= nullptr;
+	m_pPSFinalPass= nullptr;
 
 	m_StatsBackground.InvalidateDeviceObjects();
 	m_Font3D.InvalidateDeviceObjects();
@@ -720,7 +720,7 @@ void CDX9VideoProcessor::ReleaseDevice()
 	m_Lines.InvalidateDeviceObjects();
 	m_SyncLine.InvalidateDeviceObjects();
 
-	m_pD3DDevEx.Release();
+	m_pD3DDevEx= nullptr;
 }
 
 UINT CDX9VideoProcessor::GetPostScaleSteps()
@@ -776,14 +776,14 @@ HRESULT CDX9VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, const
 
 	DLog(L"CDX9VideoProcessor::InitializeTexVP() started with input surface: {}, {} x {}", D3DFormatToString(d3dformat), width, height);
 
-	HRESULT hr = m_TexSrcVideo.CreateEx(m_pD3DDevEx, d3dformat, params.pDX9Planes, width, height, D3DUSAGE_DYNAMIC);
+	HRESULT hr = m_TexSrcVideo.CreateEx(m_pD3DDevEx.Get(), d3dformat, params.pDX9Planes, width, height, D3DUSAGE_DYNAMIC);
 	if (FAILED(hr)) {
 		DLog(L"CDX9VideoProcessor::InitializeTexVP() : failed m_TexSrcVideo.Create()");
 		return hr;
 	}
 
 	// fill the surface in black, to avoid the "green screen"
-	m_pD3DDevEx->ColorFill(m_TexSrcVideo.pSurface, nullptr, D3DCOLOR_XYUV(0, 128, 128));
+	m_pD3DDevEx->ColorFill(m_TexSrcVideo.pSurface.Get(), nullptr, D3DCOLOR_XYUV(0, 128, 128));
 
 	m_srcWidth       = width;
 	m_srcHeight      = height;
@@ -1046,7 +1046,7 @@ BOOL CDX9VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 			// nothing
 		}
 		else {
-			CComPtr<IDirect3DSurface9> pSurface;
+			Microsoft::WRL::ComPtr<IDirect3DSurface9> pSurface;
 			if (m_DXVA2VP.IsReady()) {
 				pSurface = m_DXVA2VP.GetNextInputSurface(0, 0, m_CurrentSampleFmt);
 			} else {
@@ -1200,9 +1200,9 @@ BOOL CDX9VideoProcessor::InitMediaType(const CMediaType* pmt)
 	UpdateUpscalingShaders();
 	UpdateDownscalingShaders();
 
-	m_pPSCorrection.Release();
-	m_pPSConvertColor.Release();
-	m_pPSConvertColorDeint.Release();
+	m_pPSCorrection= nullptr;
+	m_pPSConvertColor= nullptr;
+	m_pPSConvertColorDeint= nullptr;
 	m_PSConvColorData.bEnable = false;
 
 	UpdateTexParams(FmtParams.CDepth);
@@ -1325,7 +1325,7 @@ HRESULT CDX9VideoProcessor::CopySample(IMediaSample* pSample)
 	m_CurrentSampleFmt = DXVA2_SampleProgressiveFrame; // Progressive
 	m_bDoubleFrames = false;
 	if (m_bInterlaced) {
-		if (CComQIPtr<IMediaSample2> pMS2 = pSample) {
+		if (Com::SmartQIPtr<IMediaSample2> pMS2 = pSample) {
 			AM_SAMPLE2_PROPERTIES props;
 			if (SUCCEEDED(pMS2->GetProperties(sizeof(props), (BYTE*)&props))) {
 				if ((props.dwTypeSpecificFlags & AM_VIDEO_FLAG_WEAVE) == 0) {
@@ -1344,7 +1344,7 @@ HRESULT CDX9VideoProcessor::CopySample(IMediaSample* pSample)
 	m_FieldDrawn = 0;
 	bool updateStats = false;
 
-	if (CComQIPtr<IMediaSideData> pMediaSideData = pSample) {
+	if (Com::SmartQIPtr<IMediaSideData> pMediaSideData = pSample) {
 		size_t size = 0;
 		MediaSideData3DOffset* offset = nullptr;
 		hr = pMediaSideData->GetSideData(IID_MediaSideData3DOffset, (const BYTE**)&offset, &size);
@@ -1402,13 +1402,13 @@ HRESULT CDX9VideoProcessor::CopySample(IMediaSample* pSample)
 		}
 	}
 
-	if (CComQIPtr<IMFGetService> pService = pSample) {
+	if (Com::SmartQIPtr<IMFGetService> pService = pSample) {
 		if (m_iSrcFromGPU != 9) {
 			m_iSrcFromGPU = 9;
 			updateStats = true;
 		}
 
-		CComPtr<IDirect3DSurface9> pSurface;
+		Microsoft::WRL::ComPtr<IDirect3DSurface9> pSurface;
 		if (SUCCEEDED(pService->GetService(MR_BUFFER_SERVICE, IID_PPV_ARGS(&pSurface)))) {
 			D3DSURFACE_DESC desc;
 			hr = pSurface->GetDesc(&desc);
@@ -1435,9 +1435,9 @@ HRESULT CDX9VideoProcessor::CopySample(IMediaSample* pSample)
 
 				if (m_DXVA2VP.GetNumRefSamples() > 1) {
 					IDirect3DSurface9* pDXVA2VPSurface = m_DXVA2VP.GetNextInputSurface(start_100ns, end_100ns, m_CurrentSampleFmt);
-					hr = m_pD3DDevEx->StretchRect(pSurface, nullptr, pDXVA2VPSurface, nullptr, D3DTEXF_NONE);
+					hr = m_pD3DDevEx->StretchRect(pSurface.Get(), nullptr, pDXVA2VPSurface, nullptr, D3DTEXF_NONE);
 				} else {
-					m_DXVA2VP.SetInputSurface(pSurface, start_100ns, end_100ns, m_CurrentSampleFmt);
+					m_DXVA2VP.SetInputSurface(pSurface.Get(), start_100ns, end_100ns, m_CurrentSampleFmt);
 				}
 			}
 			else if (m_TexSrcVideo.Plane2.pSurface) {
@@ -1546,7 +1546,7 @@ HRESULT CDX9VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTim
 
 	HRESULT hr = m_pD3DDevEx->BeginScene();
 
-	CComPtr<IDirect3DSurface9> pBackBuffer;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pBackBuffer;
 	hr = m_pD3DDevEx->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
 	if (FAILED(hr)) {
 		DLog(L"CDX9VideoProcessor::Render() : GetBackBuffer() failed with error {}", HR2Str(hr));
@@ -1554,21 +1554,21 @@ HRESULT CDX9VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTim
 	}
 
 	// fill the BackBuffer with black
-	hr = m_pD3DDevEx->SetRenderTarget(0, pBackBuffer);
-	m_pD3DDevEx->ColorFill(pBackBuffer, nullptr, 0);
+	hr = m_pD3DDevEx->SetRenderTarget(0, pBackBuffer.Get());
+	m_pD3DDevEx->ColorFill(pBackBuffer.Get(), nullptr, 0);
 
 	if (!m_renderRect.IsRectEmpty()) {
-		hr = Process(pBackBuffer, m_srcRect, m_videoRect, m_FieldDrawn == 2);
+		hr = Process(pBackBuffer.Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
 	}
 
 	if (!m_pPSHalfOUtoInterlace) {
-		DrawSubtitles(pBackBuffer);
+		DrawSubtitles(pBackBuffer.Get());
 	}
 
 	const SIZE windowSize = m_windowRect.Size();
 
 	if (m_bShowStats) {
-		hr = DrawStats(pBackBuffer);
+		hr = DrawStats(pBackBuffer.Get());
 	}
 
 	if (m_bAlphaBitmapEnable) {
@@ -1580,7 +1580,7 @@ HRESULT CDX9VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTim
 			m_AlphaBitmapNRectDest.right  * windowSize.cx,
 			m_AlphaBitmapNRectDest.bottom * windowSize.cy
 		};
-		hr = AlphaBlt(m_pD3DDevEx, &m_AlphaBitmapRectSrc, &rDst, m_TexAlphaBitmap.pTexture, D3DTEXF_LINEAR);
+		hr = AlphaBlt(m_pD3DDevEx.Get(), &m_AlphaBitmapRectSrc, &rDst, m_TexAlphaBitmap.pTexture.Get(), D3DTEXF_LINEAR);
 	}
 
 #if 0
@@ -1615,8 +1615,8 @@ HRESULT CDX9VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTim
 	SyncFrameToStreamTime(frameStartTime);
 
 	if (m_d3dpp.SwapEffect == D3DSWAPEFFECT_DISCARD) {
-		const CRect rSrcPri(CPoint(0, 0), windowSize);
-		const CRect rDstPri(m_windowRect);
+		const Com::SmartRect rSrcPri(Com::SmartPoint(0, 0), windowSize);
+		const Com::SmartRect rDstPri(m_windowRect);
 		hr = m_pD3DDevEx->PresentEx(rSrcPri, rDstPri, nullptr, nullptr, 0);
 	} else {
 		hr = m_pD3DDevEx->PresentEx(nullptr, nullptr, nullptr, nullptr, 0);
@@ -1636,18 +1636,18 @@ HRESULT CDX9VideoProcessor::FillBlack()
 {
 	HRESULT hr = m_pD3DDevEx->BeginScene();
 
-	CComPtr<IDirect3DSurface9> pBackBuffer;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pBackBuffer;
 	hr = m_pD3DDevEx->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
 	if (FAILED(hr)) {
 		DLog(L"CDX9VideoProcessor::Render() : FillBlack() failed with error {}", HR2Str(hr));
 		return hr;
 	}
 
-	hr = m_pD3DDevEx->SetRenderTarget(0, pBackBuffer);
-	m_pD3DDevEx->ColorFill(pBackBuffer, nullptr, 0);
+	hr = m_pD3DDevEx->SetRenderTarget(0, pBackBuffer.Get());
+	m_pD3DDevEx->ColorFill(pBackBuffer.Get(), nullptr, 0);
 
 	if (m_bShowStats) {
-		hr = DrawStats(pBackBuffer);
+		hr = DrawStats(pBackBuffer.Get());
 	}
 
 	if (m_bAlphaBitmapEnable) {
@@ -1660,14 +1660,14 @@ HRESULT CDX9VideoProcessor::FillBlack()
 			m_AlphaBitmapNRectDest.right * windowSize.cx,
 			m_AlphaBitmapNRectDest.bottom * windowSize.cy
 		};
-		hr = AlphaBlt(m_pD3DDevEx, &m_AlphaBitmapRectSrc, &rDst, m_TexAlphaBitmap.pTexture, D3DTEXF_LINEAR);
+		hr = AlphaBlt(m_pD3DDevEx.Get(), &m_AlphaBitmapRectSrc, &rDst, m_TexAlphaBitmap.pTexture.Get(), D3DTEXF_LINEAR);
 	}
 
 	hr = m_pD3DDevEx->EndScene();
 
 	if (m_d3dpp.SwapEffect == D3DSWAPEFFECT_DISCARD) {
-		const CRect rSrcPri(CPoint(0, 0), m_windowRect.Size());
-		const CRect rDstPri(m_windowRect);
+		const Com::SmartRect rSrcPri(Com::SmartPoint(0, 0), m_windowRect.Size());
+		const Com::SmartRect rDstPri(m_windowRect);
 		hr = m_pD3DDevEx->PresentEx(rSrcPri, rDstPri, nullptr, nullptr, 0);
 	} else {
 		hr = m_pD3DDevEx->PresentEx(nullptr, nullptr, nullptr, nullptr, 0);
@@ -1676,14 +1676,14 @@ HRESULT CDX9VideoProcessor::FillBlack()
 	return hr;
 }
 
-void CDX9VideoProcessor::SetVideoRect(const CRect& videoRect)
+void CDX9VideoProcessor::SetVideoRect(const Com::SmartRect& videoRect)
 {
 	m_videoRect = videoRect;
 	UpdateRenderRect();
 	UpdateTexures();
 }
 
-HRESULT CDX9VideoProcessor::SetWindowRect(const CRect& windowRect)
+HRESULT CDX9VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 {
 	m_windowRect = windowRect;
 	UpdateRenderRect();
@@ -1723,7 +1723,7 @@ HRESULT CDX9VideoProcessor::Reset()
 
 HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 {
-	CSize framesize(m_srcRectWidth, m_srcRectHeight);
+	Com::SmartSize framesize(m_srcRectWidth, m_srcRectHeight);
 	if (m_srcAnamorphic) {
 		framesize.cx = MulDiv(framesize.cy, m_srcAspectRatioX, m_srcAspectRatioY);
 	}
@@ -1732,7 +1732,7 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 	}
 	const auto w = framesize.cx;
 	const auto h = framesize.cy;
-	const CRect imageRect(0, 0, w, h);
+	const Com::SmartRect imageRect(0, 0, w, h);
 
 	BITMAPINFOHEADER* pBIH = (BITMAPINFOHEADER*)pDIBImage;
 	ZeroMemory(pBIH, sizeof(BITMAPINFOHEADER));
@@ -1746,7 +1746,7 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 	UINT dst_pitch = pBIH->biSizeImage / h;
 
 	HRESULT hr = S_OK;
-	CComPtr<IDirect3DSurface9> pRGB32Surface;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pRGB32Surface;
 	hr = m_pD3DDevEx->CreateRenderTarget(w, h, D3DFMT_X8R8G8B8, D3DMULTISAMPLE_NONE, 0, TRUE, &pRGB32Surface, nullptr);
 	if (FAILED(hr)) {
 		return hr;
@@ -1762,7 +1762,7 @@ HRESULT CDX9VideoProcessor::GetCurentImage(long *pDIBImage)
 	auto pSubCallBack = m_pFilter->m_pSubCallBack;
 	m_pFilter->m_pSubCallBack = nullptr;
 
-	hr = Process(pRGB32Surface, m_srcRect, imageRect, 0);
+	hr = Process(pRGB32Surface.Get(), m_srcRect, imageRect, 0);
 
 	m_pFilter->m_pSubCallBack = pSubCallBack;
 
@@ -1796,15 +1796,15 @@ HRESULT CDX9VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned *pSize)
 	const UINT height = m_windowRect.Height();
 
 	// use the back buffer, because the display profile is applied to the front buffer
-	CComPtr<IDirect3DSurface9> pBackBuffer;
-	CComPtr<IDirect3DSurface9> pDestSurface;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pBackBuffer;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pDestSurface;
 
 	hr = m_pD3DDevEx->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
 	if (SUCCEEDED(hr)) {
 		hr = m_pD3DDevEx->CreateRenderTarget(width, height, D3DFMT_X8R8G8B8, D3DMULTISAMPLE_NONE, 0, TRUE, &pDestSurface, nullptr);
 	}
 	if (SUCCEEDED(hr)) {
-		hr = m_pD3DDevEx->StretchRect(pBackBuffer, m_windowRect, pDestSurface, nullptr, D3DTEXF_NONE);
+		hr = m_pD3DDevEx->StretchRect(pBackBuffer.Get(), m_windowRect, pDestSurface.Get(), nullptr, D3DTEXF_NONE);
 	}
 	if (FAILED(hr)) {
 		DLog(L"CDX9VideoProcessor::GetDisplayedImage() failed with error {}", HR2Str(hr));
@@ -2061,7 +2061,7 @@ void CDX9VideoProcessor::SetStereo3dTransform(int value)
 			CreatePShaderFromResource(&m_pPSHalfOUtoInterlace, IDF_PS_9_HALFOU_TO_INTERLACE);
 		}
 	} else {
-		m_pPSHalfOUtoInterlace.Release();
+		m_pPSHalfOUtoInterlace= nullptr;
 	}
 }
 
@@ -2081,7 +2081,7 @@ void CDX9VideoProcessor::Flush()
 void CDX9VideoProcessor::ClearPreScaleShaders()
 {
 	for (auto& pExtShader : m_pPreScaleShaders) {
-		pExtShader.shader.Release();
+		pExtShader.shader= nullptr;
 	}
 	m_pPreScaleShaders.clear();
 	DLog(L"CDX9VideoProcessor::ClearPreScaleShaders().");
@@ -2090,7 +2090,7 @@ void CDX9VideoProcessor::ClearPreScaleShaders()
 void CDX9VideoProcessor::ClearPostScaleShaders()
 {
 	for (auto& pExtShader : m_pPostScaleShaders) {
-		pExtShader.shader.Release();
+		pExtShader.shader= nullptr;
 	}
 	m_pPostScaleShaders.clear();
 	//UpdateStatsPostProc();
@@ -2167,17 +2167,17 @@ void CDX9VideoProcessor::UpdateTexures()
 
 	if (m_DXVA2VP.IsReady()) {
 		if (m_bVPScaling) {
-			CSize texsize = m_videoRect.Size();
+			Com::SmartSize texsize = m_videoRect.Size();
 			if (m_iRotation == 90 || m_iRotation == 270) {
 				std::swap(texsize.cx, texsize.cy);
 			}
-			hr = m_TexConvertOutput.CheckCreate(m_pD3DDevEx, m_DXVA2OutputFmt, texsize.cx, texsize.cy, D3DUSAGE_RENDERTARGET);
+			hr = m_TexConvertOutput.CheckCreate(m_pD3DDevEx.Get(), m_DXVA2OutputFmt, texsize.cx, texsize.cy, D3DUSAGE_RENDERTARGET);
 		} else {
-			hr = m_TexConvertOutput.CheckCreate(m_pD3DDevEx, m_DXVA2OutputFmt, m_srcRectWidth, m_srcRectHeight, D3DUSAGE_RENDERTARGET);
+			hr = m_TexConvertOutput.CheckCreate(m_pD3DDevEx.Get(), m_DXVA2OutputFmt, m_srcRectWidth, m_srcRectHeight, D3DUSAGE_RENDERTARGET);
 		}
 	}
 	else {
-		hr = m_TexConvertOutput.CheckCreate(m_pD3DDevEx, m_InternalTexFmt, m_srcRectWidth, m_srcRectHeight, D3DUSAGE_RENDERTARGET);
+		hr = m_TexConvertOutput.CheckCreate(m_pD3DDevEx.Get(), m_InternalTexFmt, m_srcRectWidth, m_srcRectHeight, D3DUSAGE_RENDERTARGET);
 	}
 }
 
@@ -2188,14 +2188,14 @@ void CDX9VideoProcessor::UpdatePostScaleTexures()
 	m_bFinalPass = (m_bUseDither && needDither && m_TexDither.pTexture && m_pPSFinalPass);
 
 	const UINT numPostScaleSteps = GetPostScaleSteps();
-	HRESULT hr = m_TexsPostScale.CheckCreate(m_pD3DDevEx, m_InternalTexFmt, m_windowRect.Width(), m_windowRect.Height(), numPostScaleSteps);
+	HRESULT hr = m_TexsPostScale.CheckCreate(m_pD3DDevEx.Get(), m_InternalTexFmt, m_windowRect.Width(), m_windowRect.Height(), numPostScaleSteps);
 	//UpdateStatsPostProc();
 }
 
 void CDX9VideoProcessor::UpdateUpscalingShaders()
 {
-	m_pShaderUpscaleX.Release();
-	m_pShaderUpscaleY.Release();
+	m_pShaderUpscaleX = nullptr;
+	m_pShaderUpscaleY= nullptr;
 
 	if (m_iUpscaling != UPSCALE_Nearest) {
 		EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pShaderUpscaleX, s_Upscaling9ResIDs[m_iUpscaling].shaderX));
@@ -2211,8 +2211,8 @@ void CDX9VideoProcessor::UpdateUpscalingShaders()
 
 void CDX9VideoProcessor::UpdateDownscalingShaders()
 {
-	m_pShaderDownscaleX.Release();
-	m_pShaderDownscaleY.Release();
+	m_pShaderDownscaleX= nullptr;
+	m_pShaderDownscaleY= nullptr;
 
 	EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pShaderDownscaleX, s_Downscaling9ResIDs[m_iDownscaling].shaderX));
 	EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pShaderDownscaleY, s_Downscaling9ResIDs[m_iDownscaling].shaderY));
@@ -2222,8 +2222,8 @@ void CDX9VideoProcessor::UpdateDownscalingShaders()
 
 HRESULT CDX9VideoProcessor::UpdateConvertColorShader()
 {
-	m_pPSConvertColor.Release();
-	m_pPSConvertColorDeint.Release();
+	m_pPSConvertColor= nullptr;
+	m_pPSConvertColorDeint= nullptr;
 	HRESULT hr = S_OK;
 
 	if (m_TexSrcVideo.pTexture) {
@@ -2349,7 +2349,7 @@ HRESULT CDX9VideoProcessor::UpdateConvertColorShader()
 	return hr;
 }
 
-HRESULT CDX9VideoProcessor::DxvaVPPass(IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second)
+HRESULT CDX9VideoProcessor::DxvaVPPass(IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second)
 {
 	m_DXVA2VP.SetRectangles(srcRect, dstRect);
 
@@ -2364,9 +2364,9 @@ HRESULT CDX9VideoProcessor::ConvertColorPass(IDirect3DSurface9* pRenderTarget)
 	hr = m_pD3DDevEx->SetPixelShaderConstantF(4, (float*)&m_DoviReshapePolyCurves, sizeof(m_DoviReshapePolyCurves) / sizeof(float));
 
 	if (m_bDeintBlend && m_CurrentSampleFmt != DXVA2_SampleProgressiveFrame && m_pPSConvertColorDeint) {
-		hr = m_pD3DDevEx->SetPixelShader(m_pPSConvertColorDeint);
+		hr = m_pD3DDevEx->SetPixelShader(m_pPSConvertColorDeint.Get());
 	} else {
-		hr = m_pD3DDevEx->SetPixelShader(m_pPSConvertColor);
+		hr = m_pD3DDevEx->SetPixelShader(m_pPSConvertColor.Get());
 	}
 
 	hr = m_pD3DDevEx->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
@@ -2378,7 +2378,7 @@ HRESULT CDX9VideoProcessor::ConvertColorPass(IDirect3DSurface9* pRenderTarget)
 	hr = m_pD3DDevEx->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 	hr = m_pD3DDevEx->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA | D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_RED);
 
-	hr = m_pD3DDevEx->SetTexture(0, m_TexSrcVideo.pTexture);
+	hr = m_pD3DDevEx->SetTexture(0, m_TexSrcVideo.pTexture.Get());
 	DWORD FVF = D3DFVF_TEX1;
 	hr = m_pD3DDevEx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 	hr = m_pD3DDevEx->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
@@ -2389,7 +2389,7 @@ HRESULT CDX9VideoProcessor::ConvertColorPass(IDirect3DSurface9* pRenderTarget)
 	if (m_TexSrcVideo.Plane2.pTexture) {
 		DWORD dwMagFilter = (m_srcParams.Subsampling == 444 || m_iChromaScaling == CHROMA_Nearest) ? D3DTEXF_POINT : D3DTEXF_LINEAR;
 
-		hr = m_pD3DDevEx->SetTexture(1, m_TexSrcVideo.Plane2.pTexture);
+		hr = m_pD3DDevEx->SetTexture(1, m_TexSrcVideo.Plane2.pTexture.Get());
 		FVF = D3DFVF_TEX2;
 		hr = m_pD3DDevEx->SetSamplerState(1, D3DSAMP_MAGFILTER, dwMagFilter);
 		hr = m_pD3DDevEx->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);
@@ -2398,7 +2398,7 @@ HRESULT CDX9VideoProcessor::ConvertColorPass(IDirect3DSurface9* pRenderTarget)
 		hr = m_pD3DDevEx->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
 		if (m_TexSrcVideo.Plane3.pTexture) {
-			hr = m_pD3DDevEx->SetTexture(2, m_TexSrcVideo.Plane3.pTexture);
+			hr = m_pD3DDevEx->SetTexture(2, m_TexSrcVideo.Plane3.pTexture.Get());
 			FVF = D3DFVF_TEX3;
 			hr = m_pD3DDevEx->SetSamplerState(2, D3DSAMP_MAGFILTER, dwMagFilter);
 			hr = m_pD3DDevEx->SetSamplerState(2, D3DSAMP_MINFILTER, D3DTEXF_POINT);
@@ -2421,7 +2421,7 @@ HRESULT CDX9VideoProcessor::ConvertColorPass(IDirect3DSurface9* pRenderTarget)
 
 }
 
-HRESULT CDX9VideoProcessor::ResizeShaderPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect)
+HRESULT CDX9VideoProcessor::ResizeShaderPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect)
 {
 	HRESULT hr = S_OK;
 	const int w2 = dstRect.Width();
@@ -2434,17 +2434,17 @@ HRESULT CDX9VideoProcessor::ResizeShaderPass(IDirect3DTexture9* pTexture, IDirec
 	if (m_iRotation == 90 || m_iRotation == 270) {
 		w1 = srcRect.Height();
 		h1 = srcRect.Width();
-		resizerX = (w1 == w2) ? nullptr : (w1 > k * w2) ? m_pShaderDownscaleY.p : m_pShaderUpscaleY.p; // use Y scaling here
+		resizerX = (w1 == w2) ? nullptr : (w1 > k * w2) ? m_pShaderDownscaleY.Get() : m_pShaderUpscaleY.Get(); // use Y scaling here
 		if (resizerX) {
-			resizerY = (h1 == h2) ? nullptr : (h1 > k * h2) ? m_pShaderDownscaleY.p : m_pShaderUpscaleY.p;
+			resizerY = (h1 == h2) ? nullptr : (h1 > k * h2) ? m_pShaderDownscaleY.Get() : m_pShaderUpscaleY.Get();
 		} else {
-			resizerY = (h1 == h2) ? nullptr : (h1 > k * h2) ? m_pShaderDownscaleX.p : m_pShaderUpscaleX.p; // use X scaling here
+			resizerY = (h1 == h2) ? nullptr : (h1 > k * h2) ? m_pShaderDownscaleX.Get() : m_pShaderUpscaleX.Get(); // use X scaling here
 		}
 	} else {
 		w1 = srcRect.Width();
 		h1 = srcRect.Height();
-		resizerX = (w1 == w2) ? nullptr : (w1 > k * w2) ? m_pShaderDownscaleX.p : m_pShaderUpscaleX.p;
-		resizerY = (h1 == h2) ? nullptr : (h1 > k * h2) ? m_pShaderDownscaleY.p : m_pShaderUpscaleY.p;
+		resizerX = (w1 == w2) ? nullptr : (w1 > k * w2) ? m_pShaderDownscaleX.Get() : m_pShaderUpscaleX.Get();
+		resizerY = (h1 == h2) ? nullptr : (h1 > k * h2) ? m_pShaderDownscaleY.Get() : m_pShaderUpscaleY.Get();
 	}
 
 	if (resizerX && resizerY) {
@@ -2474,22 +2474,22 @@ HRESULT CDX9VideoProcessor::ResizeShaderPass(IDirect3DTexture9* pTexture, IDirec
 
 		if (!m_TexResize.pTexture) {
 			// use only float textures here
-			hr = m_TexResize.Create(m_pD3DDevEx, D3DFMT_A16B16G16R16F,texWidth, texHeight, D3DUSAGE_RENDERTARGET);
+			hr = m_TexResize.Create(m_pD3DDevEx.Get(), D3DFMT_A16B16G16R16F,texWidth, texHeight, D3DUSAGE_RENDERTARGET);
 			if (FAILED(hr)) {
 				DLog(L"CDX9VideoProcessor::ProcessTex() : m_TexResize.Create() failed with error {}", HR2Str(hr));
 				return TextureCopyRect(pTexture, srcRect, dstRect, D3DTEXF_LINEAR, m_iRotation, m_bFlip);
 			}
 		}
 
-		CRect resizeRect(dstRect.left, 0, dstRect.right, texHeight);
+		Com::SmartRect resizeRect(dstRect.left, 0, dstRect.right, texHeight);
 
 		// resize width
-		hr = m_pD3DDevEx->SetRenderTarget(0, m_TexResize.pSurface);
+		hr = m_pD3DDevEx->SetRenderTarget(0, m_TexResize.pSurface.Get());
 		hr = TextureResizeShader(pTexture, srcRect, resizeRect, resizerX, m_iRotation, m_bFlip);
 
 		// resize height
 		hr = m_pD3DDevEx->SetRenderTarget(0, pRenderTarget);
-		hr = TextureResizeShader(m_TexResize.pTexture, resizeRect, dstRect, resizerY, 0, false);
+		hr = TextureResizeShader(m_TexResize.pTexture.Get(), resizeRect, dstRect, resizerY, 0, false);
 	}
 	else {
 		hr = m_pD3DDevEx->SetRenderTarget(0, pRenderTarget);
@@ -2514,7 +2514,7 @@ HRESULT CDX9VideoProcessor::ResizeShaderPass(IDirect3DTexture9* pTexture, IDirec
 	return hr;
 }
 
-HRESULT CDX9VideoProcessor::FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect)
+HRESULT CDX9VideoProcessor::FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect)
 {
 	HRESULT hr = m_pD3DDevEx->SetRenderTarget(0, pRenderTarget);
 
@@ -2535,7 +2535,7 @@ HRESULT CDX9VideoProcessor::FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurf
 		{ {(float)dstRect.right - 0.5f, (float)dstRect.bottom - 0.5f, 0.5f, 2.0f}, {{srcRect.right * dx, srcRect.bottom * dy}} },
 	};
 
-	hr = m_pD3DDevEx->SetPixelShader(m_pPSFinalPass);
+	hr = m_pD3DDevEx->SetPixelShader(m_pPSFinalPass.Get());
 
 	// Set sampler: image
 	hr = m_pD3DDevEx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
@@ -2555,7 +2555,7 @@ HRESULT CDX9VideoProcessor::FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurf
 	hr = m_pD3DDevEx->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 	hr = m_pD3DDevEx->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
 
-	hr = m_pD3DDevEx->SetTexture(1, m_TexDither.pTexture);
+	hr = m_pD3DDevEx->SetTexture(1, m_TexDither.pTexture.Get());
 
 	// Set constants
 	float fConstData[][4] = {
@@ -2563,7 +2563,7 @@ HRESULT CDX9VideoProcessor::FinalPass(IDirect3DTexture9* pTexture, IDirect3DSurf
 	};
 	hr = m_pD3DDevEx->SetPixelShaderConstantF(0, (float*)fConstData, std::size(fConstData));
 
-	hr = TextureBlt(m_pD3DDevEx, v, D3DTEXF_POINT);
+	hr = TextureBlt(m_pD3DDevEx.Get(), v, D3DTEXF_POINT);
 
 	m_pD3DDevEx->SetTexture(1, nullptr);
 
@@ -2578,11 +2578,11 @@ void CDX9VideoProcessor::DrawSubtitles(IDirect3DSurface9* pRenderTarget)
 		HRESULT hr = m_pD3DDevEx->SetRenderTarget(0, pRenderTarget);
 		if (SUCCEEDED(hr)) {
 			const SIZE windowSize = m_windowRect.Size();
-			const CRect rSrcPri(POINT(0, 0), windowSize);
-			CRect rDstVid(m_videoRect);
+			const Com::SmartRect rSrcPri(POINT(0, 0), windowSize);
+			Com::SmartRect rDstVid(m_videoRect);
 			const auto rtStart = m_pFilter->m_rtStartTime + m_rtStart;
 
-			if (CComQIPtr<ISubRenderCallback4> pSubCallBack4 = m_pFilter->m_pSubCallBack) {
+			if (Com::SmartQIPtr<ISubRenderCallback4> pSubCallBack4 = m_pFilter->m_pSubCallBack) {
 				pSubCallBack4->RenderEx3(rtStart, 0, m_rtAvgTimePerFrame, rDstVid, rDstVid, rSrcPri,
 										 1., m_iStereo3dTransform == 1 ? m_nStereoSubtitlesOffsetInPixels : 0);
 			} else {
@@ -2596,12 +2596,12 @@ void CDX9VideoProcessor::DrawSubtitles(IDirect3DSurface9* pRenderTarget)
 	}
 }
 
-HRESULT CDX9VideoProcessor::Process(IDirect3DSurface9* pRenderTarget, const CRect& srcRect, const CRect& dstRect, const bool second)
+HRESULT CDX9VideoProcessor::Process(IDirect3DSurface9* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second)
 {
 	HRESULT hr = S_OK;
 	m_bDitherUsed = false;
 
-	CRect rSrc = srcRect;
+	Com::SmartRect rSrc = srcRect;
 	IDirect3DTexture9* pInputTexture = nullptr;
 
 	const UINT numSteps = GetPostScaleSteps();
@@ -2618,39 +2618,39 @@ HRESULT CDX9VideoProcessor::Process(IDirect3DSurface9* pRenderTarget, const CRec
 			return hr;
 		}
 
-		CRect rect(0, 0, m_TexConvertOutput.Width, m_TexConvertOutput.Height);
-		hr = DxvaVPPass(m_TexConvertOutput.pSurface, rSrc, rect, second);
-		pInputTexture = m_TexConvertOutput.pTexture;
+		Com::SmartRect rect(0, 0, m_TexConvertOutput.Width, m_TexConvertOutput.Height);
+		hr = DxvaVPPass(m_TexConvertOutput.pSurface.Get(), rSrc, rect, second);
+		pInputTexture = m_TexConvertOutput.pTexture.Get();
 		rSrc = rect;
 	}
 	else if (m_PSConvColorData.bEnable) {
-		ConvertColorPass(m_TexConvertOutput.pSurface);
-		pInputTexture = m_TexConvertOutput.pTexture;
+		ConvertColorPass(m_TexConvertOutput.pSurface.Get());
+		pInputTexture = m_TexConvertOutput.pTexture.Get();
 		rSrc.SetRect(0, 0, m_TexConvertOutput.Width, m_TexConvertOutput.Height);
 	}
 	else {
-		pInputTexture = m_TexSrcVideo.pTexture;
+		pInputTexture = m_TexSrcVideo.pTexture.Get();
 	}
 
 	if (numSteps) {
 		UINT step = 0;
 		Tex_t* pTex = m_TexsPostScale.GetFirstTex();
-		IDirect3DSurface9* pRT = pTex->pSurface;
+		IDirect3DSurface9* pRT = pTex->pSurface.Get();
 
 		auto StepSetting = [&]() {
 			step++;
-			pInputTexture = pTex->pTexture;
+			pInputTexture = pTex->pTexture.Get();
 			if (step < numSteps) {
 				pTex = m_TexsPostScale.GetNextTex();
-				pRT = pTex->pSurface;
+				pRT = pTex->pSurface.Get();
 			}
 			else {
 				pRT = pRenderTarget;
 			}
 		};
 
-		CRect rect;
-		rect.IntersectRect(dstRect, CRect(0, 0, pTex->Width, pTex->Height));
+		Com::SmartRect rect;
+		rect.IntersectRect(dstRect, Com::SmartRect(0, 0, pTex->Width, pTex->Height));
 
 		if (m_DXVA2VP.IsReady()) {
 			m_bVPScalingUseShaders = rSrc.Width() != dstRect.Width() || rSrc.Height() != dstRect.Height();
@@ -2660,7 +2660,7 @@ HRESULT CDX9VideoProcessor::Process(IDirect3DSurface9* pRenderTarget, const CRec
 
 		if (m_pPSCorrection) {
 			StepSetting();
-			hr = m_pD3DDevEx->SetPixelShader(m_pPSCorrection);
+			hr = m_pD3DDevEx->SetPixelShader(m_pPSCorrection.Get());
 			hr = m_pD3DDevEx->SetRenderTarget(0, pRT);
 			hr = TextureCopyRect(pInputTexture, rect, rect, D3DTEXF_POINT, 0, false);
 		}
@@ -2682,7 +2682,7 @@ HRESULT CDX9VideoProcessor::Process(IDirect3DSurface9* pRenderTarget, const CRec
 
 			for (UINT idx = 0; idx < m_pPostScaleShaders.size(); idx++) {
 				StepSetting();
-				hr = m_pD3DDevEx->SetPixelShader(m_pPostScaleShaders[idx].shader);
+				hr = m_pD3DDevEx->SetPixelShader(m_pPostScaleShaders[idx].shader.Get());
 				hr = m_pD3DDevEx->SetRenderTarget(0, pRT);
 				hr = TextureCopyRect(pInputTexture, rect, rect, D3DTEXF_POINT, 0, false);
 			}
@@ -2696,14 +2696,14 @@ HRESULT CDX9VideoProcessor::Process(IDirect3DSurface9* pRenderTarget, const CRec
 				{ (float)pTex->Height, 0, (float)dstRect.top / pTex->Height, (float)dstRect.bottom / pTex->Height },
 			};
 			hr = m_pD3DDevEx->SetPixelShaderConstantF(0, (float*)fConstData, std::size(fConstData));
-			hr = m_pD3DDevEx->SetPixelShader(m_pPSHalfOUtoInterlace);
+			hr = m_pD3DDevEx->SetPixelShader(m_pPSHalfOUtoInterlace.Get());
 			hr = m_pD3DDevEx->SetRenderTarget(0, pRT);
 			hr = TextureCopyRect(pInputTexture, rect, rect, D3DTEXF_POINT, 0, false);
 		}
 
 		if (m_bFinalPass) {
 			StepSetting();
-			hr = FinalPass(pTex->pTexture, pRT, rect, rect);
+			hr = FinalPass(pTex->pTexture.Get(), pRT, rect, rect);
 			m_bDitherUsed = true;
 		}
 
@@ -2739,12 +2739,12 @@ HRESULT CDX9VideoProcessor::TextureCopy(IDirect3DTexture9* pTexture)
 
 	hr = m_pD3DDevEx->SetTexture(0, pTexture);
 
-	return TextureBlt(m_pD3DDevEx, v, D3DTEXF_POINT);
+	return TextureBlt(m_pD3DDevEx.Get(), v, D3DTEXF_POINT);
 }
 
 
 HRESULT CDX9VideoProcessor::TextureCopyRect(
-	IDirect3DTexture9* pTexture, const CRect& srcRect, const CRect& dstRect,
+	IDirect3DTexture9* pTexture, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect,
 	D3DTEXTUREFILTERTYPE filter, const int iRotation, const bool bFlip)
 {
 	HRESULT hr;
@@ -2798,13 +2798,13 @@ HRESULT CDX9VideoProcessor::TextureCopyRect(
 	};
 
 	hr = m_pD3DDevEx->SetTexture(0, pTexture);
-	hr = TextureBlt(m_pD3DDevEx, v, filter);
+	hr = TextureBlt(m_pD3DDevEx.Get(), v, filter);
 
 	return hr;
 }
 
 HRESULT CDX9VideoProcessor::TextureResizeShader(
-	IDirect3DTexture9* pTexture, const CRect& srcRect, const CRect& dstRect,
+	IDirect3DTexture9* pTexture, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect,
 	IDirect3DPixelShader9* pShader, const int iRotation, const bool bFlip)
 {
 	HRESULT hr = S_OK;
@@ -2883,7 +2883,7 @@ HRESULT CDX9VideoProcessor::TextureResizeShader(
 	hr = m_pD3DDevEx->SetPixelShader(pShader);
 
 	hr = m_pD3DDevEx->SetTexture(0, pTexture);
-	hr = TextureBlt(m_pD3DDevEx, v, D3DTEXF_POINT);
+	hr = TextureBlt(m_pD3DDevEx.Get(), v, D3DTEXF_POINT);
 	m_pD3DDevEx->SetPixelShader(nullptr);
 
 	return hr;
@@ -3174,7 +3174,7 @@ STDMETHODIMP CDX9VideoProcessor::SetAlphaBitmap(const MFVideoAlphaBitmap *pBmpPa
 			return E_INVALIDARG;
 		}
 
-		hr = m_TexAlphaBitmap.CheckCreate(m_pD3DDevEx, D3DFMT_A8R8G8B8, bm.bmWidth, bm.bmHeight, D3DUSAGE_DYNAMIC);
+		hr = m_TexAlphaBitmap.CheckCreate(m_pD3DDevEx.Get(), D3DFMT_A8R8G8B8, bm.bmWidth, bm.bmHeight, D3DUSAGE_DYNAMIC);
 		if (S_OK == hr) {
 			D3DLOCKED_RECT lr;
 			hr = m_TexAlphaBitmap.pSurface->LockRect(&lr, nullptr, D3DLOCK_DISCARD);

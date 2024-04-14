@@ -36,9 +36,9 @@ D3D11_TEXTURE2D_DESC CreateTex2DDesc(const DXGI_FORMAT format, const UINT width,
 
 struct Tex2D_t
 {
-	CComPtr<ID3D11Texture2D> pTexture;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexture;
 	D3D11_TEXTURE2D_DESC desc = {};
-	CComPtr<ID3D11ShaderResourceView> pShaderResource;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResource;
 
 	HRESULT CheckCreate(ID3D11Device* pDevice, const DXGI_FORMAT format, const UINT width, const UINT height, const Tex2DType type) {
 		if (!width || !height) {
@@ -67,7 +67,7 @@ struct Tex2D_t
 				shaderDesc.Texture2D.MostDetailedMip = 0; // = Texture2D desc.MipLevels - 1
 				shaderDesc.Texture2D.MipLevels = 1;       // = Texture2D desc.MipLevels
 
-				hr = pDevice->CreateShaderResourceView(pTexture, &shaderDesc, &pShaderResource);
+				hr = pDevice->CreateShaderResourceView(pTexture.Get(), &shaderDesc, &pShaderResource);
 				if (FAILED(hr)) {
 					Release();
 				}
@@ -78,18 +78,18 @@ struct Tex2D_t
 	}
 
 	virtual void Release() {
-		pShaderResource.Release();
-		pTexture.Release();
+		pShaderResource= nullptr;
+		pTexture= nullptr;
 		desc = {};
 	}
 };
 
 struct Tex11Video_t : Tex2D_t
 {
-	CComPtr<ID3D11Texture2D> pTexture2;
-	CComPtr<ID3D11Texture2D> pTexture3;
-	CComPtr<ID3D11ShaderResourceView> pShaderResource2;
-	CComPtr<ID3D11ShaderResourceView> pShaderResource3;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexture2;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexture3;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResource2;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResource3;
 
 	HRESULT CreateEx(ID3D11Device* pDevice, const DXGI_FORMAT format, const DX11PlaneConfig_t* pPlanes, UINT width, const UINT height, const Tex2DType type) {
 		Release();
@@ -108,15 +108,15 @@ struct Tex11Video_t : Tex2D_t
 				if (pPlanes) {
 					// 1 texture, 2 SRV
 					shaderDesc.Format = pPlanes->FmtPlane1;
-					hr = pDevice->CreateShaderResourceView(pTexture, &shaderDesc, &pShaderResource);
+					hr = pDevice->CreateShaderResourceView(pTexture.Get(), &shaderDesc, &pShaderResource);
 					if (S_OK == hr && pPlanes->FmtPlane2) {
 						shaderDesc.Format = pPlanes->FmtPlane2;
-						hr = pDevice->CreateShaderResourceView(pTexture, &shaderDesc, &pShaderResource2);
+						hr = pDevice->CreateShaderResourceView(pTexture.Get(), &shaderDesc, &pShaderResource2);
 					}
 				} else {
 					// 1 texture, 1 SRV
 					shaderDesc.Format = format;
-					hr = pDevice->CreateShaderResourceView(pTexture, &shaderDesc, &pShaderResource);
+					hr = pDevice->CreateShaderResourceView(pTexture.Get(), &shaderDesc, &pShaderResource);
 				}
 			}
 		}
@@ -139,7 +139,7 @@ struct Tex11Video_t : Tex2D_t
 					shaderDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 					shaderDesc.Texture2D.MostDetailedMip = 0;
 					shaderDesc.Texture2D.MipLevels = 1;
-					hr = pDevice->CreateShaderResourceView(pTexture2, &shaderDesc, &pShaderResource2);
+					hr = pDevice->CreateShaderResourceView(pTexture2.Get(), &shaderDesc, &pShaderResource2);
 
 					if (S_OK == hr && pPlanes->FmtPlane3) {
 						// 3 textures, 3 SRV
@@ -148,7 +148,7 @@ struct Tex11Video_t : Tex2D_t
 						hr = pDevice->CreateTexture2D(&texdesc, nullptr, &pTexture3);
 						if (S_OK == hr) {
 							shaderDesc.Format = pPlanes->FmtPlane3;
-							hr = pDevice->CreateShaderResourceView(pTexture3, &shaderDesc, &pShaderResource3);
+							hr = pDevice->CreateShaderResourceView(pTexture3.Get(), &shaderDesc, &pShaderResource3);
 						}
 					}
 				}
@@ -163,10 +163,10 @@ struct Tex11Video_t : Tex2D_t
 	}
 
 	void Release() override {
-		pShaderResource3.Release();
-		pTexture3.Release();
-		pShaderResource2.Release();
-		pTexture2.Release();
+		pShaderResource3= nullptr;
+		pTexture3= nullptr;
+		pShaderResource2= nullptr;
+		pTexture2= nullptr;
 		Tex2D_t::Release();
 	}
 };
@@ -238,7 +238,7 @@ public:
 struct ExternalPixelShader11_t
 {
 	std::wstring name;
-	CComPtr<ID3D11PixelShader> shader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> shader;
 };
 
 inline constexpr DirectX::XMFLOAT4 D3DCOLORtoXMFLOAT4(const D3DCOLOR color)

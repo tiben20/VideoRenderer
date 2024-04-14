@@ -278,12 +278,12 @@ typedef CFontBitmapGDI CFontBitmap;
 class CFontBitmapDWrite
 {
 private:
-	CComPtr<ID2D1Factory>       m_pD2D1Factory;
-	CComPtr<IDWriteFactory>     m_pDWriteFactory;
-	CComPtr<IWICImagingFactory> m_pWICFactory;
+	Microsoft::WRL::ComPtr<ID2D1Factory>       m_pD2D1Factory;
+	Microsoft::WRL::ComPtr<IDWriteFactory>     m_pDWriteFactory;
+	Microsoft::WRL::ComPtr<IWICImagingFactory> m_pWICFactory;
 
-	CComPtr<IWICBitmap>     m_pWICBitmap;
-	CComPtr<IWICBitmapLock> m_pWICBitmapLock;
+	Microsoft::WRL::ComPtr<IWICBitmap>     m_pWICBitmap;
+	Microsoft::WRL::ComPtr<IWICBitmapLock> m_pWICBitmapLock;
 	std::vector<RECT> m_charCoords;
 	SIZE m_MaxCharMetric = {};
 
@@ -299,7 +299,9 @@ public:
 		DLogIf(FAILED(hr), L"D2D1CreateFactory() failed with error {}", HR2Str(hr));
 
 		if (SUCCEEDED(hr)) {
-			hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(m_pDWriteFactory), reinterpret_cast<IUnknown**>(&m_pDWriteFactory));
+			IDWriteFactory* pDWriteFactory;
+			hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(m_pDWriteFactory), reinterpret_cast<IUnknown**>(&pDWriteFactory));
+			m_pDWriteFactory = pDWriteFactory;
 			DLogIf(FAILED(hr), L"DWriteCreateFactory() failed with error {}", HR2Str(hr));
 		}
 
@@ -317,12 +319,12 @@ public:
 
 	~CFontBitmapDWrite()
 	{
-		m_pWICBitmapLock.Release();
-		m_pWICBitmap.Release();
+		m_pWICBitmapLock= nullptr;
+		m_pWICBitmap= nullptr;
 
-		m_pWICFactory.Release();
-		m_pDWriteFactory.Release();
-		m_pD2D1Factory.Release();
+		m_pWICFactory= nullptr;
+		m_pDWriteFactory= nullptr;
+		m_pD2D1Factory= nullptr;
 	}
 
 	HRESULT Initialize(const WCHAR* fontName, const int fontHeight, UINT fontFlags, const WCHAR* chars, UINT length)
@@ -331,11 +333,11 @@ public:
 			return E_ABORT;
 		}
 
-		m_pWICBitmapLock.Release();
-		m_pWICBitmap.Release();
+		m_pWICBitmapLock= nullptr;
+		m_pWICBitmap= nullptr;
 		m_charCoords.clear();
 
-		CComPtr<IDWriteTextFormat> pTextFormat;
+		Microsoft::WRL::ComPtr<IDWriteTextFormat> pTextFormat;
 		HRESULT hr = m_pDWriteFactory->CreateTextFormat(
 			fontName,
 			nullptr,
@@ -357,7 +359,7 @@ public:
 
 		for (UINT i = 0; i < length; i++) {
 			IDWriteTextLayout* pTextLayout;
-			hr = m_pDWriteFactory->CreateTextLayout(&chars[i], 1, pTextFormat, 0, 0, &pTextLayout);
+			hr = m_pDWriteFactory->CreateTextLayout(&chars[i], 1, pTextFormat.Get(), 0, 0, &pTextLayout);
 			if (S_OK == hr) {
 				hr = pTextLayout->GetMetrics(&textMetrics);
 				pTextLayout->Release();
@@ -402,15 +404,15 @@ public:
 				return hr;
 			}
 
-			CComPtr<ID2D1RenderTarget>    pD2D1RenderTarget;
-			CComPtr<ID2D1SolidColorBrush> pD2D1Brush;
+			Microsoft::WRL::ComPtr<ID2D1RenderTarget>    pD2D1RenderTarget;
+			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pD2D1Brush;
 
 			D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
 				D2D1_RENDER_TARGET_TYPE_DEFAULT,
 				D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_UNKNOWN),
 				96, 96);
 
-			hr = m_pD2D1Factory->CreateWicBitmapRenderTarget(m_pWICBitmap, &props, &pD2D1RenderTarget);
+			hr = m_pD2D1Factory->CreateWicBitmapRenderTarget(m_pWICBitmap.Get(), &props, &pD2D1RenderTarget);
 			if (S_OK != hr) {
 				return hr;
 			}
@@ -430,9 +432,9 @@ public:
 					UINT X = x * stepX + 1;
 					UINT Y = y * stepY;
 					IDWriteTextLayout* pTextLayout;
-					hr = m_pDWriteFactory->CreateTextLayout(&chars[idx], 1, pTextFormat, 0, 0, &pTextLayout);
+					hr = m_pDWriteFactory->CreateTextLayout(&chars[idx], 1, pTextFormat.Get(), 0, 0, &pTextLayout);
 					if (S_OK == hr) {
-						pD2D1RenderTarget->DrawTextLayout({ (FLOAT)X, (FLOAT)Y }, pTextLayout, pD2D1Brush);
+						pD2D1RenderTarget->DrawTextLayout({ (FLOAT)X, (FLOAT)Y }, pTextLayout, pD2D1Brush.Get());
 						pTextLayout->Release();
 					}
 					if (FAILED(hr)) {
@@ -450,11 +452,11 @@ public:
 			}
 			pD2D1RenderTarget->EndDraw();
 
-			pD2D1Brush.Release();
-			pD2D1RenderTarget.Release();
+			pD2D1Brush= nullptr;
+			pD2D1RenderTarget= nullptr;
 		}
 
-		pTextFormat.Release();
+		pTextFormat= nullptr;
 
 #if _DEBUG && DUMP_BITMAP
 		if (S_OK == hr) {
@@ -547,7 +549,7 @@ public:
 
 	void Unlock()
 	{
-		m_pWICBitmapLock.Release();
+		m_pWICBitmapLock= nullptr;
 	}
 
 private:
@@ -579,9 +581,9 @@ private:
 			return E_INVALIDARG;
 		}
 
-		CComPtr<IWICStream> pStream;
-		CComPtr<IWICBitmapEncoder> pEncoder;
-		CComPtr<IWICBitmapFrameEncode> pFrameEncode;
+		Microsoft::WRL::ComPtr<IWICStream> pStream;
+		Microsoft::WRL::ComPtr<IWICBitmapEncoder> pEncoder;
+		Microsoft::WRL::ComPtr<IWICBitmapFrameEncode> pFrameEncode;
 		WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
 
 		hr = m_pWICFactory->CreateStream(&pStream);
@@ -592,7 +594,7 @@ private:
 			hr = m_pWICFactory->CreateEncoder(guidContainerFormat, nullptr, &pEncoder);
 		}
 		if (SUCCEEDED(hr)) {
-			hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
+			hr = pEncoder->Initialize(pStream.Get(), WICBitmapEncoderNoCache);
 		}
 		if (SUCCEEDED(hr)) {
 			hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
@@ -607,7 +609,7 @@ private:
 			hr = pFrameEncode->SetPixelFormat(&format);
 		}
 		if (SUCCEEDED(hr)) {
-			hr = pFrameEncode->WriteSource(m_pWICBitmap, nullptr);
+			hr = pFrameEncode->WriteSource(m_pWICBitmap.Get(), nullptr);
 		}
 		if (SUCCEEDED(hr)) {
 			hr = pFrameEncode->Commit();

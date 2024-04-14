@@ -22,8 +22,8 @@
 
 struct Tex_t
 {
-	CComPtr<IDirect3DTexture9> pTexture;
-	CComPtr<IDirect3DSurface9> pSurface;
+	Microsoft::WRL::ComPtr<IDirect3DTexture9> pTexture;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pSurface;
 	D3DFORMAT Format = D3DFMT_UNKNOWN;
 	UINT Width  = 0;
 	UINT Height = 0;
@@ -51,7 +51,7 @@ struct Tex_t
 				Height = desc.Height;
 			} else {
 				ASSERT(FALSE);
-				pTexture.Release();
+				pTexture = nullptr;
 			}
 		}
 
@@ -59,8 +59,8 @@ struct Tex_t
 	}
 
 	virtual void Release() {
-		pSurface.Release();
-		pTexture.Release();
+		pSurface= nullptr;
+		pTexture= nullptr;
 		Format = D3DFMT_UNKNOWN;
 		Width  = 0;
 		Height = 0;
@@ -177,7 +177,7 @@ public:
 struct ExternalPixelShader9_t
 {
 	std::wstring name;
-	CComPtr<IDirect3DPixelShader9> shader;
+	Microsoft::WRL::ComPtr<IDirect3DPixelShader9> shader;
 };
 
 UINT GetAdapter(HWND hWnd, IDirect3D9Ex* pD3D);

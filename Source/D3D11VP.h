@@ -111,14 +111,14 @@ class CD3D11VP
 {
 private:
 	UINT m_VendorId = 0;
-	CComPtr<ID3D11VideoDevice> m_pVideoDevice;
-	CComPtr<ID3D11VideoProcessor> m_pVideoProcessor;
+	Microsoft::WRL::ComPtr<ID3D11VideoDevice> m_pVideoDevice;
+	Microsoft::WRL::ComPtr<ID3D11VideoProcessor> m_pVideoProcessor;
 
-	CComPtr<ID3D11VideoContext> m_pVideoContext;
-	CComPtr<ID3D11VideoProcessorEnumerator> m_pVideoProcessorEnum;
+	Microsoft::WRL::ComPtr<ID3D11VideoContext> m_pVideoContext;
+	Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> m_pVideoProcessorEnum;
 
-	CComPtr<ID3D11VideoContext1> m_pVideoContext1;
-	CComPtr<ID3D11VideoProcessorEnumerator1> m_pVideoProcessorEnum1;
+	Microsoft::WRL::ComPtr<ID3D11VideoContext1> m_pVideoContext1;
+	Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator1> m_pVideoProcessorEnum1;
 	BOOL m_bConvSupportedG2084 = FALSE;
 
 	D3D11_VIDEO_PROCESSOR_CAPS m_VPCaps = {};

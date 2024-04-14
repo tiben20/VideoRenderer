@@ -256,7 +256,7 @@ void CDXVA2VP::ReleaseVideoService()
 {
 	ReleaseVideoProcessor();
 
-	m_pDXVA2_VPService.Release();
+	m_pDXVA2_VPService=nullptr;
 }
 
 HRESULT CDXVA2VP::InitVideoProcessor(
@@ -295,7 +295,7 @@ HRESULT CDXVA2VP::InitVideoProcessor(
 	}
 
 	// We check the creation of the input surface, because Y410 surface (Intel) may not be generated for some unknown reason
-	CComPtr<IDirect3DSurface9> pTestInputSurface;
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> pTestInputSurface;
 	hr = m_pDXVA2_VPService->CreateSurface(
 		width, height,
 		0, inputFmt,
@@ -323,7 +323,7 @@ HRESULT CDXVA2VP::InitVideoProcessor(
 				m_DXVA2VPGuid = devguid;
 				break; // found!
 			}
-			m_pDXVA2_VP.Release();
+			m_pDXVA2_VP = nullptr;
 		}
 
 		if (!m_pDXVA2_VP && CreateDXVA2VPDevice(DXVA2_VideoProcBobDevice, videodesc, 0, TestOutputFmt)) {
@@ -370,7 +370,7 @@ void CDXVA2VP::ReleaseVideoProcessor()
 {
 	m_VideoSamples.Clear();
 
-	m_pDXVA2_VP.Release();
+	m_pDXVA2_VP = nullptr;
 
 	m_DXVA2VPcaps = {};
 	m_NumRefSamples = 1;
@@ -455,7 +455,7 @@ void CDXVA2VP::CleanSamplesData()
 	m_VideoSamples.Clean();
 }
 
-void CDXVA2VP::SetRectangles(const CRect& srcRect, const CRect& dstRect)
+void CDXVA2VP::SetRectangles(const Com::SmartRect& srcRect, const Com::SmartRect& dstRect)
 {
 	m_BltParams.TargetRect = dstRect;
 	m_BltParams.ConstrictionSize.cx = dstRect.Width();
