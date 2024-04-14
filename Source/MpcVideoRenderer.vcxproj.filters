@@ -105,6 +105,9 @@
     <ClCompile Include="Utils\Geometry.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\Registry.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -210,6 +213,12 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\atlredef.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Registry.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StdString.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

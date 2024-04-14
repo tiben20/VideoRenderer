@@ -224,7 +224,7 @@ static void TextureBlt11(
 	ID3D11VertexShader* pVertexShader,
 	ID3D11PixelShader* pPixelShader,
 	ID3D11ShaderResourceView* pShaderResourceViews,
-	ID3D11SamplerState* pSampler,
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler,
 	ID3D11Buffer* pConstantBuffer,
 	ID3D11Buffer* pVertexBuffer)
 {
@@ -243,7 +243,7 @@ static void TextureBlt11(
 	pDeviceContext->VSSetShader(pVertexShader, nullptr, 0);
 	pDeviceContext->PSSetShader(pPixelShader, nullptr, 0);
 	pDeviceContext->PSSetShaderResources(0, 1, &pShaderResourceViews);
-	pDeviceContext->PSSetSamplers(0, 1, &pSampler);
+	pDeviceContext->PSSetSamplers(0, 1, pSampler.GetAddressOf());
 	pDeviceContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
 	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	pDeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &Offset);
@@ -322,7 +322,7 @@ HRESULT CDX11VideoProcessor::TextureCopyRect(
 	VP.MinDepth = 0.0f;
 	VP.MaxDepth = 1.0f;
 
-	TextureBlt11(m_pDeviceContext.Get(), pRenderTargetView.Get(), VP, m_pVSimpleInputLayout.Get(), m_pVS_Simple.Get(), pPixelShader, Tex.pShaderResource.Get(), m_pSamplerPoint.Get(), pConstantBuffer, m_pVertexBuffer.Get());
+	TextureBlt11(m_pDeviceContext.Get(), pRenderTargetView.Get(), VP, m_pVSimpleInputLayout.Get(), m_pVS_Simple.Get(), pPixelShader, Tex.pShaderResource.Get(), m_pSamplerPoint, pConstantBuffer, m_pVertexBuffer.Get());
 
 	return hr;
 }
@@ -2667,7 +2667,7 @@ HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
 
 	// Set resources
 	m_pDeviceContext.Get()->IASetInputLayout(m_pVSimpleInputLayout.Get());
-	m_pDeviceContext.Get()->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
+	m_pDeviceContext.Get()->OMSetRenderTargets(1, pRenderTargetView.GetAddressOf(), nullptr);
 	m_pDeviceContext.Get()->RSSetViewports(1, &VP);
 	m_pDeviceContext.Get()->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 	m_pDeviceContext.Get()->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
@@ -2676,13 +2676,14 @@ HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
 	} else {
 		m_pDeviceContext.Get()->PSSetShader(m_pPSConvertColor.Get(), nullptr, 0);
 	}
-	m_pDeviceContext.Get()->PSSetShaderResources(0, 1, &m_TexSrcVideo.pShaderResource);
-	m_pDeviceContext.Get()->PSSetShaderResources(1, 1, &m_TexSrcVideo.pShaderResource2);
-	m_pDeviceContext.Get()->PSSetShaderResources(2, 1, &m_TexSrcVideo.pShaderResource3);
-	m_pDeviceContext.Get()->PSSetSamplers(0, 1, &m_pSamplerPoint);
-	m_pDeviceContext.Get()->PSSetSamplers(1, 1, &m_pSamplerLinear);
+	m_pDeviceContext.Get()->PSSetShaderResources(0, 1, m_TexSrcVideo.pShaderResource.GetAddressOf());
+	m_pDeviceContext.Get()->PSSetShaderResources(1, 1, m_TexSrcVideo.pShaderResource2.GetAddressOf());
+	m_pDeviceContext.Get()->PSSetShaderResources(2, 1, m_TexSrcVideo.pShaderResource3.GetAddressOf());
+	
+	m_pDeviceContext.Get()->PSSetSamplers(0, 1, m_pSamplerPoint.GetAddressOf());
+	m_pDeviceContext.Get()->PSSetSamplers(1, 1, m_pSamplerLinear.GetAddressOf());
 	m_pDeviceContext.Get()->PSSetConstantBuffers(0, 1, &m_PSConvColorData.pConstants);
-	m_pDeviceContext.Get()->PSSetConstantBuffers(1, 1, &m_pDoviCurvesConstantBuffer);
+	m_pDeviceContext.Get()->PSSetConstantBuffers(1, 1, m_pDoviCurvesConstantBuffer.GetAddressOf());
 	m_pDeviceContext.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	m_pDeviceContext.Get()->IASetVertexBuffers(0, 1, &m_PSConvColorData.pVertexBuffer, &Stride, &Offset);
 

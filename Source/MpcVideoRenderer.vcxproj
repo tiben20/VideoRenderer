@@ -87,6 +87,7 @@
     <ClCompile Include="Times.cpp" />
     <ClCompile Include="Utils\CPUInfo.cpp" />
     <ClCompile Include="Utils\Geometry.cpp" />
+    <ClCompile Include="Utils\Registry.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Utils\Util.cpp" />
     <ClCompile Include="VideoProcessor.cpp" />
@@ -123,7 +124,9 @@
     <ClInclude Include="Utils\CPUInfo.h" />
     <ClInclude Include="Utils\Geometry.h" />
     <ClInclude Include="Utils\gpu_memcpy_sse4.h" />
+    <ClInclude Include="Utils\Registry.h" />
     <ClInclude Include="Utils\smartptr.h" />
+    <ClInclude Include="Utils\StdString.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Util.h" />
     <ClInclude Include="VideoProcessor.h" />
